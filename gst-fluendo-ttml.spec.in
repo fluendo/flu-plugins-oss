@@ -1,0 +1,56 @@
+%define majorminor  0.10
+
+%{!?gstreamer:  %define         gstreamer       gstreamer}
+%{expand:%%define meego %(test -e /etc/meego-release && echo 1 || echo 0)}
+
+Name:		%{gstreamer}-fluendo-ttml
+Version:	@VERSION@
+Release:	1.flu
+Summary:	Fluendo GStreamer plug-in for TTML specification
+
+Group:		Applications/Multimedia
+License:	Commercial
+URL:		http://www.fluendo.com/
+Source:		gst-fluendo-ttml-%{version}.tar.bz2
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:  %{gstreamer}-devel 
+%if ! %{meego}
+BuildRequires:  %{gstreamer}-plugins-base-devel
+%else
+BuildRequires:  gst-plugins-base-devel
+%endif
+BuildRequires:  libX11-devel
+BuildRequires:  mesa-libGL-devel
+
+ExclusiveArch:  i386 x86_64 
+ 
+%description
+Fluendo GStreamer plug-in for TTML specification
+
+%prep
+%setup -q -n gst-fluendo-ttml-%{version}
+
+%build
+%configure
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%makeinstall
+
+# Remove unneeded .la and .a files
+rm -rf $RPM_BUILD_ROOT/%{_libdir}/gstreamer-%{majorminor}/*.a
+rm -rf $RPM_BUILD_ROOT/%{_libdir}/gstreamer-%{majorminor}/*.la
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root, -)
+%doc README COPYING AUTHORS NEWS 
+%{_libdir}/gstreamer-%{majorminor}/libgstfluttml.so
+
+%changelog
+* Thu Sep 13 2012 Jorge Zapata <jzapata@fluendo.com>
+- Initial spec file.
