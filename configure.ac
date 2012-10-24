@@ -103,43 +103,9 @@ AG_GST_SET_PLUGINDIR
 dnl Check for the libraries
 AG_GST_PKG_CHECK_MODULES(LIBXML, libxml-2.0 >= 2.4.9)
 
-dnl Check for the MSTAR DRM lib
-AC_LANG_PUSH([C++])
-AC_CHECK_HEADERS(MDrmAgent.h, [have_mstar_h="yes"], [have_mstar_h="no"])
-dnl use the mangled c++ name
-AC_CHECK_LIB(DrmAgent, _Z20DRMAG_CreateInstancePj, [have_mstar_l="yes"],[have_mstar_l="no"])
-if test "x$have_mstar_h" = "xyes" && test "x$have_mstar_l" = "xyes"; then
-  build_mstar="yes"
-else
-  build_mstar="no"
-fi
-AC_LANG_POP([C++])
-
-if test "x$build_mstar" = "xyes"; then
-  AC_DEFINE(BUILD_MSTAR, 1, [Build with MStar DRM Agent])
-fi
-AM_CONDITIONAL(HAVE_MSTAR, [test "x$build_mstar" = "xyes"])
-
-dnl Check for the MARLIN DRM lib
-AC_CHECK_HEADERS(Wasabi.h, [have_marlin_h="yes"], [have_marlin_h="no"])
-dnl use the mangled c++ name
-AC_CHECK_LIB(Wasabi, WSB_MediaDataDecrypter_Decrypt, [have_marlin_l="yes"],[have_marlin_l="no"])
-if test "x$have_marlin_h" = "xyes" && test "x$have_marlin_l" = "xyes"; then
-  build_marlin="yes"
-else
-  build_marlin="no"
-fi
-
-if test "x$build_marlin" = "xyes"; then
-  AC_DEFINE(BUILD_MARLIN, 1, [Build with Marlin DRM Agent])
-fi
-AM_CONDITIONAL(HAVE_MARLIN, [test "x$build_marlin" = "xyes"])
-
 AC_OUTPUT(
 Makefile
 src/Makefile
-gst/Makefile
-gst/ttml/Makefile
 common/Makefile
 common/m4/Makefile
 gst-fluendo-ttml.spec
@@ -150,7 +116,4 @@ $PACKAGE-$VERSION
 
         prefix:                           ${prefix}
         compiler:                         ${CC}
-
-        MStar DRM agent:                  ${build_mstar}
-        Marlin DRM agent:                 ${build_marlin}
               "

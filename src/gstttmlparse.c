@@ -15,7 +15,7 @@
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
 
-GST_DEBUG_CATEGORY (ttmlparse_debug);
+GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
 
 static GstElementDetails ttmlparse_details = {
@@ -363,9 +363,6 @@ gst_ttmlparse_base_init (gpointer g_class)
 {
   GstElementClass * element_class = GST_ELEMENT_CLASS (g_class);
   
-  GST_DEBUG_CATEGORY_INIT (ttmlparse_debug, "ttmlparse", 0,
-      "TTML subtitle parser");
-
   gst_element_class_add_pad_template (element_class,
       gst_static_pad_template_get (&ttmlparse_sink_template));
   gst_element_class_add_pad_template (element_class,
