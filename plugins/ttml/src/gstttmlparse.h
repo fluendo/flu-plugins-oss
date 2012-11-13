@@ -34,6 +34,7 @@ struct _GstTTMLParse {
   GstPad * srcpad;
   
   GstSegment * segment;
+  gboolean newsegment_needed;
 };
 
 struct _GstTTMLParseClass {
