@@ -170,6 +170,15 @@ gst_ttmlparse_handle_doc (GstTTMLParse * parse, xmlDocPtr doc, GstClockTime pts)
                 &clip_start, &clip_stop);
                 
         if (in_seg) {
+          if (G_UNLIKELY (parse->newsegment_needed)) {
+            GstEvent *event;
+
+            event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME, 0, -1, 0);
+            GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
+            gst_pad_push_event (parse->srcpad, event);
+            parse->newsegment_needed = FALSE;
+          }
+
           GST_BUFFER_TIMESTAMP (buffer) = clip_start;
           GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
         
@@ -273,6 +282,10 @@ gst_ttmlparse_sink_event (GstPad * pad, GstEvent * event)
       
       gst_event_parse_new_segment (event, &update, &rate, &format, &start,
           &stop, &time);
+      if (format != GST_FORMAT_TIME) {
+        GST_DEBUG_OBJECT (parse, "dropping it because it is not in TIME format");
+        goto beach;
+      }
       
       GST_DEBUG_OBJECT (parse, "received new segment update %d, rate %f, " \
           "start %" GST_TIME_FORMAT ", stop %" GST_TIME_FORMAT, update, rate,
@@ -288,7 +301,8 @@ gst_ttmlparse_sink_event (GstPad * pad, GstEvent * event)
         GST_DEBUG_OBJECT (parse, "our segment now is %" GST_SEGMENT_FORMAT,
             parse->segment);
       }
-          
+
+      parse->newsegment_needed = FALSE;
       ret = gst_pad_event_default (pad, event);
       break;
     }
@@ -296,7 +310,8 @@ gst_ttmlparse_sink_event (GstPad * pad, GstEvent * event)
       ret = gst_pad_event_default (pad, event);
       break;
   }
-  
+
+beach:
   gst_object_unref (parse);
   
   return ret;
@@ -408,6 +423,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   gst_element_add_pad (GST_ELEMENT (parse), parse->srcpad);
 
   parse->segment = gst_segment_new ();
+  parse->newsegment_needed = TRUE;
 
   gst_ttmlparse_cleanup (parse);
 }
