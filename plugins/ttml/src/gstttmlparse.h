@@ -9,7 +9,6 @@
 #include <gst/gst.h>
 
 G_BEGIN_DECLS
-
 #define GST_TYPE_TTMLPARSE            (gst_ttmlparse_get_type())
 #define GST_TTMLPARSE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),\
                                          GST_TYPE_TTMLPARSE, GstTTMLParse))
@@ -21,23 +20,24 @@ G_BEGIN_DECLS
                                          GST_TYPE_TTMLPARSE))
 #define GST_IS_TTMLPARSE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass),\
                                          GST_TYPE_TTMLPARSE))
-                                         
 typedef struct _GstTTMLParse GstTTMLParse;
 typedef struct _GstTTMLParseClass GstTTMLParseClass;
 
-struct _GstTTMLParse {
+struct _GstTTMLParse
+{
   GstElement element;
 
   /* Sink pad */
-  GstPad * sinkpad;
+  GstPad *sinkpad;
   /* Sourc pad */
-  GstPad * srcpad;
-  
-  GstSegment * segment;
+  GstPad *srcpad;
+
+  GstSegment *segment;
   gboolean newsegment_needed;
 };
 
-struct _GstTTMLParseClass {
+struct _GstTTMLParseClass
+{
   GstElementClass parent_class;
 };
 
@@ -45,5 +45,4 @@ GType gst_ttmlparse_get_type (void);
 GType gst_flussdemux_get_type (void);
 
 G_END_DECLS
-
 #endif /* __GST_TTMLPARSE_H__ */
