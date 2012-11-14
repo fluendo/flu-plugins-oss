@@ -1,0 +1,20 @@
+2012-11-14  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_cleanup),
+	(gst_ttmlparse_is_type), (gst_ttmlparse_parse_time_expression),
+	(gst_ttmlparse_send_buffer), (gst_ttmlparse_sax_element_start),
+	(gst_ttmlparse_sax_element_end), (gst_ttmlparse_sax_characters),
+	(gst_ttmlparse_sax_warning), (gst_ttmlparse_sax_error),
+	(gst_ttmlparse_sax_comment), (gst_ttmlparse_sax_get_entity),
+	(gst_ttmlparse_chain), (gst_ttmlparse_init):
+	* src/gstttmlparse.h: 
+	  - Use a SAX XML parser instead of the DOM one, so files can be parsed
+	    as they are received, even if they are not complete.
+	  - Disregard namespaces, to support files using the final and the
+	    working draft names.
+	  - Support time expressions in "HH:mm:ss" and "10s" format.
+	  - Support concatenated XML files inside the same buffer (only seen in
+	    files produced by ourselves, but better safe than sorry).
+	  - Remove Authentec hack.
+
+

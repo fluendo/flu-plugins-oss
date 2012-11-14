@@ -34,6 +34,13 @@ struct _GstTTMLParse
 
   GstSegment *segment;
   gboolean newsegment_needed;
+
+  xmlParserCtxtPtr xml_parser;
+  gboolean inside_p;
+  GstBuffer *current_p;
+  GstClockTime current_begin;
+  GstClockTime current_end;
+  GstClockTime current_pts;
 };
 
 struct _GstTTMLParseClass

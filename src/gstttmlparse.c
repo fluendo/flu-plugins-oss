@@ -48,196 +48,289 @@ gst_ttmlparse_cleanup (GstTTMLParse * parse)
     gst_segment_init (parse->segment, GST_FORMAT_TIME);
   }
 
+  if (parse->xml_parser) {
+    xmlFreeParserCtxt (parse->xml_parser);
+    parse->xml_parser = NULL;
+  }
+
   return;
 }
 
-static GstFlowReturn
-gst_ttmlparse_handle_doc (GstTTMLParse * parse, xmlDocPtr doc, GstClockTime pts)
+/* Check if the given node or attribute name matches a type, disregarding
+ * possible namespaces */
+static gboolean
+gst_ttmlparse_is_type (const gchar * name, const gchar * type)
 {
-  GstFlowReturn ret = GST_FLOW_OK;
-  xmlXPathContextPtr xpathCtx = NULL;
-  xmlXPathObjectPtr xpathObj = NULL;
-  gint nb_nodes;
+  if (!g_ascii_strcasecmp (name, type))
+    return TRUE;
+  if (strlen (name) > strlen (type)) {
+    const gchar *suffix = name + strlen (name) - strlen (type);
+    if (suffix[-1] == ':' && !g_ascii_strcasecmp (suffix, type))
+      return TRUE;
+  }
+  return FALSE;
+}
 
-  xpathCtx = xmlXPathNewContext (doc);
-  if (G_UNLIKELY (!xpathCtx)) {
-    GST_WARNING_OBJECT (parse, "failed creating an XPATH context from doc");
-    ret = GST_FLOW_ERROR;
-    goto beach;
+/* Parse both types of time expressions as specified in the TTML specification,
+ * be it in 00:00:00:00 or 00s forms */
+static GstClockTime
+gst_ttmlparse_parse_time_expression (const gchar * expr)
+{
+  gdouble h, m, s, count;
+  char metric[3] = "\0\0";
+  GstClockTime res = GST_CLOCK_TIME_NONE;
+
+  if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
+    res = (h * 3600 + m * 60 + s) * GST_SECOND;
+  } else if (sscanf (expr, "%lf%2[hms]", &count, metric) == 2) {
+    double scale = 0;
+    switch (metric[0]) {
+      case 'h':
+        scale = 3600 * GST_SECOND;
+        break;
+      case 'm':
+        if (metric[1] == 's')
+          scale = GST_MSECOND;
+        else
+          scale = 60 * GST_SECOND;
+        break;
+      case 's':
+        scale = GST_SECOND;
+        break;
+      default:
+        /* TODO: Handle 'f' and 't' metrics */
+        GST_WARNING ("Unknown metric %s", metric);
+    }
+    res = count * scale;
+  } else {
+    GST_WARNING ("Unrecognized time expression: %s", expr);
+  }
+  GST_LOG ("Parsed %s into %" GST_TIME_FORMAT, expr, GST_TIME_ARGS (res));
+  return res;
+}
+
+/* Pad push the stored buffer, using the correct timestamps and clipping */
+static void
+gst_ttmlparse_send_buffer (GstTTMLParse * parse)
+{
+  GstBuffer *buffer = parse->current_p;
+  gboolean in_seg = FALSE;
+  gint64 clip_start, clip_stop;
+
+  if (!buffer)
+    return;
+
+  gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
+
+  /* BEGIN and END times are relative to their "container", in this case,
+   * the buffer that brought us the TTML file */
+  if (GST_CLOCK_TIME_IS_VALID (parse->current_begin)) {
+    parse->current_begin += parse->current_pts;
+  }
+  if (GST_CLOCK_TIME_IS_VALID (parse->current_end)) {
+    parse->current_end += parse->current_pts;
   }
 
-  /* Register namespaces */
-  xmlXPathRegisterNs (xpathCtx, BAD_CAST "ttml",
-      BAD_CAST "http://www.w3.org/2006/10/ttaf1");
-  xmlXPathRegisterNs (xpathCtx, BAD_CAST "ttmlstyle",
-      BAD_CAST "http://www.w3.org/2006/10/ttaf1#styling");
-  xmlXPathRegisterNs (xpathCtx, BAD_CAST "ttmlmetadata",
-      BAD_CAST "http://www.w3.org/2006/10/ttaf1#metadata");
+  in_seg = gst_segment_clip (parse->segment, GST_FORMAT_TIME,
+      parse->current_begin, parse->current_end, &clip_start, &clip_stop);
 
-  xpathObj = xmlXPathEvalExpression (BAD_CAST "//ttml:p", xpathCtx);
-  if (G_UNLIKELY (!xpathObj)) {
-    GST_WARNING_OBJECT (parse, "failed evaluating XPATH expression");
-    ret = GST_FLOW_ERROR;
-    goto beach;
+  if (in_seg) {
+    if (G_UNLIKELY (parse->newsegment_needed)) {
+      GstEvent *event;
+
+      event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME, 0, -1, 0);
+      GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
+      gst_pad_push_event (parse->srcpad, event);
+      parse->newsegment_needed = FALSE;
+    }
+
+    GST_BUFFER_TIMESTAMP (buffer) = clip_start;
+    GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
+
+    GST_DEBUG_OBJECT (parse, "Pushing buffer of %u bytes, pts %"
+        GST_TIME_FORMAT " duration %" GST_TIME_FORMAT,
+        GST_BUFFER_SIZE (buffer),
+        GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
+        GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
+    GST_DEBUG_OBJECT (parse, "Subtitle content: '%s'",
+        GST_BUFFER_DATA (buffer));
+
+    /* TODO: Check return value, store it in the structure,
+     * and return it from the chain. Do not process any more
+     * nodes if an error is detected. */
+    gst_pad_push (parse->srcpad, buffer);
+  } else {
+    GST_DEBUG_OBJECT (parse, "Buffer is out of segment (pts %"
+        GST_TIME_FORMAT ")", GST_TIME_ARGS (parse->current_begin));
+    gst_buffer_unref (buffer);
   }
 
-  nb_nodes = xpathObj->nodesetval->nodeNr;
+  parse->current_p = NULL;
+}
 
-  GST_LOG_OBJECT (parse, "found %d matching nodes in this doc", nb_nodes);
+/* Process a node start. If it is a <p> node, store interesting info. */
+static void
+gst_ttmlparse_sax_element_start (void *ctx, const xmlChar * name,
+    const xmlChar ** attrs)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  const gchar **current_attr = (const gchar **) attrs;
+  GST_LOG_OBJECT (parse, "New element: %s", name);
+  while (current_attr && current_attr[0]) {
+    GST_LOG_OBJECT (parse, "  %s=%s", current_attr[0], current_attr[1]);
+    current_attr = &current_attr[2];
+  }
 
-  if (G_LIKELY (nb_nodes)) {
-    gint i;
-    xmlNodePtr node;
+  if (gst_ttmlparse_is_type ((const gchar *) name, "p")) {
+    parse->inside_p = TRUE;
 
-    /*  Foreach p node we found */
-    for (i = 0; i < nb_nodes; i++) {
-      node = xpathObj->nodesetval->nodeTab[i];
-
-      if (node->children && node->children->content &&
-          node->children->type == XML_TEXT_NODE) {
-        GstBuffer *buffer = NULL;
-        GstClockTime begin = GST_CLOCK_TIME_NONE, end = GST_CLOCK_TIME_NONE;
-        const gchar *content = (const gchar *) node->children->content;
-        const gchar *content_end = NULL;
-        gint content_size = 0;
-        gboolean in_seg = FALSE;
-        gint64 clip_start, clip_stop;
-
-        /* Start by validating UTF-8 content */
-        if (!g_utf8_validate (content, -1, &content_end)) {
-          GST_WARNING_OBJECT (parse, "content is not valid UTF-8");
-          continue;
-        }
-
-        content_size = content_end - content;
-
-        buffer = gst_buffer_new_and_alloc (content_size + 1);
-        memcpy (GST_BUFFER_DATA (buffer), content, content_size);
-
-        if (node->properties) {
-          xmlAttr *attr = node->properties;
-
-          while (attr) {
-            if (g_ascii_strcasecmp ((const gchar *) attr->name, "begin") == 0) {
-              guint h, m, s;
-              char *content = (char *) attr->children->content;
-
-              if (sscanf (content, "%u:%u:%u", &h, &m, &s) == 3) {
-                begin = ((guint64) h * 3600 + m * 60 + s) * GST_SECOND;
-              }
-            } else if (g_ascii_strcasecmp ((const gchar *) attr->name,
-                    "end") == 0) {
-              guint h, m, s;
-              char *content = (char *) attr->children->content;
-
-              if (sscanf (content, "%u:%u:%u", &h, &m, &s) == 3) {
-                end = ((guint64) h * 3600 + m * 60 + s) * GST_SECOND;
-              }
-            }
-
-            attr = attr->next;
-          }
-
-          if (GST_CLOCK_TIME_IS_VALID (begin)) {
-            begin += pts;
-          }
-          if (GST_CLOCK_TIME_IS_VALID (end)) {
-            end += pts;
-          }
-        }
-
-        /* Special hack for Authentec :
-         * As the drmas demuxer will start pushing buffers with timestamps
-         * starting from zero after a seek, we have to offset all the 
-         * timestamps using the time position of the NEWSEGMENT event that
-         * was sent. */
-        if (begin >= parse->segment->time) {
-          begin -= parse->segment->time;
-          end -= parse->segment->time;
-        } else {
-          GST_DEBUG_OBJECT (parse, "drop buffer as it's out of segment "
-              "(Authentec case)");
-          gst_buffer_unref (buffer);
-          continue;
-        }
-
-        gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
-
-        in_seg =
-            gst_segment_clip (parse->segment, GST_FORMAT_TIME, begin, end,
-            &clip_start, &clip_stop);
-
-        if (in_seg) {
-          if (G_UNLIKELY (parse->newsegment_needed)) {
-            GstEvent *event;
-
-            event =
-                gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME, 0, -1,
-                0);
-            GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
-            gst_pad_push_event (parse->srcpad, event);
-            parse->newsegment_needed = FALSE;
-          }
-
-          GST_BUFFER_TIMESTAMP (buffer) = clip_start;
-          GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
-
-          GST_DEBUG_OBJECT (parse, "pushing buffer of %u bytes, pts %"
-              GST_TIME_FORMAT " duration %" GST_TIME_FORMAT,
-              GST_BUFFER_SIZE (buffer),
-              GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
-              GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
-          GST_LOG_OBJECT (parse, "subtitle content %s",
-              GST_BUFFER_DATA (buffer));
-
-          ret = gst_pad_push (parse->srcpad, buffer);
-
-          if (ret != GST_FLOW_OK) {
-            GST_WARNING_OBJECT (parse, "flow return %s stopping here",
-                gst_flow_get_name (ret));
-            goto beach;
-          }
-        } else {
-          GST_DEBUG_OBJECT (parse, "buffer is out of segment (pts %"
-              GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
-          gst_buffer_unref (buffer);
-        }
+    current_attr = (const gchar **) attrs;
+    while (current_attr && current_attr[0]) {
+      if (gst_ttmlparse_is_type (current_attr[0], "begin")) {
+        parse->current_begin =
+            gst_ttmlparse_parse_time_expression (current_attr[1]);
+      } else if (gst_ttmlparse_is_type (current_attr[0], "end")) {
+        parse->current_end =
+            gst_ttmlparse_parse_time_expression (current_attr[1]);
+      } else if (gst_ttmlparse_is_type (current_attr[0], "dur")) {
+        parse->current_end = parse->current_begin +
+            gst_ttmlparse_parse_time_expression (current_attr[1]);
       }
+
+      current_attr = &current_attr[2];
+    }
+
+    if (parse->current_p) {
+      GST_WARNING_OBJECT (parse, "Removed dangling buffer");
+      gst_buffer_unref (parse->current_p);
+      parse->current_p = NULL;
     }
   }
-
-beach:
-  if (xpathObj) {
-    xmlXPathFreeObject (xpathObj);
-  }
-  if (xpathCtx) {
-    xmlXPathFreeContext (xpathCtx);
-  }
-
-  return ret;
 }
+
+/* Process a node end. If it is a <p> node, send any stored buffer. */
+static void
+gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+
+  GST_LOG_OBJECT (parse, "End element: %s", name);
+  if (gst_ttmlparse_is_type ((const gchar *) name, "p")) {
+    parse->inside_p = FALSE;
+    gst_ttmlparse_send_buffer (parse);
+  }
+}
+
+/* Process character. If they are inside a <p> node, create buffer to hold
+ * them and store it for later (it might grow in size) */
+static void
+gst_ttmlparse_sax_characters (void *ctx, const xmlChar * ch, int len)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  GstBuffer *new_buffer;
+  const gchar *content = (const gchar *) ch;
+  const gchar *content_end = NULL;
+  gint content_size = 0;
+
+  if (!parse->inside_p)
+    return;
+
+  /* Start by validating UTF-8 content */
+  if (!g_utf8_validate (content, len, &content_end)) {
+    GST_WARNING_OBJECT (parse, "Content is not valid UTF-8");
+    return;
+  }
+
+  content_size = content_end - content;
+
+  new_buffer = gst_buffer_new_and_alloc (content_size);
+  memcpy (GST_BUFFER_DATA (new_buffer), content, content_size);
+
+  if (parse->current_p) {
+    /* TODO */
+    GST_WARNING_OBJECT (parse, "Multiple strings inside <p> unimplemented");
+  } else {
+    parse->current_p = new_buffer;
+  }
+}
+
+/* Parse SAX warnings (simply shown as debug logs) */
+static void
+gst_ttmlparse_sax_warning (void *ctx, const char *message, ...)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  va_list va;
+  va_start (va, message);
+  gst_debug_log_valist (GST_CAT_DEFAULT, GST_LEVEL_WARNING, __FILE__,
+      __FUNCTION__, __LINE__, G_OBJECT (parse), message, va);
+  va_end (va);
+}
+
+/* Parse SAX errors (simply shown as debug logs) */
+static void
+gst_ttmlparse_sax_error (void *ctx, const char *message, ...)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  va_list va;
+  va_start (va, message);
+  gst_debug_log_valist (GST_CAT_DEFAULT, GST_LEVEL_ERROR, __FILE__,
+      __FUNCTION__, __LINE__, G_OBJECT (parse), message, va);
+  va_end (va);
+}
+
+/* Parse comments from XML (simply shown as debug logs) */
+static void
+gst_ttmlparse_sax_comment (void *ctx, const xmlChar * comment)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  GST_LOG_OBJECT (parse, "Comment parsed: %s", comment);
+}
+
+/* Default handler for entities (&amp; and company) */
+static xmlEntityPtr
+gst_ttmlparse_sax_get_entity (void *ctx, const xmlChar * name)
+{
+  return xmlGetPredefinedEntity (name);
+}
+
+static xmlSAXHandler gst_ttmlparse_sax_handler = {
+  /* .internalSubset = */ NULL,
+  /* .isStandalone = */ NULL,
+  /*. hasInternalSubset = */ NULL,
+  /*. hasExternalSubset = */ NULL,
+  /*. resolveEntity = */ NULL,
+  /*. getEntity = */ gst_ttmlparse_sax_get_entity,
+  /*. entityDecl = */ NULL,
+  /*. notationDecl = */ NULL,
+  /*. attributeDecl = */ NULL,
+  /*. elementDecl = */ NULL,
+  /*. unparsedEntityDecl = */ NULL,
+  /*. setDocumentLocator = */ NULL,
+  /*. startDocument = */ NULL,
+  /*. endDocument = */ NULL,
+  /*. startElement = */ gst_ttmlparse_sax_element_start,
+  /*. endElement = */ gst_ttmlparse_sax_element_end,
+  /*. reference = */ NULL,
+  /*. characters = */ gst_ttmlparse_sax_characters,
+  /*. ignorableWhitespace = */ NULL,
+  /*. processingInstruction = */ NULL,
+  /*. comment = */ gst_ttmlparse_sax_comment,
+  /*. warning = */ gst_ttmlparse_sax_warning,
+  /*. error = */ gst_ttmlparse_sax_error,
+  /*. fatalError = */ gst_ttmlparse_sax_error,
+};
 
 static GstFlowReturn
 gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
 {
   GstTTMLParse *parse;
-  xmlDocPtr doc = NULL;
   GstFlowReturn ret = GST_FLOW_OK;
+  const char *buffer_data;
+  int buffer_len;
 
   parse = GST_TTMLPARSE (gst_pad_get_parent (pad));
 
-  GST_LOG_OBJECT (parse, "handling buffer of %u bytes pts %" GST_TIME_FORMAT,
-      GST_BUFFER_SIZE (buffer), GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)));
-
-  /* Parse this buffer as a complete XML document */
-  doc = xmlReadMemory ((const char *) GST_BUFFER_DATA (buffer),
-      GST_BUFFER_SIZE (buffer), NULL, NULL, XML_PARSE_NONET);
-  if (G_UNLIKELY (!doc)) {
-    GST_WARNING_OBJECT (parse, "failed parsing XML document");
-    ret = GST_FLOW_ERROR;
-    goto beach;
-  }
-
+  /* Set caps on src pad */
   if (G_UNLIKELY (!GST_PAD_CAPS (parse->srcpad))) {
     GstCaps *caps = gst_caps_new_simple ("text/plain", NULL);
 
@@ -247,10 +340,86 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
     gst_caps_unref (caps);
   }
 
-  ret = gst_ttmlparse_handle_doc (parse, doc, GST_BUFFER_TIMESTAMP (buffer));
+  /* Store buffer timestamp. All future timestamps we produce will be relative
+   * to this buffer time. */
+  if (GST_CLOCK_TIME_IS_VALID (GST_BUFFER_TIMESTAMP (buffer))) {
+    parse->current_pts = GST_BUFFER_TIMESTAMP (buffer);
+  }
 
-  /* Free the parsed tree */
-  xmlFreeDoc (doc);
+  GST_LOG_OBJECT (parse, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT,
+      GST_BUFFER_SIZE (buffer), GST_TIME_ARGS (parse->current_pts));
+
+  buffer_data = (const char *) GST_BUFFER_DATA (buffer);
+  buffer_len = GST_BUFFER_SIZE (buffer);
+  do {
+    const char *next_buffer_data = NULL;
+    int next_buffer_len = 0;
+
+    /* Look for end-of-document tags */
+    next_buffer_data = g_strstr_len (buffer_data, buffer_len, "</tt>");
+
+    /* If one was detected, this might be a concatenated XML file (multiple
+     * XML files inside the same buffer) and we need to parse them one by one
+     */
+    if (next_buffer_data) {
+      next_buffer_data += 5;
+      GST_DEBUG_OBJECT (parse, "Detected document end at position %d of %d",
+          next_buffer_data - buffer_data, buffer_len);
+      next_buffer_len = buffer_len - (next_buffer_data - buffer_data);
+      buffer_len = next_buffer_data - buffer_data;
+    }
+
+    /* Feed this data to the SAX parser. The rest of the processing takes place
+     * in the callbacks. */
+    if (!parse->xml_parser) {
+      GST_DEBUG_OBJECT (parse, "Creating parser and parsing chunk (%d bytes)",
+          buffer_len);
+      parse->xml_parser = xmlCreatePushParserCtxt (&gst_ttmlparse_sax_handler,
+          parse, buffer_data, buffer_len, NULL);
+      if (!parse->xml_parser) {
+        GST_ERROR_OBJECT (parse, "xml parser creation failed");
+        goto beach;
+      } else {
+        GST_DEBUG_OBJECT (parse, "Chunk finished");
+      }
+    } else {
+      int res;
+      GST_DEBUG_OBJECT (parse, "Parsing chunk (%d bytes)", buffer_len);
+      res = xmlParseChunk (parse->xml_parser, buffer_data, buffer_len, 0);
+      if (res != 0) {
+        GST_WARNING_OBJECT (parse, "Parsing failed");
+      } else {
+        GST_DEBUG_OBJECT (parse, "Chunk finished");
+      }
+    }
+
+    /* If an end-of-document tag was found, terminate this parsing process */
+    if (next_buffer_data) {
+      /* Destroy parser, a new one will be created if more XML files arrive */
+      GST_DEBUG_OBJECT (parse, "Terminating pending parsing works");
+      xmlParseChunk (parse->xml_parser, NULL, 0, 1);
+      GST_DEBUG_OBJECT (parse, "Destroying parser");
+      xmlFreeParserCtxt (parse->xml_parser);
+      parse->xml_parser = NULL;
+
+      /* Remove trailing whitespace, or the first thing the new parser will
+       * find will not be the start-of-document tag */
+      while (next_buffer_len && g_ascii_isspace (*next_buffer_data)) {
+        GST_DEBUG_OBJECT (parse, "Skipping trailing whitespace char 0x%02x",
+            *next_buffer_data);
+        next_buffer_data++;
+        next_buffer_len--;
+      }
+    }
+
+    /* Process the next XML inside this buffer. If the end-of-document tag was
+     * at the end of the buffer (single XML inside single buffer case), then
+     * buffer_len will be 0 after this adjustment and no more loops will be
+     * performed. */
+    buffer_data = next_buffer_data;
+    buffer_len = next_buffer_len;
+
+  } while (buffer_len);
 
 beach:
   gst_buffer_unref (buffer);
@@ -425,6 +594,13 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
 
   parse->segment = gst_segment_new ();
   parse->newsegment_needed = TRUE;
+
+  parse->xml_parser = NULL;
+  parse->inside_p = FALSE;
+  parse->current_p = NULL;
+  parse->current_begin = GST_CLOCK_TIME_NONE;
+  parse->current_end = GST_CLOCK_TIME_NONE;
+  parse->current_pts = 0;
 
   gst_ttmlparse_cleanup (parse);
 }
