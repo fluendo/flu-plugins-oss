@@ -1,5 +1,13 @@
 2012-11-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer),
+	(gst_ttmlparse_chain), (gst_ttmlparse_init):
+	* src/gstttmlparse.h:
+	  - Handle pad push errors by storing them and returning them from the
+	    chain once parsing finishes.
+
+2012-11-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_cleanup),
 	(gst_ttmlparse_is_type), (gst_ttmlparse_parse_time_expression),
 	(gst_ttmlparse_send_buffer), (gst_ttmlparse_sax_element_start),

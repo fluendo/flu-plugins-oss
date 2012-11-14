@@ -41,6 +41,7 @@ struct _GstTTMLParse
   GstClockTime current_begin;
   GstClockTime current_end;
   GstClockTime current_pts;
+  GstFlowReturn current_status;
 };
 
 struct _GstTTMLParseClass

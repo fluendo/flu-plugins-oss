@@ -117,7 +117,13 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
   gboolean in_seg = FALSE;
   gint64 clip_start, clip_stop;
 
+  /* If we have no buffer, this was an empty node, ignore it. */
   if (!buffer)
+    return;
+
+  /* Do not try to push anything if we have not recovered from previous
+   * errors yet */ 
+  if (parse->current_status != GST_FLOW_OK)
     return;
 
   gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
@@ -155,10 +161,7 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
     GST_DEBUG_OBJECT (parse, "Subtitle content: '%s'",
         GST_BUFFER_DATA (buffer));
 
-    /* TODO: Check return value, store it in the structure,
-     * and return it from the chain. Do not process any more
-     * nodes if an error is detected. */
-    gst_pad_push (parse->srcpad, buffer);
+    parse->current_status = gst_pad_push (parse->srcpad, buffer);
   } else {
     GST_DEBUG_OBJECT (parse, "Buffer is out of segment (pts %"
         GST_TIME_FORMAT ")", GST_TIME_ARGS (parse->current_begin));
@@ -324,11 +327,11 @@ static GstFlowReturn
 gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
 {
   GstTTMLParse *parse;
-  GstFlowReturn ret = GST_FLOW_OK;
   const char *buffer_data;
   int buffer_len;
 
   parse = GST_TTMLPARSE (gst_pad_get_parent (pad));
+  parse->current_status = GST_FLOW_OK;
 
   /* Set caps on src pad */
   if (G_UNLIKELY (!GST_PAD_CAPS (parse->srcpad))) {
@@ -426,7 +429,7 @@ beach:
 
   gst_object_unref (parse);
 
-  return ret;
+  return parse->current_status;
 }
 
 static gboolean
@@ -601,6 +604,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->current_begin = GST_CLOCK_TIME_NONE;
   parse->current_end = GST_CLOCK_TIME_NONE;
   parse->current_pts = 0;
+  parse->current_status = GST_FLOW_OK;
 
   gst_ttmlparse_cleanup (parse);
 }
