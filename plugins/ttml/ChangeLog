@@ -1,3 +1,13 @@
+2012-11-15  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/Makefile.am:
+	* src/fluttml.c: (plugin_init):
+	* src/gstttmlparse.c:
+	* src/gstttmltype.c: (gst_ttmltype_find), (gst_ttmltype_init):
+	* src/gstttmltype.h:
+	  - Implement the typefinder.
+	  - Change the produced caps to the official application/ttml+xml
+
 2012-11-14  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer),

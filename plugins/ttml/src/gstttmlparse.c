@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include "gstttmlparse.h"
+#include "gstttmltype.h"
 
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
@@ -35,7 +36,7 @@ static GstStaticPadTemplate ttmlparse_sink_template =
 GST_STATIC_PAD_TEMPLATE ("sink",
     GST_PAD_SINK,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("application/x-subtitle-ttml"));
+    GST_STATIC_CAPS (TTML_MIME));
 
 static GstElementClass *parent_class = NULL;
 
