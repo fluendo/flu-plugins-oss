@@ -11,6 +11,7 @@
 #include "gst-fluendo.h"
 
 #include "gstttmlparse.h"
+#include "gstttmltype.h"
 
 GST_DEBUG_CATEGORY (ttmlparse_debug);
 
@@ -23,6 +24,8 @@ plugin_init (GstPlugin * plugin)
   if (!gst_element_register (plugin, "ttmlparse", GST_RANK_MARGINAL,
       gst_ttmlparse_get_type ()))
     return FALSE;
+
+  gst_ttmltype_init (plugin);
 
   return TRUE;
 }
