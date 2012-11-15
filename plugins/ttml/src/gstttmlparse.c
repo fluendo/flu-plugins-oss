@@ -130,13 +130,13 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
   gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
 
   /* BEGIN and END times are relative to their "container", in this case,
-   * the buffer that brought us the TTML file */
-  if (GST_CLOCK_TIME_IS_VALID (parse->current_begin)) {
-    parse->current_begin += parse->current_pts;
-  }
-  if (GST_CLOCK_TIME_IS_VALID (parse->current_end)) {
-    parse->current_end += parse->current_pts;
-  }
+   * the buffer that brought us the TTML file. If there was no timing info
+   * associated to this buffer, ignore it. */
+  if (!GST_CLOCK_TIME_IS_VALID (parse->current_begin) ||
+      !GST_CLOCK_TIME_IS_VALID (parse->current_end))
+    return;
+  parse->current_begin += parse->current_pts;
+  parse->current_end += parse->current_pts;
 
   in_seg = gst_segment_clip (parse->segment, GST_FORMAT_TIME,
       parse->current_begin, parse->current_end, &clip_start, &clip_stop);
@@ -187,6 +187,9 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar * name,
 
   if (gst_ttmlparse_is_type ((const gchar *) name, "p")) {
     parse->inside_p = TRUE;
+
+    parse->current_begin = GST_CLOCK_TIME_NONE;
+    parse->current_end = GST_CLOCK_TIME_NONE;
 
     current_attr = (const gchar **) attrs;
     while (current_attr && current_attr[0]) {
