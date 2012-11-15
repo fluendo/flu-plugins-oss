@@ -1,5 +1,10 @@
 2012-11-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer):
+	  - Fix debug output (buffers are not null-terminated now)
+
+2012-11-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/Makefile.am:
 	* src/fluttml.c: (plugin_init):
 	* src/gstttmlparse.c:
