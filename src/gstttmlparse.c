@@ -123,7 +123,7 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
     return;
 
   /* Do not try to push anything if we have not recovered from previous
-   * errors yet */ 
+   * errors yet */
   if (parse->current_status != GST_FLOW_OK)
     return;
 
