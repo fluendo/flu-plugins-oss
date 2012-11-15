@@ -1,5 +1,10 @@
 2012-11-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer):
+	  - Whitespace
+
+2012-11-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer),
 	(gst_ttmlparse_sax_element_start):
 	  - Ignore <p> nodes without timing information.
