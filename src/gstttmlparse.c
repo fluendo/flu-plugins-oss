@@ -159,8 +159,8 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
         GST_BUFFER_SIZE (buffer),
         GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
         GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
-    GST_DEBUG_OBJECT (parse, "Subtitle content: '%s'",
-        GST_BUFFER_DATA (buffer));
+    GST_MEMDUMP_OBJECT (parse, "Subtitle content:",
+        GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer));
 
     parse->current_status = gst_pad_push (parse->srcpad, buffer);
   } else {
