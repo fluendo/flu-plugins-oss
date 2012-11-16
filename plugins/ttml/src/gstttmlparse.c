@@ -9,7 +9,7 @@
 
 #include <string.h>
 
-#include "gstttmlparse.h"
+#include "gstttmlprivate.h"
 #include "gstttmltype.h"
 
 #include <libxml/parser.h>
@@ -53,6 +53,36 @@ gst_ttmlparse_cleanup (GstTTMLParse * parse)
   }
 
   return;
+}
+
+static gint
+gst_ttmlparse_event_compare (GstTTMLEvent *a, GstTTMLEvent *b)
+{
+  return a->timestamp > b->timestamp ? 1 : -1;
+}
+
+static GList *
+gst_ttmlparse_timeline_insert (GList *timeline, GstClockTime timestamp,
+    GstTTMLEventType type, void *data)
+{
+  GstTTMLEvent *event = g_new (GstTTMLEvent, 1);
+  event->timestamp = timestamp;
+  event->type = type;
+  event->data = data;
+
+  return g_list_insert_sorted (timeline, event,
+    (GCompareFunc)gst_ttmlparse_event_compare);
+}
+
+static GList *
+gst_ttmlparse_timeline_get_next (GList *timeline,
+    GstClockTime *timestamp, GstTTMLEventType *type, void **data)
+{
+  GstTTMLEvent *event = (GstTTMLEvent *)timeline->data;
+  *timestamp = event->timestamp;
+  *type = event->type;
+  *data = event->data;
+  return g_list_delete_link (timeline, timeline);
 }
 
 /* Check if the given node or attribute name matches a type, disregarding

@@ -1,5 +1,14 @@
 2012-11-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_cleanup),
+	(gst_ttmlparse_event_compare), (gst_ttmlparse_timeline_insert),
+	(gst_ttmlparse_timeline_get_next):
+	* src/gstttmlparse.h:
+	* src/gstttmlprivate.h:
+	  - Initial work to support timelined events (incomplete!)
+
+2012-11-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c:
 	  - Remove unneeded includes
 

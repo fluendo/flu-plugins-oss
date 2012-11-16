@@ -20,34 +20,6 @@ G_BEGIN_DECLS
                                          GST_TYPE_TTMLPARSE))
 #define GST_IS_TTMLPARSE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass),\
                                          GST_TYPE_TTMLPARSE))
-typedef struct _GstTTMLParse GstTTMLParse;
-typedef struct _GstTTMLParseClass GstTTMLParseClass;
-
-struct _GstTTMLParse
-{
-  GstElement element;
-
-  /* Sink pad */
-  GstPad *sinkpad;
-  /* Sourc pad */
-  GstPad *srcpad;
-
-  GstSegment *segment;
-  gboolean newsegment_needed;
-
-  xmlParserCtxtPtr xml_parser;
-  gboolean inside_p;
-  GstBuffer *current_p;
-  GstClockTime current_begin;
-  GstClockTime current_end;
-  GstClockTime current_pts;
-  GstFlowReturn current_status;
-};
-
-struct _GstTTMLParseClass
-{
-  GstElementClass parent_class;
-};
 
 GType gst_ttmlparse_get_type (void);
 GType gst_flussdemux_get_type (void);
