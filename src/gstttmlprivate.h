@@ -32,6 +32,8 @@ typedef struct _GstTTMLParse
   GstClockTime current_pts;
   GstFlowReturn current_status;
 
+  gboolean assume_ordered_spans;
+
   /* Timeline management */
   GList *timeline;
 } GstTTMLParse;

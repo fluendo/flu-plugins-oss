@@ -1,5 +1,12 @@
 2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_get_property),
+	(gst_ttmlparse_set_property), (gst_ttmlparse_class_init):
+	* src/gstttmlprivate.h:
+	  - Add property skeleton for "Assume Ordered Spans". Not implemented yet.
+
+2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_dispose),
 	(gst_ttmlparse_init):
 	* src/gstttmlprivate.h:
