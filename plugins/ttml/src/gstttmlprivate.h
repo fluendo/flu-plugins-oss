@@ -42,7 +42,7 @@ typedef struct _GstTTMLParseClass
   GstElementClass parent_class;
 } GstTTMLParseClass;
 
-/* A test scan, with all attributes, except timing info, that is stored in the
+/* A text scan, with all attributes, except timing info, that is stored in the
  * timeline */
 typedef struct _GstTTMLScan
 {

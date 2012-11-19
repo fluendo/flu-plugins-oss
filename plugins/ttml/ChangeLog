@@ -1,5 +1,10 @@
 2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlprivate.h:
+	  - Typo in comment
+
+2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c:
 	  - Set SRC pad to ALWAYS insted of SOMETIMES, as that is what it is.
 
