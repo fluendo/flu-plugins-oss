@@ -1,5 +1,14 @@
 2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_dispose),
+	(gst_ttmlparse_init):
+	* src/gstttmlprivate.h:
+	  - Comment out timeline functions to make code compile while we work on
+	    something else.
+	  - Timeline initialization and disposal.
+
+2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlprivate.h:
 	  - Typo in comment
 

@@ -55,6 +55,7 @@ gst_ttmlparse_cleanup (GstTTMLParse * parse)
   return;
 }
 
+#if 0
 static gint
 gst_ttmlparse_event_compare (GstTTMLEvent *a, GstTTMLEvent *b)
 {
@@ -84,6 +85,7 @@ gst_ttmlparse_timeline_get_next (GList *timeline,
   *data = event->data;
   return g_list_delete_link (timeline, timeline);
 }
+#endif
 
 /* Check if the given node or attribute name matches a type, disregarding
  * possible namespaces */
@@ -575,6 +577,10 @@ gst_ttmlparse_dispose (GObject * object)
     parse->segment = NULL;
   }
 
+  if (parse->timeline) {
+    g_list_free_full (parse->timeline, g_free);
+  }
+
   GST_CALL_PARENT (G_OBJECT_CLASS, dispose, (object));
 }
 
@@ -637,6 +643,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->current_end = GST_CLOCK_TIME_NONE;
   parse->current_pts = 0;
   parse->current_status = GST_FLOW_OK;
+  parse->timeline = NULL;
 
   gst_ttmlparse_cleanup (parse);
 }
