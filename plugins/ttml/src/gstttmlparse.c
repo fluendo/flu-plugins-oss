@@ -386,7 +386,8 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
 
   /* Store buffer timestamp. All future timestamps we produce will be relative
    * to this buffer time. */
-  if (GST_CLOCK_TIME_IS_VALID (GST_BUFFER_TIMESTAMP (buffer))) {
+  if (!GST_CLOCK_TIME_IS_VALID (parse->current_pts) &&
+      GST_CLOCK_TIME_IS_VALID (GST_BUFFER_TIMESTAMP (buffer))) {
     parse->current_pts = GST_BUFFER_TIMESTAMP (buffer);
   }
 
@@ -445,6 +446,7 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
       GST_DEBUG_OBJECT (parse, "Destroying parser");
       xmlFreeParserCtxt (parse->xml_parser);
       parse->xml_parser = NULL;
+      parse->current_pts = GST_CLOCK_TIME_NONE;
 
       /* Remove trailing whitespace, or the first thing the new parser will
        * find will not be the start-of-document tag */
@@ -686,7 +688,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->current_p = NULL;
   parse->current_begin = GST_CLOCK_TIME_NONE;
   parse->current_end = GST_CLOCK_TIME_NONE;
-  parse->current_pts = 0;
+  parse->current_pts = GST_CLOCK_TIME_NONE;
   parse->current_status = GST_FLOW_OK;
   parse->timeline = NULL;
 

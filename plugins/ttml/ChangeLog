@@ -1,5 +1,10 @@
 2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_chain), (gst_ttmlparse_init):
+	  - Use the first buffer of an XML as the base time, not the last.
+
+2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer):
 	  - Default newsegments start at the first timestamp, not at 0.
 
