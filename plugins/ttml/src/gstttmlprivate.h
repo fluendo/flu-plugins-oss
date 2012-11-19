@@ -46,6 +46,7 @@ typedef struct _GstTTMLParseClass
  * timeline */
 typedef struct _GstTTMLScan
 {
+  guint id;
   const gchar *text;
 } GstTTMLScan;
 
