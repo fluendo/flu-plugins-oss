@@ -181,7 +181,8 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
     if (G_UNLIKELY (parse->newsegment_needed)) {
       GstEvent *event;
 
-      event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME, 0, -1, 0);
+      event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME,
+          clip_start, -1, 0);
       GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
       gst_pad_push_event (parse->srcpad, event);
       parse->newsegment_needed = FALSE;

@@ -1,5 +1,10 @@
 2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer):
+	  - Default newsegments start at the first timestamp, not at 0.
+
+2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_get_property),
 	(gst_ttmlparse_set_property), (gst_ttmlparse_class_init):
 	* src/gstttmlprivate.h:
