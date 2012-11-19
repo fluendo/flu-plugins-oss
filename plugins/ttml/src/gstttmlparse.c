@@ -24,6 +24,12 @@ static GstElementDetails ttmlparse_details = {
   "Fluendo S.A. <support@fluendo.com>",
 };
 
+enum
+{
+  PROP_0,
+  PROP_ASSUME_ORDERED_SPANS,
+};
+
 static GstStaticPadTemplate ttmlparse_src_template =
     GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
@@ -564,6 +570,37 @@ gst_ttmlparse_change_state (GstElement * element, GstStateChange transition)
 
   return ret;
 }
+static void
+gst_ttmlparse_get_property (GObject * object, guint prop_id, GValue * value,
+    GParamSpec * pspec)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (object);
+
+  switch (prop_id) {
+    case PROP_ASSUME_ORDERED_SPANS:
+      g_value_set_boolean (value, parse->assume_ordered_spans);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+  }
+}
+
+static void
+gst_ttmlparse_set_property (GObject * object, guint prop_id,
+    const GValue * value, GParamSpec * pspec)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (object);
+
+  switch (prop_id) {
+    case PROP_ASSUME_ORDERED_SPANS:
+      parse->assume_ordered_spans = g_value_get_boolean (value);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+  }
+}
 
 static void
 gst_ttmlparse_dispose (GObject * object)
@@ -605,9 +642,16 @@ gst_ttmlparse_class_init (GstTTMLParseClass * klass)
 
   parent_class = g_type_class_peek_parent (klass);
 
-  gobject_class->dispose = gst_ttmlparse_dispose;
-  //gobject_class->set_property = gst_ttmlparse_set_property;
-  //gobject_class->get_property = gst_ttmlparse_get_property;
+  gobject_class->dispose = GST_DEBUG_FUNCPTR (gst_ttmlparse_dispose);
+  gobject_class->set_property = GST_DEBUG_FUNCPTR (gst_ttmlparse_set_property);
+  gobject_class->get_property = GST_DEBUG_FUNCPTR (gst_ttmlparse_get_property);
+
+  /* Register properties */
+  g_object_class_install_property (gobject_class, PROP_ASSUME_ORDERED_SPANS,
+      g_param_spec_boolean ("assume_ordered_spans", "Assume ordered spans",
+          "Generate buffers as soon as possible, by assuming that text "
+          "spans will arrive in order", 
+          FALSE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =
