@@ -1,4 +1,9 @@
-2012-11-16  Xavi Artigas  <xartigas@fluendo.com>
+2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c:
+	  - Set SRC pad to ALWAYS insted of SOMETIMES, as that is what it is.
+
+201-11-16  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_cleanup),
 	(gst_ttmlparse_event_compare), (gst_ttmlparse_timeline_insert),
