@@ -1,3 +1,8 @@
+2012-11-20  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmltype.c: (gst_ttmltype_init):
+	  - Added new supported extension: dfxp
+
 2012-11-19  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_chain), (gst_ttmlparse_init):
