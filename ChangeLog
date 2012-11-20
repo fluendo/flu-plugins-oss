@@ -1,5 +1,17 @@
 2012-11-20  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_parse_time_expression),
+	(gst_ttmlparse_attribute_parse),
+	(gst_ttmlparse_state_set_attribute),
+	(gst_ttmlparse_state_get_attribute),
+	(gst_ttmlparse_sax_element_start), (gst_ttmlparse_state_reset),
+	(gst_ttmlparse_init):
+	* src/gstttmlprivate.h:
+	  - Parse the tickRate attribute, so time expressions in 0000000t format
+	    as the ones found in the Netflix subs are accepted.
+
+2012-11-20  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_element_is_type),
 	(gst_ttmlparse_attribute_parse), (gst_ttmlparse_attribute_free),
 	(gst_ttmlparse_state_set_attribute),
