@@ -11,6 +11,32 @@
 
 G_BEGIN_DECLS
 
+/* Attributes currently supported */
+typedef enum _GstTTMLAttributeType {
+  GST_TTML_ATTR_BEGIN,
+  GST_TTML_ATTR_END,
+  GST_TTML_ATTR_DUR
+} GstTTMLAttributeType;
+
+/* A stored attribute */
+typedef struct _GstTTMLAttribute {
+  GstTTMLAttributeType type;
+  union {
+    GstClockTime time;
+    char *string;
+  } value;
+} GstTTMLAttribute;
+
+/* Current state of all attributes */
+typedef struct _GstTTMLState
+{
+  GstClockTime begin;
+  GstClockTime end;
+  GstClockTime dur;
+
+  GList *history;
+} GstTTMLState;
+
 /* The GStreamer ttmlparse element */
 typedef struct _GstTTMLParse
 {
@@ -27,8 +53,6 @@ typedef struct _GstTTMLParse
   xmlParserCtxtPtr xml_parser;
   gboolean inside_p;
   GstBuffer *current_p;
-  GstClockTime current_begin;
-  GstClockTime current_end;
   GstClockTime current_pts;
   GstFlowReturn current_status;
 
@@ -36,6 +60,9 @@ typedef struct _GstTTMLParse
 
   /* Timeline management */
   GList *timeline;
+
+  /* State management */
+  GstTTMLState state;
 } GstTTMLParse;
 
 /* The GStreamer ttmlparse element's class */
