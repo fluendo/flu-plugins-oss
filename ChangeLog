@@ -1,5 +1,21 @@
 2012-11-20  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_element_is_type),
+	(gst_ttmlparse_attribute_parse), (gst_ttmlparse_attribute_free),
+	(gst_ttmlparse_state_set_attribute),
+	(gst_ttmlparse_state_get_attribute),
+	(gst_ttmlparse_state_push_attribute),
+	(gst_ttmlparse_state_push_attribute_group_marker),
+	(gst_ttmlparse_state_pop_attribute), (gst_ttmlparse_send_buffer),
+	(gst_ttmlparse_sax_element_start), (gst_ttmlparse_sax_element_end),
+	(gst_ttmlparse_chain), (gst_ttmlparse_state_reset),
+	(gst_ttmlparse_dispose), (gst_ttmlparse_init):
+	* src/gstttmlprivate.h:
+	  - Implement an attribute stack, so attributes can be inherited. No change
+	    in functionality, everything is just done in a different way.
+
+2012-11-20  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmltype.c: (gst_ttmltype_init):
 	  - Added new supported extension: dfxp
 
