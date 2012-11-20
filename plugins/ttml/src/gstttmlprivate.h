@@ -15,7 +15,8 @@ G_BEGIN_DECLS
 typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_BEGIN,
   GST_TTML_ATTR_END,
-  GST_TTML_ATTR_DUR
+  GST_TTML_ATTR_DUR,
+  GST_TTML_ATTR_TICK_PERIOD
 } GstTTMLAttributeType;
 
 /* A stored attribute */
@@ -23,7 +24,7 @@ typedef struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
   union {
     GstClockTime time;
-    char *string;
+    gdouble d;
   } value;
 } GstTTMLAttribute;
 
@@ -33,6 +34,7 @@ typedef struct _GstTTMLState
   GstClockTime begin;
   GstClockTime end;
   GstClockTime dur;
+  gdouble tick_period;
 
   GList *history;
 } GstTTMLState;

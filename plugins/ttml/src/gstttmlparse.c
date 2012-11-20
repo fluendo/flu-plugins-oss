@@ -111,7 +111,8 @@ gst_ttmlparse_element_is_type (const gchar * name, const gchar * type)
 /* Parse both types of time expressions as specified in the TTML specification,
  * be it in 00:00:00:00 or 00s forms */
 static GstClockTime
-gst_ttmlparse_parse_time_expression (const gchar * expr)
+gst_ttmlparse_parse_time_expression (const GstTTMLState *state,
+    const gchar *expr)
 {
   gdouble h, m, s, count;
   char metric[3] = "\0\0";
@@ -119,7 +120,7 @@ gst_ttmlparse_parse_time_expression (const gchar * expr)
 
   if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
     res = (h * 3600 + m * 60 + s) * GST_SECOND;
-  } else if (sscanf (expr, "%lf%2[hms]", &count, metric) == 2) {
+  } else if (sscanf (expr, "%lf%2[hmst]", &count, metric) == 2) {
     double scale = 0;
     switch (metric[0]) {
       case 'h':
@@ -133,6 +134,9 @@ gst_ttmlparse_parse_time_expression (const gchar * expr)
         break;
       case 's':
         scale = GST_SECOND;
+        break;
+      case 't':
+        scale = state->tick_period;
         break;
       default:
         /* TODO: Handle 'f' and 't' metrics */
@@ -150,22 +154,29 @@ gst_ttmlparse_parse_time_expression (const gchar * expr)
  * Returns NULL if the attribute was unknown, and uses g_new to allocate
  * the new attribute. */
 static GstTTMLAttribute *
-gst_ttmlparse_attribute_parse (const char *name, const char *value)
+gst_ttmlparse_attribute_parse (const GstTTMLState *state, const char *name,
+    const char *value)
 {
   GstTTMLAttribute *attr;
   GST_LOG ("Parsing %s=%s", name, value);
   if (gst_ttmlparse_element_is_type (name, "begin")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_BEGIN;
-    attr->value.time = gst_ttmlparse_parse_time_expression (value);
+    attr->value.time = gst_ttmlparse_parse_time_expression (state, value);
   } else if (gst_ttmlparse_element_is_type (name, "end")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_END;
-    attr->value.time = gst_ttmlparse_parse_time_expression (value);
+    attr->value.time = gst_ttmlparse_parse_time_expression (state, value);
   } else if (gst_ttmlparse_element_is_type (name, "dur")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_DUR;
-    attr->value.time = gst_ttmlparse_parse_time_expression (value);
+    attr->value.time = gst_ttmlparse_parse_time_expression (state, value);
+  } else if (gst_ttmlparse_element_is_type (name, "tickRate")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_TICK_PERIOD;
+    attr->value.d = GST_SECOND / g_ascii_strtod (value, NULL);
+    GST_LOG ("Parsed '%s' ticks per second into a %g tick period", value,
+        attr->value.d);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -205,6 +216,9 @@ gst_ttmlparse_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_DUR:
       state->dur = attr->value.time;
       break;
+    case GST_TTML_ATTR_TICK_PERIOD:
+      state->tick_period = attr->value.d;
+      break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
       break;
@@ -226,6 +240,9 @@ gst_ttmlparse_state_get_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_DUR:
       attr->value.time = state->dur;
+      break;
+    case GST_TTML_ATTR_TICK_PERIOD:
+      attr->value.d = state->tick_period;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -385,7 +402,8 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar * name,
   while (xml_attr && xml_attr[0]) {
     GstTTMLAttribute *ttml_attr;
 
-    ttml_attr = gst_ttmlparse_attribute_parse (xml_attr[0], xml_attr[1]);
+    ttml_attr = gst_ttmlparse_attribute_parse (&parse->state, xml_attr[0],
+        xml_attr[1]);
     if (ttml_attr) {
       gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
     }
@@ -767,6 +785,7 @@ gst_ttmlparse_state_reset (GstTTMLState *state)
   state->begin = GST_CLOCK_TIME_NONE;
   state->end = GST_CLOCK_TIME_NONE;
   state->dur = GST_CLOCK_TIME_NONE;
+  state->tick_period = GST_SECOND;
   if (state->history) {
     GST_WARNING ("Attribute stack should have been empty");
     g_list_free_full (state->history, g_free);
@@ -861,6 +880,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->current_status = GST_FLOW_OK;
   parse->timeline = NULL;
 
+  parse->state.history = NULL;
   gst_ttmlparse_state_reset (&parse->state);
 
   gst_ttmlparse_cleanup (parse);
