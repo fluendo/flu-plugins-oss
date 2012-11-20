@@ -40,7 +40,7 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
 gboolean
 gst_ttmltype_init (GstPlugin * plugin)
 {
-  static const gchar *exts[] = { "ttml", "xml", NULL };
+  static const gchar *exts[] = { "ttml", "xml", "dfxp", NULL };
 
   if (!gst_type_find_register (plugin, TTML_MIME, GST_RANK_PRIMARY,
           gst_ttmltype_find, (char **) exts, TTML_CAPS, NULL, NULL))
