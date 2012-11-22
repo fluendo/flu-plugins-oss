@@ -13,35 +13,45 @@ G_BEGIN_DECLS
 
 /* Attributes currently supported */
 typedef enum _GstTTMLAttributeType {
+  GST_TTML_ATTR_NODE_TYPE,
   GST_TTML_ATTR_BEGIN,
   GST_TTML_ATTR_END,
   GST_TTML_ATTR_DUR,
   GST_TTML_ATTR_TICK_PERIOD
 } GstTTMLAttributeType;
 
+/* Types of TTML nodes */
+typedef enum _GstTTMLNodeType {
+  GST_TTML_NODE_TYPE_UNKNOWN,
+  GST_TTML_NODE_TYPE_P,
+  GST_TTML_NODE_TYPE_SPAN
+} GstTTMLNodeType;
+
 /* A stored attribute */
 typedef struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
   union {
+    GstTTMLNodeType node_type;
     GstClockTime time;
     gdouble d;
   } value;
 } GstTTMLAttribute;
 
 /* Current state of all attributes */
-typedef struct _GstTTMLState
-{
+typedef struct _GstTTMLState {
+  GstTTMLNodeType node_type;
+  guint last_span_id;
   GstClockTime begin;
   GstClockTime end;
-  GstClockTime dur;
+  GstClockTime container_begin;
+  GstClockTime container_end;
   gdouble tick_period;
 
   GList *history;
 } GstTTMLState;
 
 /* The GStreamer ttmlparse element */
-typedef struct _GstTTMLParse
-{
+typedef struct _GstTTMLParse {
   GstElement element;
 
   /* Sink pad */
@@ -51,48 +61,61 @@ typedef struct _GstTTMLParse
 
   GstSegment *segment;
   gboolean newsegment_needed;
+  GstClockTime base_time;
+  GstFlowReturn current_gst_status;
 
+  /* XML parsing */
   xmlParserCtxtPtr xml_parser;
-  gboolean inside_p;
-  GstBuffer *current_p;
-  GstClockTime current_pts;
-  GstFlowReturn current_status;
+  guint current_span_id;
+  GstTTMLState state;
 
+  /* Properties */
   gboolean assume_ordered_spans;
 
   /* Timeline management */
   GList *timeline;
 
-  /* State management */
-  GstTTMLState state;
+  /* Active span list */
+  GList *active_spans;
 } GstTTMLParse;
 
 /* The GStreamer ttmlparse element's class */
-typedef struct _GstTTMLParseClass
-{
+typedef struct _GstTTMLParseClass {
   GstElementClass parent_class;
 } GstTTMLParseClass;
 
-/* A text scan, with all attributes, except timing info, that is stored in the
+/* A text span, with all attributes, except timing info, that is stored in the
  * timeline */
-typedef struct _GstTTMLScan
-{
+typedef struct _GstTTMLSpan {
   guint id;
-  const gchar *text;
-} GstTTMLScan;
+  guint length;
+  gchar *chars;
+} GstTTMLSpan;
+
+typedef struct _GstTTMLEventSpanBegin {
+  GstTTMLSpan *span;
+} GstTTMLEventSpanBegin;
+
+typedef struct _GstTTMLEventSpanEnd {
+  guint id;
+} GstTTMLEventSpanEnd;
 
 /* Event types */
-typedef enum {
-  GST_TTML_EVENT_SCAN_BEGIN,
-  GST_TTML_EVENT_SCAN_END
+typedef enum _GstTTMLEventType {
+  GST_TTML_EVENT_TYPE_SPAN_BEGIN,
+  GST_TTML_EVENT_TYPE_SPAN_END
 } GstTTMLEventType;
 
-/* An event to be stored in the timeline. It has a type and a timestamp */
+/* An event to be stored in the timeline. It has a type, a timestamp and
+ * type-specific data. */
 typedef struct _GstTTMLEvent
 {
   GstClockTime timestamp;
   GstTTMLEventType type;
-  void *data;
+  union {
+    GstTTMLEventSpanBegin span_begin;
+    GstTTMLEventSpanEnd span_end;
+  };
 } GstTTMLEvent;
 
 G_END_DECLS
