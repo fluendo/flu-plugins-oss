@@ -1,5 +1,18 @@
 2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_parse_time_expression),
+	(gst_ttmlparse_attribute_parse),
+	(gst_ttmlparse_state_set_attribute),
+	(gst_ttmlparse_state_merge_attribute),
+	(gst_ttmlparse_state_get_attribute), (gst_ttmlparse_state_reset):
+	* src/gstttmlprivate.h:
+	  - Support for frame time expression ('300f').
+	  - Support for the frameRate and frameRateMultiplier attributes.
+	  - Keep tick_rate internally instead of tick_period, for simplicity.
+	  - Fix span duration calculation.
+
+2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_span_free),
 	(gst_ttmlparse_span_new), (gst_ttmlparse_span_compare_id),
 	(gst_ttmlparse_active_spans_add),
