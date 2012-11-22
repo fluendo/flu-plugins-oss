@@ -26,7 +26,8 @@ typedef enum _GstTTMLAttributeType {
 typedef enum _GstTTMLNodeType {
   GST_TTML_NODE_TYPE_UNKNOWN,
   GST_TTML_NODE_TYPE_P,
-  GST_TTML_NODE_TYPE_SPAN
+  GST_TTML_NODE_TYPE_SPAN,
+  GST_TTML_NODE_TYPE_BR
 } GstTTMLNodeType;
 
 /* A stored attribute */

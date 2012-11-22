@@ -551,8 +551,52 @@ gst_ttmlparse_node_type_parse (const gchar *name)
   } else
   if (gst_ttmlparse_element_is_type (name, "span")) {
     return GST_TTML_NODE_TYPE_SPAN;
+  } else
+  if (gst_ttmlparse_element_is_type (name, "br")) {
+    return GST_TTML_NODE_TYPE_BR;
   }
   return GST_TTML_NODE_TYPE_UNKNOWN;
+}
+
+/* allocate a new span to hold new characters, and insert into the timeline
+ * BEGIN and END events to handle this new span. */
+static void
+gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
+    int len)
+{
+  const gchar *content_end = NULL;
+  gint content_size = 0;
+  GstTTMLSpan *span;
+  GstTTMLEvent *event;
+  guint id;
+
+  /* Start by validating UTF-8 content */
+  if (!g_utf8_validate (content, len, &content_end)) {
+    GST_WARNING_OBJECT (parse, "Content is not valid UTF-8");
+    return;
+  }
+  content_size = content_end - content;
+
+  /* Check if timing information is present */
+  if (!GST_CLOCK_TIME_IS_VALID (parse->state.begin) &&
+      !GST_CLOCK_TIME_IS_VALID (parse->state.end)) {
+    GST_DEBUG_OBJECT (parse, "Span without timing information. Dropping.");
+    return;
+  }
+
+  /* Create a new span to hold these characters, with an ever-increasing
+   * ID number. */
+  id = parse->state.last_span_id++;
+  span = gst_ttmlparse_span_new (id, content_size, content);
+
+  /* Insert BEGIN and END events in the timeline, with the same ID */
+  event = gst_ttmlparse_event_new_span_begin (&parse->state, span);
+  parse->timeline =
+      gst_ttmlparse_timeline_insert_event (parse->timeline, event);
+
+  event = gst_ttmlparse_event_new_span_end (&parse->state, id);
+  parse->timeline =
+      gst_ttmlparse_timeline_insert_event (parse->timeline, event);
 }
 
 /* Process a node start. Just push all its attributes onto the stack. */
@@ -588,6 +632,12 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
    * "container" for nested elements */
   parse->state.container_begin = parse->state.begin;
   parse->state.container_end = parse->state.end;
+
+  /* Handle special node types which have effect as soon as they are found */
+  if (node_type == GST_TTML_NODE_TYPE_BR) {
+    gchar br = '\n';
+    gst_ttmlparse_add_characters (parse, &br, 1);
+  }
 }
 
 /* Process a node end. Just pop previous state from the stack. */
@@ -616,11 +666,6 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   const gchar *content = (const gchar *) ch;
-  const gchar *content_end = NULL;
-  gint content_size = 0;
-  GstTTMLSpan *span;
-  GstTTMLEvent *event;
-  guint id;
 
   GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %d",
       len, parse->state.node_type);
@@ -634,33 +679,7 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
       return;
   }
 
-  /* Start by validating UTF-8 content */
-  if (!g_utf8_validate (content, len, &content_end)) {
-    GST_WARNING_OBJECT (parse, "Content is not valid UTF-8");
-    return;
-  }
-  content_size = content_end - content;
-
-  /* Check if timing information is present */
-  if (!GST_CLOCK_TIME_IS_VALID (parse->state.begin) &&
-      !GST_CLOCK_TIME_IS_VALID (parse->state.end)) {
-    GST_DEBUG_OBJECT (parse, "Span without timing information. Dropping.");
-    return;
-  }
-
-  /* Create a new span to hold these characters, with an ever-increasing
-   * ID number. */
-  id = parse->state.last_span_id++;
-  span = gst_ttmlparse_span_new (id, content_size, content);
-
-  /* Insert BEGIN and END events in the timeline, with the same ID */
-  event = gst_ttmlparse_event_new_span_begin (&parse->state, span);
-  parse->timeline =
-      gst_ttmlparse_timeline_insert_event (parse->timeline, event);
-
-  event = gst_ttmlparse_event_new_span_end (&parse->state, id);
-  parse->timeline =
-      gst_ttmlparse_timeline_insert_event (parse->timeline, event);
+  gst_ttmlparse_add_characters (parse, content, len);
 }
 
 /* Parse SAX warnings (simply shown as debug logs) */
