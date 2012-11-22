@@ -498,6 +498,10 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse, GstClockTime begin,
   if (parse->current_gst_status != GST_FLOW_OK)
     return;
 
+  /* Check if there is any active span at all */
+  if (!parse->active_spans)
+    return;
+
   /* Compose output text based on currently active spans */
   g_list_foreach (parse->active_spans, (GFunc)gst_ttmlparse_span_compose,
       &span);
@@ -579,10 +583,6 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   GstTTMLSpan *span;
   GstTTMLEvent *event;
   guint id;
-
-  /* Check if this is an ignorable blank node */
-  if (gst_ttmlparse_is_blank_node (content, len))
-    return;
 
   /* Start by validating UTF-8 content */
   if (!g_utf8_validate (content, len, &content_end)) {
@@ -683,6 +683,12 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
 
   GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %d",
       len, parse->state.node_type);
+
+  /* Check if this is an ignorable blank node */
+  if (gst_ttmlparse_is_blank_node (content, len)) {
+    GST_DEBUG_OBJECT (parse, "  (Ignoring blank node)");
+    return;
+  }
 
   switch (parse->state.node_type) {
     case GST_TTML_NODE_TYPE_P:

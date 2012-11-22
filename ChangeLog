@@ -1,5 +1,12 @@
 2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer),
+	(gst_ttmlparse_add_characters), (gst_ttmlparse_sax_characters):
+	  - Check for blank nodes in the proper place
+	  - Do not output empty buffers
+
+2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_is_blank_node),
 	(gst_ttmlparse_add_characters):
 	  - Do not process blank nodes (only containing whitespace)
