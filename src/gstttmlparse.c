@@ -44,54 +44,157 @@ GST_STATIC_PAD_TEMPLATE ("sink",
 
 static GstElementClass *parent_class = NULL;
 
+/* Free a text span */
 static void
-gst_ttmlparse_cleanup (GstTTMLParse * parse)
+gst_ttmlparse_span_free (GstTTMLSpan *span)
 {
-  GST_DEBUG_OBJECT (parse, "cleaning up TTML parser");
-
-  if (parse->segment) {
-    gst_segment_init (parse->segment, GST_FORMAT_TIME);
-  }
-
-  if (parse->xml_parser) {
-    xmlFreeParserCtxt (parse->xml_parser);
-    parse->xml_parser = NULL;
-  }
-
-  return;
+  g_free (span->chars);
+  g_free (span);
 }
 
-#if 0
+/* Create a new text span. Timing information does not belong to the span
+ * but to the event that contains it. */
+static GstTTMLSpan *
+gst_ttmlparse_span_new (guint id, guint length, const gchar *chars)
+{
+  GstTTMLSpan *span = g_new (GstTTMLSpan, 1);
+  span->id = id;
+  span->length = length;
+  span->chars = g_memdup (chars, length);
+  return span;
+}
+
+/* Comparison function for spans */
+static gint
+gst_ttmlparse_span_compare_id (GstTTMLSpan *a, guint *id)
+{
+  return a->id - *id;
+}
+
+/* Insert a span into the active spans list. The list takes ownership. */
+static GList *
+gst_ttmlparse_active_spans_add (GList *active_spans, GstTTMLSpan *span)
+{
+  GST_DEBUG ("Inserting span with id %d, length %d", span->id, span->length);
+  /* Insert the spans sorted by ID, so they keep the order they had in the
+   * XML file. */
+  return g_list_insert_sorted (active_spans, span,
+      (GCompareFunc)gst_ttmlparse_span_compare_id);
+}
+
+/* Remove the span with the given ID from the list of active spans and 
+ * free it */
+static GList *
+gst_ttmlparse_active_spans_remove (GList *active_spans, guint id)
+{
+  GST_DEBUG ("Removing span with id %d", id);
+  GList *link = g_list_find_custom (active_spans, &id,
+      (GCompareFunc)gst_ttmlparse_span_compare_id);
+  if (!link) {
+    GST_WARNING ("Could not find span with id %d", id);
+    return active_spans;
+  }
+  gst_ttmlparse_span_free ((GstTTMLSpan *)link->data);
+  link->data = NULL;
+  return g_list_delete_link (active_spans, link);
+}
+
+/* Free an event. Some of them might have internal allocated memory, so
+ * always use this function and do not g_free events directly. */
+static void
+gst_ttmlparse_event_free (GstTTMLEvent *event)
+{
+  switch (event->type) {
+    case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
+      if (event->span_begin.span)
+        gst_ttmlparse_span_free (event->span_begin.span);
+      break;
+    default:
+      break;
+  }
+  g_free (event);
+}
+
+/* Comparison function for events, using their timestamps */
 static gint
 gst_ttmlparse_event_compare (GstTTMLEvent *a, GstTTMLEvent *b)
 {
   return a->timestamp > b->timestamp ? 1 : -1;
 }
 
-static GList *
-gst_ttmlparse_timeline_insert (GList *timeline, GstClockTime timestamp,
-    GstTTMLEventType type, void *data)
+/* Creates a new SPAN BEGIN event */
+static GstTTMLEvent *
+gst_ttmlparse_event_new_span_begin (GstTTMLState *state, GstTTMLSpan *span)
 {
-  GstTTMLEvent *event = g_new (GstTTMLEvent, 1);
-  event->timestamp = timestamp;
-  event->type = type;
-  event->data = data;
+  GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
+  if (GST_CLOCK_TIME_IS_VALID (state->begin))
+    event->timestamp = state->begin;
+  else
+    event->timestamp = 0;
+  event->type = GST_TTML_EVENT_TYPE_SPAN_BEGIN;
+  event->span_begin.span = span;
+  return event;
+}
 
+/* Creates a new SPAN END event */
+static GstTTMLEvent *
+gst_ttmlparse_event_new_span_end (GstTTMLState *state, guint id)
+{
+  GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
+  event->timestamp = state->end;
+  event->type = GST_TTML_EVENT_TYPE_SPAN_END;
+  event->span_end.id = id;
+  return event;
+}
+
+/* Execute the given event */
+static void
+gst_ttmlparse_event_parse (GstTTMLParse *parse, GstTTMLEvent *event)
+{
+  GstTTMLSpan *span;
+  guint id;
+
+  switch (event->type) {
+    case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
+      span = event->span_begin.span;
+      parse->active_spans =
+          gst_ttmlparse_active_spans_add (parse->active_spans, span);
+      /* Remove the span from the event, so that when we free the event below
+       * the span does not get fred too (it belongs to the active_spans list
+       * now) */
+      event->span_begin.span = NULL;
+      break;
+    case GST_TTML_EVENT_TYPE_SPAN_END:
+      id = event->span_end.id;
+      parse->active_spans =
+          gst_ttmlparse_active_spans_remove (parse->active_spans, id);
+      break;
+    default:
+      GST_WARNING ("Unknown event type");
+      break;
+  }
+  gst_ttmlparse_event_free (event);
+}
+
+/* Insert an event in the timeline, ordered by timestamp. You loose ownership
+ * of the event. */
+static GList *
+gst_ttmlparse_timeline_insert_event (GList *timeline, GstTTMLEvent *event)
+{
+  GST_DEBUG ("Inserting event type %d at %" GST_TIME_FORMAT,
+      event->type, GST_TIME_ARGS (event->timestamp));
   return g_list_insert_sorted (timeline, event,
     (GCompareFunc)gst_ttmlparse_event_compare);
 }
 
+/* Returns the first event in the timeline, i.e., the next one.
+ * You are the owner of the returned event. */
 static GList *
-gst_ttmlparse_timeline_get_next (GList *timeline,
-    GstClockTime *timestamp, GstTTMLEventType *type, void **data)
+gst_ttmlparse_timeline_get_next_event (GList *timeline, GstTTMLEvent **event)
 {
-  GstTTMLEvent *event = (GstTTMLEvent *)timeline->data;
-  *timestamp = event->timestamp;
-  *type = event->type;
-  *data = event->data;
+  *event = (GstTTMLEvent *)timeline->data;
   return g_list_delete_link (timeline, timeline);
 }
-#endif
 
 /* Check if the given node or attribute name matches a type, disregarding
  * possible namespaces */
@@ -120,7 +223,7 @@ gst_ttmlparse_parse_time_expression (const GstTTMLState *state,
 
   if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
     res = (h * 3600 + m * 60 + s) * GST_SECOND;
-  } else if (sscanf (expr, "%lf%2[hmst]", &count, metric) == 2) {
+  } else if (sscanf (expr, "%lf%2[hmstf]", &count, metric) == 2) {
     double scale = 0;
     switch (metric[0]) {
       case 'h':
@@ -139,7 +242,7 @@ gst_ttmlparse_parse_time_expression (const GstTTMLState *state,
         scale = state->tick_period;
         break;
       default:
-        /* TODO: Handle 'f' and 't' metrics */
+        /* TODO: Handle 'f' metric */
         GST_WARNING ("Unknown metric %s", metric);
     }
     res = count * scale;
@@ -199,6 +302,17 @@ gst_ttmlparse_attribute_free (GstTTMLAttribute *attr)
   g_free (attr);
 }
 
+/* Create a new "node_type" attribute. All other attribute types are created
+ * in the _attribute_parse() method above. */
+static GstTTMLAttribute *
+gst_ttmlparse_attribute_new_node (GstTTMLNodeType node_type)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = GST_TTML_ATTR_NODE_TYPE;
+  attr->value.node_type = node_type;
+  return attr;
+}
+
 /* Puts the given GstTTMLAttribute into the state, overwritting the current
  * value. Normally you would use gst_ttmlparse_state_push_attribute() to
  * store the current value into an attribute stack before overwritting it. */
@@ -207,6 +321,9 @@ gst_ttmlparse_state_set_attribute (GstTTMLState *state,
     const GstTTMLAttribute *attr)
 {
   switch (attr->type) {
+    case GST_TTML_ATTR_NODE_TYPE:
+      state->node_type = attr->value.node_type;
+      break;
     case GST_TTML_ATTR_BEGIN:
       state->begin = attr->value.time;
       break;
@@ -214,13 +331,48 @@ gst_ttmlparse_state_set_attribute (GstTTMLState *state,
       state->end = attr->value.time;
       break;
     case GST_TTML_ATTR_DUR:
-      state->dur = attr->value.time;
+      state->end = state->begin + attr->value.time;
       break;
     case GST_TTML_ATTR_TICK_PERIOD:
       state->tick_period = attr->value.d;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
+      break;
+  }
+}
+
+/* MERGES the given GstTTMLAttribute into the state. The effect of the merge
+ * depends on the type of attribute. By default it calls the _set_ method
+ * above. */
+static void
+gst_ttmlparse_state_merge_attribute (GstTTMLState *state,
+    const GstTTMLAttribute *attr)
+{
+  switch (attr->type) {
+    case GST_TTML_ATTR_BEGIN:
+      state->begin = attr->value.time;
+      if (GST_CLOCK_TIME_IS_VALID (state->container_begin))
+        state->begin += state->container_begin;
+      break;
+    case GST_TTML_ATTR_END:
+      state->end = attr->value.time;
+      if (GST_CLOCK_TIME_IS_VALID (state->container_begin))
+        state->end += state->container_begin;
+      if (GST_CLOCK_TIME_IS_VALID (state->container_end))
+        state->end = MIN (state->end, state->container_end);
+      break;
+    case GST_TTML_ATTR_DUR:
+      state->end = attr->value.time;
+      if (GST_CLOCK_TIME_IS_VALID (state->begin))
+        state->end += state->begin;
+      if (GST_CLOCK_TIME_IS_VALID (state->container_begin))
+        state->end += state->container_begin;
+      if (GST_CLOCK_TIME_IS_VALID (state->container_end))
+        state->end = MIN (state->end, state->container_end);
+      break;
+    default:
+      gst_ttmlparse_state_set_attribute (state, attr);
       break;
   }
 }
@@ -232,6 +384,9 @@ gst_ttmlparse_state_get_attribute (GstTTMLState *state,
     GstTTMLAttribute *attr)
 {
   switch (attr->type) {
+    case GST_TTML_ATTR_NODE_TYPE:
+      attr->value.node_type = state->node_type;
+      break;
     case GST_TTML_ATTR_BEGIN:
       attr->value.time = state->begin;
       break;
@@ -239,7 +394,7 @@ gst_ttmlparse_state_get_attribute (GstTTMLState *state,
       attr->value.time = state->end;
       break;
     case GST_TTML_ATTR_DUR:
-      attr->value.time = state->dur;
+      attr->value.time = state->end - state->begin;
       break;
     case GST_TTML_ATTR_TICK_PERIOD:
       attr->value.d = state->tick_period;
@@ -261,100 +416,75 @@ gst_ttmlparse_state_push_attribute (GstTTMLState *state,
   old_attr->type = new_attr->type;
   gst_ttmlparse_state_get_attribute (state, old_attr);
   state->history = g_list_prepend (state->history, old_attr);
-  gst_ttmlparse_state_set_attribute (state, new_attr);
+  gst_ttmlparse_state_merge_attribute (state, new_attr);
   gst_ttmlparse_attribute_free (new_attr);
 
   GST_LOG ("Pushed attribute %p (type %d)", old_attr,
       old_attr==NULL?-1:old_attr->type);
 }
 
-/* Inserts a NULL attribute into the attribute stack, to serve as attribute
- * group marker. Useful to separate groups of attributes which should be
- * popped from the stack simultaneously. */
-static void
-gst_ttmlparse_state_push_attribute_group_marker (GstTTMLState *state)
-{
-  state->history = g_list_prepend (state->history, NULL);
-  GST_LOG ("Pushed attribute group marker");
-}
-
 /* Pops an attribute from the stack and puts in the state, overwritting the
- * current value. Returns TRUE on success and FALSE on error or if a group
- * marker was found (Useful to stop popping) */
-static gboolean
+ * current value */
+static GstTTMLAttributeType
 gst_ttmlparse_state_pop_attribute (GstTTMLState *state)
 {
   GstTTMLAttribute *attr;
+  GstTTMLAttributeType type;
+
   if (!state->history) {
     GST_ERROR ("Unable to pop attribute: empty stack");
-    return FALSE;
   }
   attr  = (GstTTMLAttribute *)state->history->data;
+  type = attr->type;
   state->history = g_list_delete_link (state->history, state->history);
 
-  GST_LOG ("Popped attribute %p (type %d)", attr, attr==NULL?-1:attr->type);
-
-  if (!attr) {
-    /* End of attribute group detected */
-    return FALSE;
-  }
+  GST_LOG ("Popped attribute %p (type %d)", attr, attr==NULL?-1:type);
 
   gst_ttmlparse_state_set_attribute (state, attr);
 
   gst_ttmlparse_attribute_free (attr);
-  return TRUE;
+
+  return type;
 }
 
-/* Pad push the stored buffer, using the correct timestamps and clipping */
+/* Generate one output (text) buffer combining all currently active spans */
 static void
-gst_ttmlparse_send_buffer (GstTTMLParse * parse)
+gst_ttmlparse_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
 {
-  GstBuffer *buffer = parse->current_p;
+  output_span->chars =
+      g_realloc (output_span->chars, output_span->length + span->length);
+  memcpy (output_span->chars + output_span->length, span->chars, span->length);
+  output_span->length += span->length;
+}
+
+/* Generate and Pad push a buffer, using the correct timestamps and clipping */
+static void
+gst_ttmlparse_send_buffer (GstTTMLParse * parse, GstClockTime begin,
+    GstClockTime end)
+{
+  GstBuffer *buffer = NULL;
+  GstTTMLSpan span = { 0 };
   gboolean in_seg = FALSE;
   gint64 clip_start, clip_stop;
-  GstClockTime current_begin;
-  GstClockTime current_end;
-
-  /* If we have no buffer, this was an empty node, ignore it. */
-  if (!buffer)
-    return;
 
   /* Do not try to push anything if we have not recovered from previous
    * errors yet */
-  if (parse->current_status != GST_FLOW_OK)
+  if (parse->current_gst_status != GST_FLOW_OK)
     return;
 
+  /* Compose output text based on currently active spans */
+  g_list_foreach (parse->active_spans, (GFunc)gst_ttmlparse_span_compose,
+      &span);
+
+  buffer = gst_buffer_new_and_alloc (span.length);
+  memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
   gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
 
-  /* BEGIN and END times are relative to their "container", in this case,
-   * the buffer that brought us the TTML file. If there was no timing info
-   * associated to this buffer, ignore it. */
-  if (!GST_CLOCK_TIME_IS_VALID (parse->state.begin) &&
-      !GST_CLOCK_TIME_IS_VALID (parse->state.end) &&
-      !GST_CLOCK_TIME_IS_VALID (parse->state.dur))
-    return;
-  if (GST_CLOCK_TIME_IS_VALID (parse->state.begin))
-    current_begin = parse->current_pts + parse->state.begin;
-  else
-    current_begin = parse->current_pts;
-
-  if (GST_CLOCK_TIME_IS_VALID (parse->state.end)) {
-    if (GST_CLOCK_TIME_IS_VALID (parse->state.dur)) {
-      current_end = parse->current_pts +
-          MIN (parse->state.end, current_begin + parse->state.dur);
-    } else {
-      current_end = parse->current_pts + parse->state.end;
-    }
-  } else {
-    if (GST_CLOCK_TIME_IS_VALID (parse->state.dur)) {
-      current_end = parse->current_pts + current_begin + parse->state.dur;
-    } else {
-      return;
-    }
-  }
+  g_free (span.chars);
 
   in_seg = gst_segment_clip (parse->segment, GST_FORMAT_TIME,
-      current_begin, current_end, &clip_start, &clip_stop);
+      parse->base_time + begin, parse->base_time + end,
+      &clip_start, &clip_stop);
 
   if (in_seg) {
     if (G_UNLIKELY (parse->newsegment_needed)) {
@@ -375,33 +505,50 @@ gst_ttmlparse_send_buffer (GstTTMLParse * parse)
         GST_BUFFER_SIZE (buffer),
         GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
         GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
-    GST_MEMDUMP_OBJECT (parse, "Subtitle content:",
+    GST_MEMDUMP_OBJECT (parse, "Content:",
         GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer));
 
-    parse->current_status = gst_pad_push (parse->srcpad, buffer);
+    parse->current_gst_status = gst_pad_push (parse->srcpad, buffer);
   } else {
     GST_DEBUG_OBJECT (parse, "Buffer is out of segment (pts %"
-        GST_TIME_FORMAT ")", GST_TIME_ARGS (current_begin));
+        GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
     gst_buffer_unref (buffer);
   }
-
-  parse->current_p = NULL;
 }
 
-/* Process a node start. If it is a <p> node, store interesting info. */
+/* Convert a node type name into a node type enum */
+static GstTTMLNodeType
+gst_ttmlparse_node_type_parse (const gchar *name)
+{
+  if (gst_ttmlparse_element_is_type (name, "p")) {
+    return GST_TTML_NODE_TYPE_P;
+  } else
+  if (gst_ttmlparse_element_is_type (name, "span")) {
+    return GST_TTML_NODE_TYPE_SPAN;
+  }
+  return GST_TTML_NODE_TYPE_UNKNOWN;
+}
+
+/* Process a node start. Just push all its attributes onto the stack. */
 static void
-gst_ttmlparse_sax_element_start (void *ctx, const xmlChar * name,
-    const xmlChar ** xml_attrs)
+gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
+    const xmlChar **xml_attrs)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   const gchar **xml_attr = (const gchar **) xml_attrs;
+  GstTTMLAttribute *ttml_attr;
+  GstTTMLNodeType node_type;
+
   GST_LOG_OBJECT (parse, "New element: %s", name);
 
-  /* Push onto the stack all attributes defined by this element */
-  gst_ttmlparse_state_push_attribute_group_marker (&parse->state);
-  while (xml_attr && xml_attr[0]) {
-    GstTTMLAttribute *ttml_attr;
+  node_type = gst_ttmlparse_node_type_parse ((const gchar *)name);
+  GST_DEBUG ("Parsed name '%s' into node type %d", name, node_type);
 
+  /* Push onto the stack all attributes defined by this element, starting with
+   * the node type, which will serve as delimiter when popping attributes. */
+  ttml_attr = gst_ttmlparse_attribute_new_node (node_type);
+  gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
+  while (xml_attr && xml_attr[0]) {
     ttml_attr = gst_ttmlparse_attribute_parse (&parse->state, xml_attr[0],
         xml_attr[1]);
     if (ttml_attr) {
@@ -411,65 +558,83 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar * name,
     xml_attr = &xml_attr[2];
   }
 
-  if (gst_ttmlparse_element_is_type ((const gchar *) name, "p")) {
-    parse->inside_p = TRUE;
-
-    if (parse->current_p) {
-      GST_WARNING_OBJECT (parse, "Removed dangling buffer");
-      gst_buffer_unref (parse->current_p);
-      parse->current_p = NULL;
-    }
-  }
+  /* Now that all attributes have been parsed, set this time framework as the
+   * "container" for nested elements */
+  parse->state.container_begin = parse->state.begin;
+  parse->state.container_end = parse->state.end;
 }
 
-/* Process a node end. If it is a <p> node, send any stored buffer. */
+/* Process a node end. Just pop previous state from the stack. */
 static void
 gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  GstTTMLAttributeType type;
 
   GST_LOG_OBJECT (parse, "End element: %s", name);
 
-  if (gst_ttmlparse_element_is_type ((const gchar *) name, "p")) {
-    parse->inside_p = FALSE;
-    gst_ttmlparse_send_buffer (parse);
-  }
-
   /* Remove from the attribute stack any attribute pushed by this element */
-  while (gst_ttmlparse_state_pop_attribute (&parse->state)) {}
+  do {
+    type = gst_ttmlparse_state_pop_attribute (&parse->state);
+  } while (type != GST_TTML_ATTR_NODE_TYPE);
+
+  /* Now that all attributes have been parsed, set this time framework as the
+   * "container" for nested elements */
+  parse->state.container_begin = parse->state.begin;
+  parse->state.container_end = parse->state.end;
 }
 
-/* Process character. If they are inside a <p> node, create buffer to hold
- * them and store it for later (it might grow in size) */
+/* Process characters */
 static void
-gst_ttmlparse_sax_characters (void *ctx, const xmlChar * ch, int len)
+gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
-  GstBuffer *new_buffer;
   const gchar *content = (const gchar *) ch;
   const gchar *content_end = NULL;
   gint content_size = 0;
+  GstTTMLSpan *span;
+  GstTTMLEvent *event;
+  guint id;
 
-  if (!parse->inside_p)
-    return;
+  GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %d",
+      len, parse->state.node_type);
+
+  switch (parse->state.node_type) {
+    case GST_TTML_NODE_TYPE_P:
+    case GST_TTML_NODE_TYPE_SPAN:
+      break;
+    default:
+      /* Ignore characters outside relevant nodes */
+      return;
+  }
 
   /* Start by validating UTF-8 content */
   if (!g_utf8_validate (content, len, &content_end)) {
     GST_WARNING_OBJECT (parse, "Content is not valid UTF-8");
     return;
   }
-
   content_size = content_end - content;
 
-  new_buffer = gst_buffer_new_and_alloc (content_size);
-  memcpy (GST_BUFFER_DATA (new_buffer), content, content_size);
-
-  if (parse->current_p) {
-    /* TODO */
-    GST_WARNING_OBJECT (parse, "Multiple strings inside <p> unimplemented");
-  } else {
-    parse->current_p = new_buffer;
+  /* Check if timing information is present */
+  if (!GST_CLOCK_TIME_IS_VALID (parse->state.begin) &&
+      !GST_CLOCK_TIME_IS_VALID (parse->state.end)) {
+    GST_DEBUG_OBJECT (parse, "Span without timing information. Dropping.");
+    return;
   }
+
+  /* Create a new span to hold these characters, with an ever-increasing
+   * ID number. */
+  id = parse->state.last_span_id++;
+  span = gst_ttmlparse_span_new (id, content_size, content);
+
+  /* Insert BEGIN and END events in the timeline, with the same ID */
+  event = gst_ttmlparse_event_new_span_begin (&parse->state, span);
+  parse->timeline =
+      gst_ttmlparse_timeline_insert_event (parse->timeline, event);
+
+  event = gst_ttmlparse_event_new_span_end (&parse->state, id);
+  parse->timeline =
+      gst_ttmlparse_timeline_insert_event (parse->timeline, event);
 }
 
 /* Parse SAX warnings (simply shown as debug logs) */
@@ -511,6 +676,38 @@ gst_ttmlparse_sax_get_entity (void *ctx, const xmlChar * name)
   return xmlGetPredefinedEntity (name);
 }
 
+static void
+gst_ttmlparse_sax_document_end (void *ctx)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  GstTTMLEvent *event = NULL;
+  GstClockTime time = GST_CLOCK_TIME_NONE;
+
+  GST_LOG_OBJECT (parse, "Document complete");
+  if (parse->assume_ordered_spans) {
+    /* Nothing to do here */
+    return;
+  }
+
+  if (!parse->timeline) {
+    /* Empty timeline, nothing to do */
+    return;
+  }
+
+  /* Get all events from the timeline, parse them and generate output
+   * buffers */
+  do {
+    parse->timeline =
+      gst_ttmlparse_timeline_get_next_event (parse->timeline, &event);
+
+    if (event->timestamp != time && GST_CLOCK_TIME_IS_VALID (time)) {
+      gst_ttmlparse_send_buffer (parse, time, event->timestamp);
+    }
+    time = event->timestamp;
+    gst_ttmlparse_event_parse (parse, event);
+  } while (parse->timeline);
+}
+
 static xmlSAXHandler gst_ttmlparse_sax_handler = {
   /* .internalSubset = */ NULL,
   /* .isStandalone = */ NULL,
@@ -525,7 +722,7 @@ static xmlSAXHandler gst_ttmlparse_sax_handler = {
   /*. unparsedEntityDecl = */ NULL,
   /*. setDocumentLocator = */ NULL,
   /*. startDocument = */ NULL,
-  /*. endDocument = */ NULL,
+  /*. endDocument = */ gst_ttmlparse_sax_document_end,
   /*. startElement = */ gst_ttmlparse_sax_element_start,
   /*. endElement = */ gst_ttmlparse_sax_element_end,
   /*. reference = */ NULL,
@@ -546,7 +743,7 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
   int buffer_len;
 
   parse = GST_TTMLPARSE (gst_pad_get_parent (pad));
-  parse->current_status = GST_FLOW_OK;
+  parse->current_gst_status = GST_FLOW_OK;
 
   /* Set caps on src pad */
   if (G_UNLIKELY (!GST_PAD_CAPS (parse->srcpad))) {
@@ -559,7 +756,7 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
   }
 
   GST_LOG_OBJECT (parse, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT,
-      GST_BUFFER_SIZE (buffer), GST_TIME_ARGS (parse->current_pts));
+      GST_BUFFER_SIZE (buffer), GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)));
 
   buffer_data = (const char *) GST_BUFFER_DATA (buffer);
   buffer_len = GST_BUFFER_SIZE (buffer);
@@ -569,9 +766,9 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
 
     /* Store buffer timestamp. All future timestamps we produce will be relative
      * to this buffer time. */
-    if (!GST_CLOCK_TIME_IS_VALID (parse->current_pts) &&
+    if (!GST_CLOCK_TIME_IS_VALID (parse->base_time) &&
         GST_CLOCK_TIME_IS_VALID (GST_BUFFER_TIMESTAMP (buffer))) {
-      parse->current_pts = GST_BUFFER_TIMESTAMP (buffer);
+      parse->base_time = GST_BUFFER_TIMESTAMP (buffer);
     }
 
     /* Look for end-of-document tags */
@@ -620,7 +817,7 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
       GST_DEBUG_OBJECT (parse, "Destroying parser");
       xmlFreeParserCtxt (parse->xml_parser);
       parse->xml_parser = NULL;
-      parse->current_pts = GST_CLOCK_TIME_NONE;
+      parse->base_time = GST_CLOCK_TIME_NONE;
 
       /* Remove trailing whitespace, or the first thing the new parser will
        * find will not be the start-of-document tag */
@@ -646,7 +843,7 @@ beach:
 
   gst_object_unref (parse);
 
-  return parse->current_status;
+  return parse->current_gst_status;
 }
 
 static gboolean
@@ -705,6 +902,49 @@ beach:
   gst_object_unref (parse);
 
   return ret;
+}
+
+/* Set the state to default values */
+static void
+gst_ttmlparse_state_reset (GstTTMLState *state)
+{
+  state->last_span_id = 0;
+  state->begin = GST_CLOCK_TIME_NONE;
+  state->end = GST_CLOCK_TIME_NONE;
+  state->container_begin = GST_CLOCK_TIME_NONE;
+  state->container_end = GST_CLOCK_TIME_NONE;
+  state->tick_period = GST_SECOND;
+  if (state->history) {
+    GST_WARNING ("Attribute stack should have been empty");
+    g_list_free_full (state->history,
+        (GDestroyNotify)gst_ttmlparse_attribute_free);
+    state->history = NULL;
+  }
+}
+
+/* Free any information held by the element */
+static void
+gst_ttmlparse_cleanup (GstTTMLParse * parse)
+{
+  GST_DEBUG_OBJECT (parse, "cleaning up TTML parser");
+
+  if (parse->segment) {
+    gst_segment_init (parse->segment, GST_FORMAT_TIME);
+  }
+
+  if (parse->xml_parser) {
+    xmlFreeParserCtxt (parse->xml_parser);
+    parse->xml_parser = NULL;
+  }
+
+  if (parse->timeline) {
+    g_list_free_full (parse->timeline,
+        (GDestroyNotify)gst_ttmlparse_event_free);
+  }
+
+  gst_ttmlparse_state_reset (&parse->state);
+
+  return;
 }
 
 static GstStateChangeReturn
@@ -780,20 +1020,6 @@ gst_ttmlparse_set_property (GObject * object, guint prop_id,
 }
 
 static void
-gst_ttmlparse_state_reset (GstTTMLState *state)
-{
-  state->begin = GST_CLOCK_TIME_NONE;
-  state->end = GST_CLOCK_TIME_NONE;
-  state->dur = GST_CLOCK_TIME_NONE;
-  state->tick_period = GST_SECOND;
-  if (state->history) {
-    GST_WARNING ("Attribute stack should have been empty");
-    g_list_free_full (state->history, g_free);
-    state->history = NULL;
-  }
-}
-
-static void
 gst_ttmlparse_dispose (GObject * object)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (object);
@@ -804,12 +1030,6 @@ gst_ttmlparse_dispose (GObject * object)
     gst_segment_free (parse->segment);
     parse->segment = NULL;
   }
-
-  if (parse->timeline) {
-    g_list_free_full (parse->timeline, g_free);
-  }
-
-  gst_ttmlparse_state_reset (&parse->state);
 
   GST_CALL_PARENT (G_OBJECT_CLASS, dispose, (object));
 }
@@ -874,10 +1094,8 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->newsegment_needed = TRUE;
 
   parse->xml_parser = NULL;
-  parse->inside_p = FALSE;
-  parse->current_p = NULL;
-  parse->current_pts = GST_CLOCK_TIME_NONE;
-  parse->current_status = GST_FLOW_OK;
+  parse->base_time = GST_CLOCK_TIME_NONE;
+  parse->current_gst_status = GST_FLOW_OK;
   parse->timeline = NULL;
 
   parse->state.history = NULL;

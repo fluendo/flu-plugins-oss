@@ -1,3 +1,31 @@
+2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_span_free),
+	(gst_ttmlparse_span_new), (gst_ttmlparse_span_compare_id),
+	(gst_ttmlparse_active_spans_add),
+	(gst_ttmlparse_active_spans_remove), (gst_ttmlparse_event_free),
+	(gst_ttmlparse_event_new_span_begin),
+	(gst_ttmlparse_event_new_span_end), (gst_ttmlparse_event_parse),
+	(gst_ttmlparse_timeline_insert_event),
+	(gst_ttmlparse_timeline_get_next_event),
+	(gst_ttmlparse_parse_time_expression),
+	(gst_ttmlparse_attribute_new_node),
+	(gst_ttmlparse_state_set_attribute),
+	(gst_ttmlparse_state_merge_attribute),
+	(gst_ttmlparse_state_get_attribute),
+	(gst_ttmlparse_state_push_attribute),
+	(gst_ttmlparse_state_pop_attribute), (gst_ttmlparse_span_compose),
+	(gst_ttmlparse_send_buffer), (gst_ttmlparse_node_type_parse),
+	(gst_ttmlparse_sax_element_start), (gst_ttmlparse_sax_element_end),
+	(gst_ttmlparse_sax_characters), (gst_ttmlparse_sax_document_end),
+	(gst_ttmlparse_chain), (gst_ttmlparse_state_reset),
+	(gst_ttmlparse_cleanup), (gst_ttmlparse_dispose),
+	(gst_ttmlparse_init):
+	* src/gstttmlprivate.h:
+	  WARNING, HUGE COMMIT!
+	  - Allow overlapped, nested and anonymous spans by implementing a timeline
+	    and an active spans list.
+
 2012-11-20  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_parse_time_expression),
