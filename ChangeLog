@@ -1,5 +1,13 @@
 2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_node_type_parse),
+	(gst_ttmlparse_add_characters), (gst_ttmlparse_sax_element_start),
+	(gst_ttmlparse_sax_characters):
+	* src/gstttmlprivate.h:
+	  - Support for the <br /> tag
+
+2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_parse_time_expression),
 	(gst_ttmlparse_attribute_parse),
 	(gst_ttmlparse_state_set_attribute),
