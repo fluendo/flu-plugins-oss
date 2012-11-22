@@ -55,12 +55,25 @@ gst_ttmlparse_span_free (GstTTMLSpan *span)
 /* Create a new text span. Timing information does not belong to the span
  * but to the event that contains it. */
 static GstTTMLSpan *
-gst_ttmlparse_span_new (guint id, guint length, const gchar *chars)
+gst_ttmlparse_span_new (guint id, guint length, const gchar *chars,
+    gboolean preserve_cr)
 {
   GstTTMLSpan *span = g_new (GstTTMLSpan, 1);
   span->id = id;
   span->length = length;
   span->chars = g_memdup (chars, length);
+
+  /* Turn CR characters into SPACE if requested */
+  if (!preserve_cr) {
+    gchar *c = span->chars;
+    while (length) {
+      if (*c == '\n')
+        *c = ' ';
+      c++;
+      length--;
+    }
+  }
+
   return span;
 }
 
@@ -294,6 +307,11 @@ gst_ttmlparse_attribute_parse (const GstTTMLState *state, const char *name,
     sscanf (value, "%d %d", &attr->value.num, &attr->value.den);
     GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
         attr->value.num, attr->value.den);
+  } else if (gst_ttmlparse_element_is_type (name, "space")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_WHITESPACE_PRESERVE;
+    attr->value.b = !g_ascii_strcasecmp (value, "preserve");
+    GST_LOG ("Parsed '%s' xml:space into preserve=%d", value, attr->value.b);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -356,6 +374,9 @@ gst_ttmlparse_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
       state->frame_rate_num = attr->value.num;
       state->frame_rate_den = attr->value.den;
+      break;
+    case GST_TTML_ATTR_WHITESPACE_PRESERVE:
+      state->whitespace_preserve = attr->value.b;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -424,6 +445,9 @@ gst_ttmlparse_state_get_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
       attr->value.num = state->frame_rate_num;
       attr->value.den = state->frame_rate_den;
+      break;
+    case GST_TTML_ATTR_WHITESPACE_PRESERVE:
+      attr->value.b = state->whitespace_preserve;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -572,7 +596,7 @@ gst_ttmlparse_is_blank_node (const gchar *content, int len)
   return len == 0;
 }
 
-/* allocate a new span to hold new characters, and insert into the timeline
+/* Allocate a new span to hold new characters, and insert into the timeline
  * BEGIN and END events to handle this new span. */
 static void
 gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
@@ -601,7 +625,8 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   /* Create a new span to hold these characters, with an ever-increasing
    * ID number. */
   id = parse->state.last_span_id++;
-  span = gst_ttmlparse_span_new (id, content_size, content);
+  span = gst_ttmlparse_span_new (id, content_size, content,
+      parse->state.whitespace_preserve);
 
   /* Insert BEGIN and END events in the timeline, with the same ID */
   event = gst_ttmlparse_event_new_span_begin (&parse->state, span);
@@ -982,6 +1007,7 @@ gst_ttmlparse_state_reset (GstTTMLState *state)
   state->frame_rate = 30.0;
   state->frame_rate_num = 1.0;
   state->frame_rate_den = 1.0;
+  state->whitespace_preserve = FALSE;
   if (state->history) {
     GST_WARNING ("Attribute stack should have been empty");
     g_list_free_full (state->history,
