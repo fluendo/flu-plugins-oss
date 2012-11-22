@@ -1,5 +1,16 @@
 2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_span_new),
+	(gst_ttmlparse_attribute_parse),
+	(gst_ttmlparse_state_set_attribute),
+	(gst_ttmlparse_state_get_attribute),
+	(gst_ttmlparse_add_characters), (gst_ttmlparse_state_reset):
+	* src/gstttmlprivate.h:
+	  - Support for the xml:space attribute which controls how CR chars
+	    are to be treated.
+
+2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_send_buffer),
 	(gst_ttmlparse_add_characters), (gst_ttmlparse_sax_characters):
 	  - Check for blank nodes in the proper place
