@@ -558,6 +558,16 @@ gst_ttmlparse_node_type_parse (const gchar *name)
   return GST_TTML_NODE_TYPE_UNKNOWN;
 }
 
+static gboolean
+gst_ttmlparse_is_blank_node (const gchar *content, int len)
+{
+  while (len && g_ascii_isspace (*content)) {
+    content++;
+    len--;
+  }
+  return len == 0;
+}
+
 /* allocate a new span to hold new characters, and insert into the timeline
  * BEGIN and END events to handle this new span. */
 static void
@@ -569,6 +579,10 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   GstTTMLSpan *span;
   GstTTMLEvent *event;
   guint id;
+
+  /* Check if this is an ignorable blank node */
+  if (gst_ttmlparse_is_blank_node (content, len))
+    return;
 
   /* Start by validating UTF-8 content */
   if (!g_utf8_validate (content, len, &content_end)) {
