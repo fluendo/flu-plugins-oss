@@ -17,7 +17,9 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_BEGIN,
   GST_TTML_ATTR_END,
   GST_TTML_ATTR_DUR,
-  GST_TTML_ATTR_TICK_PERIOD
+  GST_TTML_ATTR_TICK_RATE,
+  GST_TTML_ATTR_FRAME_RATE,
+  GST_TTML_ATTR_FRAME_RATE_MULTIPLIER
 } GstTTMLAttributeType;
 
 /* Types of TTML nodes */
@@ -34,6 +36,10 @@ typedef struct _GstTTMLAttribute {
     GstTTMLNodeType node_type;
     GstClockTime time;
     gdouble d;
+    struct {
+      gint num;
+      gint den;
+    };
   } value;
 } GstTTMLAttribute;
 
@@ -45,7 +51,10 @@ typedef struct _GstTTMLState {
   GstClockTime end;
   GstClockTime container_begin;
   GstClockTime container_end;
-  gdouble tick_period;
+  gdouble tick_rate;
+  gdouble frame_rate;
+  gdouble frame_rate_num;
+  gdouble frame_rate_den;
 
   GList *history;
 } GstTTMLState;

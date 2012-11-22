@@ -239,11 +239,15 @@ gst_ttmlparse_parse_time_expression (const GstTTMLState *state,
         scale = GST_SECOND;
         break;
       case 't':
-        scale = state->tick_period;
+        scale = 1.0 / state->tick_rate;
+        break;
+      case 'f':
+        scale = GST_SECOND * state->frame_rate_den /
+            (state->frame_rate * state->frame_rate_num);
         break;
       default:
-        /* TODO: Handle 'f' metric */
         GST_WARNING ("Unknown metric %s", metric);
+        break;
     }
     res = count * scale;
   } else {
@@ -276,10 +280,20 @@ gst_ttmlparse_attribute_parse (const GstTTMLState *state, const char *name,
     attr->value.time = gst_ttmlparse_parse_time_expression (state, value);
   } else if (gst_ttmlparse_element_is_type (name, "tickRate")) {
     attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_TICK_PERIOD;
-    attr->value.d = GST_SECOND / g_ascii_strtod (value, NULL);
-    GST_LOG ("Parsed '%s' ticks per second into a %g tick period", value,
-        attr->value.d);
+    attr->type = GST_TTML_ATTR_TICK_RATE;
+    attr->value.d = g_ascii_strtod (value, NULL) / GST_SECOND;
+    GST_LOG ("Parsed '%s' ticksRate into %g", value, attr->value.d);
+  } else if (gst_ttmlparse_element_is_type (name, "frameRate")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_FRAME_RATE;
+    attr->value.d = g_ascii_strtod (value, NULL);
+    GST_LOG ("Parsed '%s' frameRate into %g", value, attr->value.d);
+  } else if (gst_ttmlparse_element_is_type (name, "frameRateMultiplier")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_FRAME_RATE_MULTIPLIER;
+    sscanf (value, "%d %d", &attr->value.num, &attr->value.den);
+    GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
+        attr->value.num, attr->value.den);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -333,8 +347,15 @@ gst_ttmlparse_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_DUR:
       state->end = state->begin + attr->value.time;
       break;
-    case GST_TTML_ATTR_TICK_PERIOD:
-      state->tick_period = attr->value.d;
+    case GST_TTML_ATTR_TICK_RATE:
+      state->tick_rate = attr->value.d;
+      break;
+    case GST_TTML_ATTR_FRAME_RATE:
+      state->frame_rate = attr->value.d;
+      break;
+    case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
+      state->frame_rate_num = attr->value.num;
+      state->frame_rate_den = attr->value.den;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -366,8 +387,6 @@ gst_ttmlparse_state_merge_attribute (GstTTMLState *state,
       state->end = attr->value.time;
       if (GST_CLOCK_TIME_IS_VALID (state->begin))
         state->end += state->begin;
-      if (GST_CLOCK_TIME_IS_VALID (state->container_begin))
-        state->end += state->container_begin;
       if (GST_CLOCK_TIME_IS_VALID (state->container_end))
         state->end = MIN (state->end, state->container_end);
       break;
@@ -396,8 +415,15 @@ gst_ttmlparse_state_get_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_DUR:
       attr->value.time = state->end - state->begin;
       break;
-    case GST_TTML_ATTR_TICK_PERIOD:
-      attr->value.d = state->tick_period;
+    case GST_TTML_ATTR_TICK_RATE:
+      attr->value.d = state->tick_rate;
+      break;
+    case GST_TTML_ATTR_FRAME_RATE:
+      attr->value.d = state->frame_rate;
+      break;
+    case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
+      attr->value.num = state->frame_rate_num;
+      attr->value.den = state->frame_rate_den;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -913,7 +939,10 @@ gst_ttmlparse_state_reset (GstTTMLState *state)
   state->end = GST_CLOCK_TIME_NONE;
   state->container_begin = GST_CLOCK_TIME_NONE;
   state->container_end = GST_CLOCK_TIME_NONE;
-  state->tick_period = GST_SECOND;
+  state->tick_rate = 1.0 / GST_SECOND;
+  state->frame_rate = 30.0;
+  state->frame_rate_num = 1.0;
+  state->frame_rate_den = 1.0;
   if (state->history) {
     GST_WARNING ("Attribute stack should have been empty");
     g_list_free_full (state->history,
