@@ -1,5 +1,11 @@
 2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_is_blank_node),
+	(gst_ttmlparse_add_characters):
+	  - Do not process blank nodes (only containing whitespace)
+
+2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_node_type_parse),
 	(gst_ttmlparse_add_characters), (gst_ttmlparse_sax_element_start),
 	(gst_ttmlparse_sax_characters):
