@@ -1,3 +1,8 @@
+2012-11-23  Xavi Artigas  <xartigas@fluendo.com>
+
+	* Makefile.am:
+	  - Remove dependency with LICENSE.LGPL
+
 2012-11-23  Fluendo <support@fluendo.com>
 
 	* gst-fluendo-ttml.spec.in: Remove unnecessary dependencies.
