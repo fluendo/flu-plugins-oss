@@ -32,5 +32,6 @@ libgstfluttml_la_DEPENDENCIES =
 
 noinst_HEADERS = \
 gstttmlparse.h \
-gstttmltype.h
+gstttmltype.h \
+gstttmlprivate.h
 
