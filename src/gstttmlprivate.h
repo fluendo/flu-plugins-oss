@@ -133,4 +133,13 @@ typedef struct _GstTTMLEvent
 } GstTTMLEvent;
 
 G_END_DECLS
+
+#ifndef GST_MEMDUMP
+#define GST_MEMDUMP(title, data, len) while(0) {}
+#endif
+
+#ifndef GST_MEMDUMP_OBJECT
+#define GST_MEMDUMP_OBJECT(obj, title, data, len) while(0) {}
+#endif
+
 #endif /* __GST_TTMLPRIVATE_H__ */
