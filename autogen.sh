@@ -5,6 +5,12 @@ DIE=0
 package=gst-fluendo-ttml
 srcfile=src/fluttml.c
 
+# Make sure we have common
+if test ! -f common/gst-autogen.sh;then
+    echo "+ Setting up common submodule"
+    git submodule init
+fi
+git submodule update
 # source helper functions
 . common/gst-autogen.sh
 
