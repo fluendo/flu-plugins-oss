@@ -44,6 +44,79 @@ GST_STATIC_PAD_TEMPLATE ("sink",
 
 static GstElementClass *parent_class = NULL;
 
+/* Generate one output (text) buffer combining all currently active spans */
+static void
+gst_ttmlparse_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
+{
+  output_span->chars =
+      g_realloc (output_span->chars, output_span->length + span->length);
+  memcpy (output_span->chars + output_span->length, span->chars, span->length);
+  output_span->length += span->length;
+}
+
+/* Generate and Pad push a buffer, using the correct timestamps and clipping */
+static void
+gst_ttmlparse_send_buffer (GstTTMLParse * parse, GstClockTime begin,
+    GstClockTime end)
+{
+  GstBuffer *buffer = NULL;
+  GstTTMLSpan span = { 0 };
+  gboolean in_seg = FALSE;
+  gint64 clip_start, clip_stop;
+
+  /* Do not try to push anything if we have not recovered from previous
+   * errors yet */
+  if (parse->current_gst_status != GST_FLOW_OK)
+    return;
+
+  /* Check if there is any active span at all */
+  if (!parse->active_spans)
+    return;
+
+  /* Compose output text based on currently active spans */
+  g_list_foreach (parse->active_spans, (GFunc)gst_ttmlparse_span_compose,
+      &span);
+
+  buffer = gst_buffer_new_and_alloc (span.length);
+  memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
+  gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
+
+  g_free (span.chars);
+
+  in_seg = gst_segment_clip (parse->segment, GST_FORMAT_TIME,
+      parse->base_time + begin, parse->base_time + end,
+      &clip_start, &clip_stop);
+
+  if (in_seg) {
+    if (G_UNLIKELY (parse->newsegment_needed)) {
+      GstEvent *event;
+
+      event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME,
+          clip_start, -1, 0);
+      GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
+      gst_pad_push_event (parse->srcpad, event);
+      parse->newsegment_needed = FALSE;
+    }
+
+    GST_BUFFER_TIMESTAMP (buffer) = clip_start;
+    GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
+
+    GST_DEBUG_OBJECT (parse, "Pushing buffer of %u bytes, pts %"
+        GST_TIME_FORMAT " duration %" GST_TIME_FORMAT,
+        GST_BUFFER_SIZE (buffer),
+        GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
+        GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
+    GST_MEMDUMP_OBJECT (parse, "Content:",
+        GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer));
+
+    parse->current_gst_status = gst_pad_push (parse->srcpad, buffer);
+  } else {
+    GST_DEBUG_OBJECT (parse, "Buffer is out of segment (pts %"
+        GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
+    gst_buffer_unref (buffer);
+  }
+}
+
 /* Free a text span */
 static void
 gst_ttmlparse_span_free (GstTTMLSpan *span)
@@ -154,7 +227,9 @@ static GstTTMLEvent *
 gst_ttmlparse_event_new_span_end (GstTTMLState *state, guint id)
 {
   GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
-  event->timestamp = state->end;
+  /* Substracting one nanosecond is a cheap way of making intervals
+   * open on the right */
+  event->timestamp = state->end - 1;
   event->type = GST_TTML_EVENT_TYPE_SPAN_END;
   event->span_end.id = id;
   return event;
@@ -189,7 +264,7 @@ gst_ttmlparse_event_parse (GstTTMLParse *parse, GstTTMLEvent *event)
   gst_ttmlparse_event_free (event);
 }
 
-/* Insert an event in the timeline, ordered by timestamp. You loose ownership
+/* Insert an event in the timeline, ordered by timestamp. You lose ownership
  * of the event. */
 static GList *
 gst_ttmlparse_timeline_insert_event (GList *timeline, GstTTMLEvent *event)
@@ -207,6 +282,31 @@ gst_ttmlparse_timeline_get_next_event (GList *timeline, GstTTMLEvent **event)
 {
   *event = (GstTTMLEvent *)timeline->data;
   return g_list_delete_link (timeline, timeline);
+}
+
+/* Remove all events from the timeline, parse them and generate output
+ * buffers */
+static void
+gst_ttmlparse_timeline_flush (GstTTMLParse *parse)
+{
+  GstTTMLEvent *event;
+  GstClockTime time = GST_CLOCK_TIME_NONE;
+
+  if (!parse->timeline) {
+    /* Empty timeline, nothing to do */
+    return;
+  }
+
+  do {
+    parse->timeline =
+      gst_ttmlparse_timeline_get_next_event (parse->timeline, &event);
+
+    if (event->timestamp != time && GST_CLOCK_TIME_IS_VALID (time)) {
+      gst_ttmlparse_send_buffer (parse, time, event->timestamp);
+    }
+    time = event->timestamp;
+    gst_ttmlparse_event_parse (parse, event);
+  } while (parse->timeline);
 }
 
 /* Check if the given node or attribute name matches a type, disregarding
@@ -497,79 +597,6 @@ gst_ttmlparse_state_pop_attribute (GstTTMLState *state)
   return type;
 }
 
-/* Generate one output (text) buffer combining all currently active spans */
-static void
-gst_ttmlparse_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
-{
-  output_span->chars =
-      g_realloc (output_span->chars, output_span->length + span->length);
-  memcpy (output_span->chars + output_span->length, span->chars, span->length);
-  output_span->length += span->length;
-}
-
-/* Generate and Pad push a buffer, using the correct timestamps and clipping */
-static void
-gst_ttmlparse_send_buffer (GstTTMLParse * parse, GstClockTime begin,
-    GstClockTime end)
-{
-  GstBuffer *buffer = NULL;
-  GstTTMLSpan span = { 0 };
-  gboolean in_seg = FALSE;
-  gint64 clip_start, clip_stop;
-
-  /* Do not try to push anything if we have not recovered from previous
-   * errors yet */
-  if (parse->current_gst_status != GST_FLOW_OK)
-    return;
-
-  /* Check if there is any active span at all */
-  if (!parse->active_spans)
-    return;
-
-  /* Compose output text based on currently active spans */
-  g_list_foreach (parse->active_spans, (GFunc)gst_ttmlparse_span_compose,
-      &span);
-
-  buffer = gst_buffer_new_and_alloc (span.length);
-  memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
-  gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
-
-  g_free (span.chars);
-
-  in_seg = gst_segment_clip (parse->segment, GST_FORMAT_TIME,
-      parse->base_time + begin, parse->base_time + end,
-      &clip_start, &clip_stop);
-
-  if (in_seg) {
-    if (G_UNLIKELY (parse->newsegment_needed)) {
-      GstEvent *event;
-
-      event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME,
-          clip_start, -1, 0);
-      GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
-      gst_pad_push_event (parse->srcpad, event);
-      parse->newsegment_needed = FALSE;
-    }
-
-    GST_BUFFER_TIMESTAMP (buffer) = clip_start;
-    GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
-
-    GST_DEBUG_OBJECT (parse, "Pushing buffer of %u bytes, pts %"
-        GST_TIME_FORMAT " duration %" GST_TIME_FORMAT,
-        GST_BUFFER_SIZE (buffer),
-        GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
-        GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
-    GST_MEMDUMP_OBJECT (parse, "Content:",
-        GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer));
-
-    parse->current_gst_status = gst_pad_push (parse->srcpad, buffer);
-  } else {
-    GST_DEBUG_OBJECT (parse, "Buffer is out of segment (pts %"
-        GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
-    gst_buffer_unref (buffer);
-  }
-}
-
 /* Convert a node type name into a node type enum */
 static GstTTMLNodeType
 gst_ttmlparse_node_type_parse (const gchar *name)
@@ -622,6 +649,13 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
     return;
   }
 
+  /* If assuming ordered spans, as soon as our begin is later than the
+   * latest event in the timeline, we can flush the timeline */
+  if (parse->assume_ordered_spans &&
+      parse->state.begin >= parse->last_event_timestamp) {
+    gst_ttmlparse_timeline_flush (parse);
+  }
+
   /* Create a new span to hold these characters, with an ever-increasing
    * ID number. */
   id = parse->state.last_span_id++;
@@ -636,6 +670,8 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   event = gst_ttmlparse_event_new_span_end (&parse->state, id);
   parse->timeline =
       gst_ttmlparse_timeline_insert_event (parse->timeline, event);
+
+  parse->last_event_timestamp = event->timestamp;
 }
 
 /* Process a node start. Just push all its attributes onto the stack. */
@@ -769,33 +805,9 @@ gst_ttmlparse_sax_get_entity (void *ctx, const xmlChar * name)
 static void
 gst_ttmlparse_sax_document_end (void *ctx)
 {
-  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
-  GstTTMLEvent *event = NULL;
-  GstClockTime time = GST_CLOCK_TIME_NONE;
+  GST_LOG_OBJECT (GST_TTMLPARSE (ctx), "Document complete");
 
-  GST_LOG_OBJECT (parse, "Document complete");
-  if (parse->assume_ordered_spans) {
-    /* Nothing to do here */
-    return;
-  }
-
-  if (!parse->timeline) {
-    /* Empty timeline, nothing to do */
-    return;
-  }
-
-  /* Get all events from the timeline, parse them and generate output
-   * buffers */
-  do {
-    parse->timeline =
-      gst_ttmlparse_timeline_get_next_event (parse->timeline, &event);
-
-    if (event->timestamp != time && GST_CLOCK_TIME_IS_VALID (time)) {
-      gst_ttmlparse_send_buffer (parse, time, event->timestamp);
-    }
-    time = event->timestamp;
-    gst_ttmlparse_event_parse (parse, event);
-  } while (parse->timeline);
+  gst_ttmlparse_timeline_flush (GST_TTMLPARSE (ctx));
 }
 
 static xmlSAXHandler gst_ttmlparse_sax_handler = {
@@ -1035,6 +1047,7 @@ gst_ttmlparse_cleanup (GstTTMLParse * parse)
     g_list_free_full (parse->timeline,
         (GDestroyNotify)gst_ttmlparse_event_free);
   }
+  parse->last_event_timestamp = GST_CLOCK_TIME_NONE;
 
   gst_ttmlparse_state_reset (&parse->state);
 
