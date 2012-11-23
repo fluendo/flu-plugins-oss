@@ -87,6 +87,7 @@ typedef struct _GstTTMLParse {
 
   /* Timeline management */
   GList *timeline;
+  GstClockTime last_event_timestamp;
 
   /* Active span list */
   GList *active_spans;

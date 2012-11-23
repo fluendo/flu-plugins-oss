@@ -1,3 +1,12 @@
+2012-11-23  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_span_compose),
+	(gst_ttmlparse_send_buffer), (gst_ttmlparse_event_new_span_end),
+	(gst_ttmlparse_timeline_flush), (gst_ttmlparse_add_characters),
+	(gst_ttmlparse_sax_document_end), (gst_ttmlparse_cleanup):
+	* src/gstttmlprivate.h:
+	  - Finished implementation of the assume-ordered-spans property.
+
 2012-11-22  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_span_new),
