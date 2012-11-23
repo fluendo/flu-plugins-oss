@@ -20,8 +20,6 @@ BuildRequires:  %{gstreamer}-plugins-base-devel
 %else
 BuildRequires:  gst-plugins-base-devel
 %endif
-BuildRequires:  libX11-devel
-BuildRequires:  mesa-libGL-devel
 
 ExclusiveArch:  i386 x86_64 
  

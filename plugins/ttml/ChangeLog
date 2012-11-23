@@ -1,3 +1,7 @@
+2012-11-23  Fluendo <support@fluendo.com>
+
+	* gst-fluendo-ttml.spec.in: Remove unnecessary dependencies.
+
 2012-11-23  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_span_compose),
