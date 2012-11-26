@@ -173,8 +173,9 @@ gst_ttmlparse_active_spans_add (GList *active_spans, GstTTMLSpan *span)
 static GList *
 gst_ttmlparse_active_spans_remove (GList *active_spans, guint id)
 {
+  GList *link = NULL;
   GST_DEBUG ("Removing span with id %d", id);
-  GList *link = g_list_find_custom (active_spans, &id,
+  link = g_list_find_custom (active_spans, &id,
       (GCompareFunc)gst_ttmlparse_span_compare_id);
   if (!link) {
     GST_WARNING ("Could not find span with id %d", id);
