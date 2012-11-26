@@ -1,3 +1,22 @@
+2012-11-26  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_active_spans_add),
+	(gst_ttmlparse_attribute_parse),
+	(gst_ttmlparse_attribute_new_time_container),
+	(gst_ttmlparse_attribute_new_begin),
+	(gst_ttmlparse_attribute_new_dur),
+	(gst_ttmlparse_state_set_attribute),
+	(gst_ttmlparse_state_get_attribute),
+	(gst_ttmlparse_add_characters), (gst_ttmlparse_sax_element_start),
+	(gst_ttmlparse_sax_element_end), (gst_ttmlparse_sax_characters),
+	(gst_ttmlparse_state_reset):
+	* src/gstttmlprivate.h:
+	  - Support the timeContainer attribute and the Sequential mode. This
+	    completes the support for the #timing feature.
+	  - Drop buffers with null time lapse earlier.
+	  - Fix <br /> nodes.
+	  - Some more MEMDUMP of span contents.
+
 2012-11-23  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.

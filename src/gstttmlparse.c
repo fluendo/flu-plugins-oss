@@ -162,6 +162,7 @@ static GList *
 gst_ttmlparse_active_spans_add (GList *active_spans, GstTTMLSpan *span)
 {
   GST_DEBUG ("Inserting span with id %d, length %d", span->id, span->length);
+  GST_MEMDUMP ("Span content:", (guint8 *)span->chars, span->length);
   /* Insert the spans sorted by ID, so they keep the order they had in the
    * XML file. */
   return g_list_insert_sorted (active_spans, span,
@@ -413,6 +414,12 @@ gst_ttmlparse_attribute_parse (const GstTTMLState *state, const char *name,
     attr->type = GST_TTML_ATTR_WHITESPACE_PRESERVE;
     attr->value.b = !g_ascii_strcasecmp (value, "preserve");
     GST_LOG ("Parsed '%s' xml:space into preserve=%d", value, attr->value.b);
+  } else if (gst_ttmlparse_element_is_type (name, "timeContainer")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER;
+    attr->value.b = !g_ascii_strcasecmp (value, "seq");
+    GST_LOG ("Parsed '%s' timeContainer into sequential=%d", value,
+        attr->value.b);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -435,7 +442,7 @@ gst_ttmlparse_attribute_free (GstTTMLAttribute *attr)
   g_free (attr);
 }
 
-/* Create a new "node_type" attribute. All other attribute types are created
+/* Create a new "node_type" attribute. Typically, attribute types are created
  * in the _attribute_parse() method above. */
 static GstTTMLAttribute *
 gst_ttmlparse_attribute_new_node (GstTTMLNodeType node_type)
@@ -443,6 +450,39 @@ gst_ttmlparse_attribute_new_node (GstTTMLNodeType node_type)
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = GST_TTML_ATTR_NODE_TYPE;
   attr->value.node_type = node_type;
+  return attr;
+}
+
+/* Create a new "time_container" attribute. Typically, attribute types are
+ * created in the _attribute_parse() method above. */
+static GstTTMLAttribute *
+gst_ttmlparse_attribute_new_time_container (gboolean sequential_time_container)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER;
+  attr->value.b = sequential_time_container;
+  return attr;
+}
+
+/* Create a new "begin" attribute. Typically, attribute types are
+ * created in the _attribute_parse() method above. */
+static GstTTMLAttribute *
+gst_ttmlparse_attribute_new_begin (GstClockTime begin)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = GST_TTML_ATTR_BEGIN;
+  attr->value.time = begin;
+  return attr;
+}
+
+/* Create a new "dur" attribute. Typically, attribute types are
+ * created in the _attribute_parse() method above. */
+static GstTTMLAttribute *
+gst_ttmlparse_attribute_new_dur (GstClockTime dur)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = GST_TTML_ATTR_DUR;
+  attr->value.time = dur;
   return attr;
 }
 
@@ -478,6 +518,9 @@ gst_ttmlparse_state_set_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       state->whitespace_preserve = attr->value.b;
+      break;
+    case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
+      state->sequential_time_container = attr->value.b;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -549,6 +592,9 @@ gst_ttmlparse_state_get_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       attr->value.b = state->whitespace_preserve;
+      break;
+    case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
+      attr->value.b = state->sequential_time_container;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -628,7 +674,7 @@ gst_ttmlparse_is_blank_node (const gchar *content, int len)
  * BEGIN and END events to handle this new span. */
 static void
 gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
-    int len)
+    int len, gboolean preserve_cr)
 {
   const gchar *content_end = NULL;
   gint content_size = 0;
@@ -650,6 +696,13 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
     return;
   }
 
+  if (parse->state.begin >= parse->state.end) {
+    GST_DEBUG ("Span with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
+        ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS(parse->state.begin),
+        GST_TIME_ARGS (parse->state.end));
+    return;
+  }
+
   /* If assuming ordered spans, as soon as our begin is later than the
    * latest event in the timeline, we can flush the timeline */
   if (parse->assume_ordered_spans &&
@@ -660,8 +713,7 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   /* Create a new span to hold these characters, with an ever-increasing
    * ID number. */
   id = parse->state.last_span_id++;
-  span = gst_ttmlparse_span_new (id, content_size, content,
-      parse->state.whitespace_preserve);
+  span = gst_ttmlparse_span_new (id, content_size, content, preserve_cr);
 
   /* Insert BEGIN and END events in the timeline, with the same ID */
   event = gst_ttmlparse_event_new_span_begin (&parse->state, span);
@@ -684,24 +736,49 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   const gchar **xml_attr = (const gchar **) xml_attrs;
   GstTTMLAttribute *ttml_attr;
   GstTTMLNodeType node_type;
+  gboolean is_container_seq = parse->state.sequential_time_container;
+  gboolean dur_attr_found = FALSE;
 
   GST_LOG_OBJECT (parse, "New element: %s", name);
 
   node_type = gst_ttmlparse_node_type_parse ((const gchar *)name);
   GST_DEBUG ("Parsed name '%s' into node type %d", name, node_type);
 
-  /* Push onto the stack all attributes defined by this element, starting with
-   * the node type, which will serve as delimiter when popping attributes. */
+  /* Push onto the stack the node type, which will serve as delimiter when
+   * popping attributes. */
   ttml_attr = gst_ttmlparse_attribute_new_node (node_type);
   gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
+  /* If this node did not specify the time_container attribute, set it
+   * manually to "parallel", as this is not inherited. */
+  ttml_attr = gst_ttmlparse_attribute_new_time_container (FALSE);
+  gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
+  /* Manually push a 0 BEGIN attribute when in sequential mode.
+   * If the node defines it, its value will overwrite this one.
+   * This seemed the simplest way to take container_begin into account when
+   * the node does not define a BEGIN time, since it is taken into account in
+   * the _merge_attribute method. */
+  if (is_container_seq) {
+    ttml_attr = gst_ttmlparse_attribute_new_begin (0);
+    gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
+  }
+  /* Push onto the stack all attributes defined by this element */
   while (xml_attr && xml_attr[0]) {
     ttml_attr = gst_ttmlparse_attribute_parse (&parse->state, xml_attr[0],
         xml_attr[1]);
     if (ttml_attr) {
+      if (ttml_attr->type == GST_TTML_ATTR_DUR)
+        dur_attr_found = TRUE;
       gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
     }
 
     xml_attr = &xml_attr[2];
+  }
+  /* Manually push a 0 DUR attribute if the node did not define it in
+   * sequential mode. In this case this node must be ignored and this seemed
+   * like the simplest way. */
+  if (is_container_seq && !dur_attr_found) {
+    ttml_attr = gst_ttmlparse_attribute_new_dur (0);
+    gst_ttmlparse_state_push_attribute (&parse->state, ttml_attr);
   }
 
   /* Now that all attributes have been parsed, set this time framework as the
@@ -712,7 +789,7 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   /* Handle special node types which have effect as soon as they are found */
   if (node_type == GST_TTML_NODE_TYPE_BR) {
     gchar br = '\n';
-    gst_ttmlparse_add_characters (parse, &br, 1);
+    gst_ttmlparse_add_characters (parse, &br, 1, TRUE);
   }
 }
 
@@ -722,6 +799,7 @@ gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   GstTTMLAttributeType type;
+  GstClockTime current_end = parse->state.end;
 
   GST_LOG_OBJECT (parse, "End element: %s", name);
 
@@ -730,9 +808,19 @@ gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
     type = gst_ttmlparse_state_pop_attribute (&parse->state);
   } while (type != GST_TTML_ATTR_NODE_TYPE);
 
-  /* Now that all attributes have been parsed, set this time framework as the
-   * "container" for nested elements */
-  parse->state.container_begin = parse->state.begin;
+  /* Now that we are back to our parent's context, set this time framework as
+   * the "container" for nested elements.
+   * Move forward the container_begin if our parent was a sequential time
+   * container. */
+  if (parse->state.sequential_time_container) {
+    GST_DEBUG ("Getting back to a seq container. Setting container_begin to %"
+        GST_TIME_FORMAT, GST_TIME_ARGS (current_end));
+    parse->state.container_begin = current_end;
+  } else {
+    GST_DEBUG ("Getting back to a par container. Setting container_begin to %"
+        GST_TIME_FORMAT, GST_TIME_ARGS (parse->state.begin));
+    parse->state.container_begin = parse->state.begin;
+  }
   parse->state.container_end = parse->state.end;
 }
 
@@ -745,6 +833,7 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
 
   GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %d",
       len, parse->state.node_type);
+  GST_MEMDUMP ("Content:", (guint8 *)ch, len);
 
   /* Check if this is an ignorable blank node */
   if (gst_ttmlparse_is_blank_node (content, len)) {
@@ -761,7 +850,8 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
       return;
   }
 
-  gst_ttmlparse_add_characters (parse, content, len);
+  gst_ttmlparse_add_characters (parse, content, len,
+      parse->state.whitespace_preserve);
 }
 
 /* Parse SAX warnings (simply shown as debug logs) */
@@ -1021,6 +1111,7 @@ gst_ttmlparse_state_reset (GstTTMLState *state)
   state->frame_rate_num = 1.0;
   state->frame_rate_den = 1.0;
   state->whitespace_preserve = FALSE;
+  state->sequential_time_container = FALSE;
   if (state->history) {
     GST_WARNING ("Attribute stack should have been empty");
     g_list_free_full (state->history,
