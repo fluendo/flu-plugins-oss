@@ -7,7 +7,7 @@
 #define __GST_TTMLPRIVATE_H__
 
 #include <gst/gst.h>
-#include <gstttmlparse.h>
+#include "gstttmlparse.h"
 
 G_BEGIN_DECLS
 

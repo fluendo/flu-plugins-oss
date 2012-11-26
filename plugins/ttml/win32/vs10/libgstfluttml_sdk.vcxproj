@@ -18,6 +18,16 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\fluttml.c" />
+    <ClCompile Include="..\..\src\gstttmlparse.c" />
+    <ClCompile Include="..\..\src\gstttmltype.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\gstttmlparse.h" />
+    <ClInclude Include="..\..\src\gstttmlprivate.h" />
+    <ClInclude Include="..\..\src\gstttmltype.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>libgstfluttml</ProjectName>
     <ProjectGuid>
