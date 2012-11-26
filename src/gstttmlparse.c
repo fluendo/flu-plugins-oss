@@ -1050,8 +1050,8 @@ gst_ttmlparse_state_reset (GstTTMLState *state)
   state->container_end = GST_CLOCK_TIME_NONE;
   state->tick_rate = 1.0 / GST_SECOND;
   state->frame_rate = 30.0;
-  state->frame_rate_num = 1.0;
-  state->frame_rate_den = 1.0;
+  state->frame_rate_num = 1;
+  state->frame_rate_den = 1;
   state->whitespace_preserve = FALSE;
   state->sequential_time_container = FALSE;
   if (state->history) {
