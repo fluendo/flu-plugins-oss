@@ -337,7 +337,7 @@ gst_ttmlparse_parse_time_expression (const GstTTMLState *state,
   GstClockTime res = GST_CLOCK_TIME_NONE;
 
   if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
-    res = (h * 3600 + m * 60 + s) * GST_SECOND;
+    res = (GstClockTime)((h * 3600 + m * 60 + s) * GST_SECOND);
   } else if (sscanf (expr, "%lf%2[hmstf]", &count, metric) == 2) {
     double scale = 0;
     switch (metric[0]) {
@@ -364,7 +364,7 @@ gst_ttmlparse_parse_time_expression (const GstTTMLState *state,
         GST_WARNING ("Unknown metric %s", metric);
         break;
     }
-    res = count * scale;
+    res = (GstClockTime)(count * scale);
   } else {
     GST_WARNING ("Unrecognized time expression: %s", expr);
   }
