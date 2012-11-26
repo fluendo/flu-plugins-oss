@@ -109,6 +109,10 @@ src/Makefile
 common/Makefile
 common/m4/Makefile
 gst-fluendo-ttml.spec
+win32/Makefile
+win32/include/Makefile
+win32/include/config-orig.h
+win32/vs10/Makefile
 )
 
 echo "
