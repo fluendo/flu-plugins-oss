@@ -1039,6 +1039,62 @@ beach:
   return parse->current_gst_status;
 }
 
+/* Set the state to default values */
+static void
+gst_ttmlparse_state_reset (GstTTMLState *state)
+{
+  state->last_span_id = 0;
+  state->begin = GST_CLOCK_TIME_NONE;
+  state->end = GST_CLOCK_TIME_NONE;
+  state->container_begin = GST_CLOCK_TIME_NONE;
+  state->container_end = GST_CLOCK_TIME_NONE;
+  state->tick_rate = 1.0 / GST_SECOND;
+  state->frame_rate = 30.0;
+  state->frame_rate_num = 1.0;
+  state->frame_rate_den = 1.0;
+  state->whitespace_preserve = FALSE;
+  state->sequential_time_container = FALSE;
+  if (state->history) {
+    GST_WARNING ("Attribute stack should have been empty");
+    g_list_free_full (state->history,
+        (GDestroyNotify)gst_ttmlparse_attribute_free);
+    state->history = NULL;
+  }
+}
+
+/* Free any information held by the element */
+static void
+gst_ttmlparse_cleanup (GstTTMLParse * parse)
+{
+  GST_DEBUG_OBJECT (parse, "cleaning up TTML parser");
+
+  if (parse->segment) {
+    gst_segment_init (parse->segment, GST_FORMAT_TIME);
+  }
+  parse->newsegment_needed = TRUE;
+  parse->current_gst_status = GST_FLOW_OK;
+
+  if (parse->xml_parser) {
+    xmlFreeParserCtxt (parse->xml_parser);
+    parse->xml_parser = NULL;
+  }
+
+  if (parse->timeline) {
+    g_list_free_full (parse->timeline,
+        (GDestroyNotify)gst_ttmlparse_event_free);
+  }
+  parse->last_event_timestamp = GST_CLOCK_TIME_NONE;
+
+  if (parse->active_spans) {
+    g_list_free_full (parse->active_spans,
+        (GDestroyNotify)gst_ttmlparse_span_free);
+  }
+
+  gst_ttmlparse_state_reset (&parse->state);
+
+  return;
+}
+
 static gboolean
 gst_ttmlparse_sink_event (GstPad * pad, GstEvent * event)
 {
@@ -1086,6 +1142,11 @@ gst_ttmlparse_sink_event (GstPad * pad, GstEvent * event)
       ret = gst_pad_event_default (pad, event);
       break;
     }
+    case GST_EVENT_FLUSH_STOP:
+      GST_DEBUG_OBJECT (parse, "Flushing TTML parser");
+      gst_ttmlparse_cleanup (parse);
+      ret = gst_pad_push_event (parse->srcpad, event);
+      break;
     default:
       ret = gst_pad_event_default (pad, event);
       break;
@@ -1095,55 +1156,6 @@ beach:
   gst_object_unref (parse);
 
   return ret;
-}
-
-/* Set the state to default values */
-static void
-gst_ttmlparse_state_reset (GstTTMLState *state)
-{
-  state->last_span_id = 0;
-  state->begin = GST_CLOCK_TIME_NONE;
-  state->end = GST_CLOCK_TIME_NONE;
-  state->container_begin = GST_CLOCK_TIME_NONE;
-  state->container_end = GST_CLOCK_TIME_NONE;
-  state->tick_rate = 1.0 / GST_SECOND;
-  state->frame_rate = 30.0;
-  state->frame_rate_num = 1.0;
-  state->frame_rate_den = 1.0;
-  state->whitespace_preserve = FALSE;
-  state->sequential_time_container = FALSE;
-  if (state->history) {
-    GST_WARNING ("Attribute stack should have been empty");
-    g_list_free_full (state->history,
-        (GDestroyNotify)gst_ttmlparse_attribute_free);
-    state->history = NULL;
-  }
-}
-
-/* Free any information held by the element */
-static void
-gst_ttmlparse_cleanup (GstTTMLParse * parse)
-{
-  GST_DEBUG_OBJECT (parse, "cleaning up TTML parser");
-
-  if (parse->segment) {
-    gst_segment_init (parse->segment, GST_FORMAT_TIME);
-  }
-
-  if (parse->xml_parser) {
-    xmlFreeParserCtxt (parse->xml_parser);
-    parse->xml_parser = NULL;
-  }
-
-  if (parse->timeline) {
-    g_list_free_full (parse->timeline,
-        (GDestroyNotify)gst_ttmlparse_event_free);
-  }
-  parse->last_event_timestamp = GST_CLOCK_TIME_NONE;
-
-  gst_ttmlparse_state_reset (&parse->state);
-
-  return;
 }
 
 static GstStateChangeReturn
