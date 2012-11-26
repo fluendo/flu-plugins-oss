@@ -1,5 +1,11 @@
 2012-11-26  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_state_reset):
+	* src/gstttmlprivate.h:
+	  - FrameRateMultiplier can be two gint's, not gdoubles.
+
+2012-11-26  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_state_reset),
 	(gst_ttmlparse_cleanup), (gst_ttmlparse_sink_event):
 	  - Handle Flush Stop events.

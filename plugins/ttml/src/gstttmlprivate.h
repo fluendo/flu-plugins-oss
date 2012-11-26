@@ -57,8 +57,8 @@ typedef struct _GstTTMLState {
   GstClockTime container_end;
   gdouble tick_rate;
   gdouble frame_rate;
-  gdouble frame_rate_num;
-  gdouble frame_rate_den;
+  gint frame_rate_num;
+  gint frame_rate_den;
   gboolean whitespace_preserve;
   gboolean sequential_time_container;
 
