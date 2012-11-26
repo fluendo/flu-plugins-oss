@@ -4,12 +4,6 @@
 /* Define if building universal (internal helper macro) */
 /* #undef AC_APPLE_UNIVERSAL_BUILD */
 
-/* Build with Marlin DRM Agent */
-/* #undef BUILD_MARLIN */
-
-/* Build with MStar DRM Agent */
-/* #undef BUILD_MSTAR */
-
 /* Demo plugin percentage */
 #define DEMO_PERCENT 10
 
@@ -67,9 +61,6 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
-/* Define to 1 if you have the <MDrmAgent.h> header file. */
-/* #undef HAVE_MDRMAGENT_H */
-
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
 
@@ -100,9 +91,6 @@
 /* Define if valgrind should be used */
 /* #undef HAVE_VALGRIND */
 
-/* Define to 1 if you have the <Wasabi.h> header file. */
-/* #undef HAVE_WASABI_H */
-
 /* the host CPU */
 #define HOST_CPU "i686"
 
@@ -114,19 +102,19 @@
 /* #undef NO_MINUS_C_MINUS_O */
 
 /* Name of package */
-#define PACKAGE "gst-fluendo-dash"
+#define PACKAGE "gst-fluendo-ttml"
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT ""
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "GStreamer Fluendo Dash Element"
+#define PACKAGE_NAME "GStreamer Fluendo TTML Element"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GStreamer Fluendo Dash Element @VERSION@"
+#define PACKAGE_STRING "GStreamer Fluendo TTML Element @VERSION@"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "gst-fluendo-dash"
+#define PACKAGE_TARNAME "gst-fluendo-ttml"
 
 /* Define to the home page for this package. */
 #define PACKAGE_URL ""
