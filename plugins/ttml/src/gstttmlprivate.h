@@ -20,7 +20,8 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_TICK_RATE,
   GST_TTML_ATTR_FRAME_RATE,
   GST_TTML_ATTR_FRAME_RATE_MULTIPLIER,
-  GST_TTML_ATTR_WHITESPACE_PRESERVE
+  GST_TTML_ATTR_WHITESPACE_PRESERVE,
+  GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER
 } GstTTMLAttributeType;
 
 /* Types of TTML nodes */
@@ -59,6 +60,7 @@ typedef struct _GstTTMLState {
   gdouble frame_rate_num;
   gdouble frame_rate_den;
   gboolean whitespace_preserve;
+  gboolean sequential_time_container;
 
   GList *history;
 } GstTTMLState;
