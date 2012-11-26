@@ -1,5 +1,10 @@
 2012-11-26  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_parse_time_expression):
+	  - Remove some Visual Studio warnings.
+
+2012-11-26  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_state_reset):
 	* src/gstttmlprivate.h:
 	  - FrameRateMultiplier can be two gint's, not gdoubles.
