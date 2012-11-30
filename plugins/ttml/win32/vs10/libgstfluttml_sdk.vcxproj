@@ -20,12 +20,20 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\fluttml.c" />
+    <ClCompile Include="..\..\src\gstttmlattribute.c" />
+    <ClCompile Include="..\..\src\gstttmlevent.c" />
     <ClCompile Include="..\..\src\gstttmlparse.c" />
+    <ClCompile Include="..\..\src\gstttmlspan.c" />
+    <ClCompile Include="..\..\src\gstttmlstate.c" />
     <ClCompile Include="..\..\src\gstttmltype.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\src\gstttmlattribute.h" />
+    <ClInclude Include="..\..\src\gstttmlenums.h" />
+    <ClInclude Include="..\..\src\gstttmlevent.h" />
     <ClInclude Include="..\..\src\gstttmlparse.h" />
-    <ClInclude Include="..\..\src\gstttmlprivate.h" />
+    <ClInclude Include="..\..\src\gstttmlspan.h" />
+    <ClInclude Include="..\..\src\gstttmlstate.h" />
     <ClInclude Include="..\..\src\gstttmltype.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

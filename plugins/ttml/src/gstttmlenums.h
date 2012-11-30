@@ -1,0 +1,40 @@
+/*
+ * FLUENDO S.A.
+ * Copyright (C) <2012>  <support@fluendo.com>
+ */
+
+#ifndef __GST_TTML_ENUMS_H__
+#define __GST_TTML_ENUMS_H__
+
+G_BEGIN_DECLS
+
+/* Types of TTML nodes */
+typedef enum _GstTTMLNodeType {
+  GST_TTML_NODE_TYPE_UNKNOWN,
+  GST_TTML_NODE_TYPE_P,
+  GST_TTML_NODE_TYPE_SPAN,
+  GST_TTML_NODE_TYPE_BR
+} GstTTMLNodeType;
+
+/* Attributes currently supported */
+typedef enum _GstTTMLAttributeType {
+  GST_TTML_ATTR_NODE_TYPE,
+  GST_TTML_ATTR_BEGIN,
+  GST_TTML_ATTR_END,
+  GST_TTML_ATTR_DUR,
+  GST_TTML_ATTR_TICK_RATE,
+  GST_TTML_ATTR_FRAME_RATE,
+  GST_TTML_ATTR_FRAME_RATE_MULTIPLIER,
+  GST_TTML_ATTR_WHITESPACE_PRESERVE,
+  GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER
+} GstTTMLAttributeType;
+
+/* Event types */
+typedef enum _GstTTMLEventType {
+  GST_TTML_EVENT_TYPE_SPAN_BEGIN,
+  GST_TTML_EVENT_TYPE_SPAN_END
+} GstTTMLEventType;
+
+G_END_DECLS
+
+#endif /* __GST_TTMLPRIVATE_H__ */

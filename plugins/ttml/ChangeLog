@@ -1,3 +1,42 @@
+2012-11-30  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/Makefile.am:
+	* src/gstttmlattribute.c: (gst_ttml_parse_time_expression),
+	(gst_ttml_attribute_parse), (gst_ttml_attribute_free),
+	(gst_ttml_attribute_new_node),
+	(gst_ttml_attribute_new_time_container),
+	(gst_ttml_attribute_new_begin), (gst_ttml_attribute_new_dur):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlevent.c: (gst_ttml_event_free),
+	(gst_ttml_event_compare), (gst_ttml_event_new_span_begin),
+	(gst_ttml_event_new_span_end), (gst_ttml_event_list_insert),
+	(gst_ttml_event_list_get_next), (gst_ttml_event_list_flush):
+	* src/gstttmlevent.h:
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_parse_event), (gst_ttmlparse_add_characters),
+	(gst_ttmlparse_sax_element_start), (gst_ttmlparse_sax_element_end),
+	(gst_ttmlparse_sax_characters), (gst_ttmlparse_sax_document_end),
+	(gst_ttmlparse_chain), (gst_ttmlparse_cleanup),
+	(gst_ttmlparse_init):
+	* src/gstttmlparse.h:
+	* src/gstttmlprivate.h:
+	* src/gstttmlspan.c: (gst_ttml_span_compose), (gst_ttml_span_free),
+	(gst_ttml_span_new), (gst_ttml_span_compare_id),
+	(gst_ttml_span_list_add), (gst_ttml_span_list_remove):
+	* src/gstttmlspan.h:
+	* src/gstttmlstate.c: (gst_ttml_state_reset),
+	(gst_ttml_state_set_attribute), (gst_ttml_state_merge_attribute),
+	(gst_ttml_state_get_attribute), (gst_ttml_state_push_attribute),
+	(gst_ttml_state_pop_attribute):
+	* src/gstttmlstate.h:
+	* src/gstttmlutils.c: (gst_ttml_utils_element_is_type),
+	(gst_ttml_utils_node_type_parse), (gst_ttml_utils_is_blank_node):
+	* win32/vs10/libgstfluttml_sdk.vcxproj:
+	* win32/vs10/libgstfluttml_sdk.vcxproj.filters:
+	  - Big refactor to put functionality in different files. No change in
+	    behaviour. Windows build needs to be fixed next.
+
 2012-11-26  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_parse_time_expression):
