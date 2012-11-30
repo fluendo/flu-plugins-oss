@@ -1,5 +1,10 @@
 2012-11-30  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlutils.h:
+	  - Missed file, as usual.
+
+2012-11-30  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/Makefile.am:
 	* src/gstttmlattribute.c: (gst_ttml_parse_time_expression),
 	(gst_ttml_attribute_parse), (gst_ttml_attribute_free),
