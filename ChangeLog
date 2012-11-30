@@ -1,6 +1,11 @@
 2012-11-30  Xavi Artigas  <xartigas@fluendo.com>
 
 	* win32/vs10/libgstfluttml_sdk.vcxproj:
+	  - Typo in project file
+
+2012-11-30  Xavi Artigas  <xartigas@fluendo.com>
+
+	* win32/vs10/libgstfluttml_sdk.vcxproj:
 	* win32/vs10/libgstfluttml_sdk.vcxproj.filters:
 	  - Add missing file to VS project to fix Windows build.
 
