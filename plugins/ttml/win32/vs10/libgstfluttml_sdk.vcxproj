@@ -36,7 +36,7 @@
     <ClInclude Include="..\..\src\gstttmlspan.h" />
     <ClInclude Include="..\..\src\gstttmlstate.h" />
     <ClInclude Include="..\..\src\gstttmltype.h" />
-    <ClCompile Include="..\..\src\gstttmlutils.h" />
+    <ClInclude Include="..\..\src\gstttmlutils.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>libgstfluttml</ProjectName>
