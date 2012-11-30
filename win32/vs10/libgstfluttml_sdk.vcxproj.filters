@@ -18,6 +18,18 @@
     <ClCompile Include="..\..\src\gstttmlparse.c">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\gstttmlspan.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gstttmlevent.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gstttmlattribute.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\gstttmlstate.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\gstttmlparse.h">
@@ -26,7 +38,19 @@
     <ClInclude Include="..\..\src\gstttmltype.h">
       <Filter>Header files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\gstttmlprivate.h">
+    <ClInclude Include="..\..\src\gstttmlspan.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gstttmlevent.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gstttmlattribute.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gstttmlstate.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gstttmlenums.h">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>

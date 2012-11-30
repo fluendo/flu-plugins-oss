@@ -7,8 +7,45 @@
 #define __GST_TTMLPARSE_H__
 
 #include <gst/gst.h>
+#include "gstttmlstate.h"
 
 G_BEGIN_DECLS
+  
+/* The GStreamer ttmlparse element */
+typedef struct _GstTTMLParse {
+  GstElement element;
+
+  /* Sink pad */
+  GstPad *sinkpad;
+  /* Sourc pad */
+  GstPad *srcpad;
+
+  GstSegment *segment;
+  gboolean newsegment_needed;
+  GstClockTime base_time;
+  GstFlowReturn current_gst_status;
+
+  /* XML parsing */
+  xmlParserCtxtPtr xml_parser;
+  guint current_span_id;
+  GstTTMLState state;
+
+  /* Properties */
+  gboolean assume_ordered_spans;
+
+  /* Timeline management */
+  GList *timeline;
+  GstClockTime last_event_timestamp;
+
+  /* Active span list */
+  GList *active_spans;
+} GstTTMLParse;
+
+/* The GStreamer ttmlparse element's class */
+typedef struct _GstTTMLParseClass {
+  GstElementClass parent_class;
+} GstTTMLParseClass;
+
 #define GST_TYPE_TTMLPARSE            (gst_ttmlparse_get_type())
 #define GST_TTMLPARSE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),\
                                          GST_TYPE_TTMLPARSE, GstTTMLParse))
@@ -22,6 +59,7 @@ G_BEGIN_DECLS
                                          GST_TYPE_TTMLPARSE))
 
 GType gst_ttmlparse_get_type (void);
+
 GType gst_flussdemux_get_type (void);
 
 G_END_DECLS
