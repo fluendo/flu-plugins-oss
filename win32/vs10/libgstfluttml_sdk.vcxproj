@@ -32,6 +32,7 @@
     <ClInclude Include="..\..\src\gstttmlattribute.h" />
     <ClInclude Include="..\..\src\gstttmlenums.h" />
     <ClInclude Include="..\..\src\gstttmlevent.h" />
+    <ClInclude Include="..\..\src\gstttmlforward.h" />
     <ClInclude Include="..\..\src\gstttmlparse.h" />
     <ClInclude Include="..\..\src\gstttmlspan.h" />
     <ClInclude Include="..\..\src\gstttmlstate.h" />

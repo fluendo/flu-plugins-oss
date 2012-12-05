@@ -59,5 +59,8 @@
     <ClInclude Include="..\..\src\gstttmlutils.h">
       <Filter>Header files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\gstttmlforward.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
