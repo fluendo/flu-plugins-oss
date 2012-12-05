@@ -7,15 +7,13 @@
 #define __GST_TTML_STATE_H__
 
 #include <gst-compat.h>
+#include "gstttmlforward.h"
 #include "gstttmlenums.h"
 
 G_BEGIN_DECLS
 
-/* Forward type declarations */
-typedef struct _GstTTMLAttribute GstTTMLAttribute;
-
 /* Current state of all attributes */
-typedef struct _GstTTMLState {
+struct _GstTTMLState {
   GstTTMLNodeType node_type;
   guint last_span_id;
   GstClockTime begin;
@@ -30,7 +28,7 @@ typedef struct _GstTTMLState {
   gboolean sequential_time_container;
 
   GList *history;
-} GstTTMLState;
+};
 
 void gst_ttml_state_reset (GstTTMLState *state);
 

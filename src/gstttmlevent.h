@@ -7,13 +7,10 @@
 #define __GST_TTML_EVENT_H__
 
 #include "gst-compat.h"
+#include "gstttmlforward.h"
 #include "gstttmlenums.h"
 
 G_BEGIN_DECLS
-
-/* Forward type declarations */
-typedef struct _GstTTMLSpan GstTTMLSpan;
-typedef struct _GstTTMLState GstTTMLState;
 
 typedef struct _GstTTMLEventSpanBegin {
   GstTTMLSpan *span;
@@ -25,7 +22,7 @@ typedef struct _GstTTMLEventSpanEnd {
 
 /* An event to be stored in the timeline. It has a type, a timestamp and
  * type-specific data. */
-typedef struct _GstTTMLEvent
+struct _GstTTMLEvent
 {
   GstClockTime timestamp;
   GstTTMLEventType type;
@@ -33,7 +30,7 @@ typedef struct _GstTTMLEvent
     GstTTMLEventSpanBegin span_begin;
     GstTTMLEventSpanEnd span_end;
   };
-} GstTTMLEvent;
+};
 
 typedef void (* GstTTMLEventParseFunc)(GstTTMLEvent *event,
     void *userdata);

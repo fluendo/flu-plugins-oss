@@ -7,15 +7,13 @@
 #define __GST_TTML_ATTRIBUTE_H__
 
 #include <gst-compat.h>
+#include "gstttmlforward.h"
 #include "gstttmlenums.h"
 
 G_BEGIN_DECLS
 
-/* Forward type declarations */
-typedef struct _GstTTMLState GstTTMLState;
-
 /* A stored attribute */
-typedef struct _GstTTMLAttribute {
+struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
   union {
     GstTTMLNodeType node_type;
@@ -27,7 +25,7 @@ typedef struct _GstTTMLAttribute {
       gint den;
     };
   } value;
-} GstTTMLAttribute;
+};
 
 gboolean gst_ttml_element_is_type (const gchar * name, const gchar * type);
 

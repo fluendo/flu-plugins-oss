@@ -1,3 +1,13 @@
+2012-12-05  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.h:
+	* src/gstttmlevent.h:
+	* src/gstttmlforward.h:
+	* src/gstttmlspan.h:
+	* src/gstttmlstate.h:
+	  - Fix forward declaration of types for some strict compilers (like gcc
+	    previous to version 4.6)
+
 2012-11-30  Xavi Artigas  <xartigas@fluendo.com>
 
 	* win32/vs10/libgstfluttml_sdk.vcxproj:

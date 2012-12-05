@@ -7,16 +7,17 @@
 #define __GST_TTML_SPAN_H__
 
 #include <gst-compat.h>
+#include "gstttmlforward.h"
 
 G_BEGIN_DECLS
 
 /* A text span, with all attributes, except timing info, that is stored in the
  * timeline */
-typedef struct _GstTTMLSpan {
+struct _GstTTMLSpan {
   guint id;
   guint length;
   gchar *chars;
-} GstTTMLSpan;
+};
 
 void gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span);
 
