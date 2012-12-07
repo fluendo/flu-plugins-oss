@@ -1,5 +1,17 @@
 2012-12-07  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	* src/gstttmlenums.h:
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute):
+	* src/gstttmlstyle.c: (gst_ttml_style_reset),
+	(gst_ttml_style_gen_pango):
+	* src/gstttmlstyle.h:
+	  - Support "backgroundColor" attribute (only on text spans, no support
+	    for regions yet)
+
+2012-12-07  Xavi Artigas  <xartigas@fluendo.com>
+
 	* win32/vs10/libgstfluttml_sdk.vcxproj:
 	* win32/vs10/libgstfluttml_sdk.vcxproj.filters:
 	  - Update VS project files
