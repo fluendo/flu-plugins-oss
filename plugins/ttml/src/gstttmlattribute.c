@@ -14,6 +14,34 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
 
+#define MAKE_COLOR(r,g,b,a) ((r)<<24 | (g)<<16 | (b)<<8 | (a))
+
+static struct _GstTTMLNamedColor {
+  const gchar *name;
+  guint32 color;
+} GstTTMLNamedColors[] = {
+  { "transparent", 0x00000000 },
+  { "black", 0x000000ff },
+  { "silver", 0xc0c0c0ff },
+  { "gray", 0x808080ff },
+  { "white", 0xffffffff },
+  { "maroon", 0x800000ff },
+  { "red", 0xff0000ff },
+  { "purple", 0x800080ff },
+  { "fuchsia", 0xff00ffff },
+  { "magenta", 0xff00ffff },
+  { "green", 0x008000ff },
+  { "lime", 0x00ff00ff },
+  { "olive", 0x808000ff },
+  { "yellow", 0xffff00ff },
+  { "navy", 0x000080ff },
+  { "blue", 0x0000ffff },
+  { "teal", 0x008080ff },
+  { "aqua", 0x00ffffff },
+  { "cyan", 0x00ffffff },
+  { NULL, 0x00000000 }
+};
+
 /* Parse both types of time expressions as specified in the TTML specification,
  * be it in 00:00:00:00 or 00s forms */
 GstClockTime
@@ -60,6 +88,37 @@ gst_ttml_parse_time_expression (const GstTTMLState *state,
   return res;
 }
 
+/* Parse all color expressions as specified in the TTML specification:
+  : "#" rrggbb
+  | "#" rrggbbaa
+  | "rgb" "(" r-value "," g-value "," b-value ")"
+  | "rgba" "(" r-value "," g-value "," b-value "," a-value ")"
+  | <namedColor>
+ */
+guint32
+gst_ttml_parse_color_expression (const gchar *expr)
+{
+  guint r, g, b, a;
+  if (sscanf (expr, "#%02x%02x%02x", &r, &g, &b) == 3) {
+    return MAKE_COLOR (r, g, b, 0xFF);
+  } else if (sscanf (expr, "#%02x%02x%02x%02x", &r, &g, &b, &a) == 4) {
+    return MAKE_COLOR (r, g, b, a);
+  } else if (sscanf (expr, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
+    return MAKE_COLOR(r, g, b, 0xFF);
+  } else if (sscanf (expr, "rgba(%d,%d,%d,%d)", &r, &g, &b, &a) == 4) {
+    return MAKE_COLOR(r, g, b, a);
+  } else {
+    struct _GstTTMLNamedColor *c = GstTTMLNamedColors;
+    while (c->name) {
+      if (!g_ascii_strcasecmp (c->name, expr))
+        return c->color;
+      c++;
+    }
+  }
+ 
+ return 0xFFFFFFFF; 
+}
+
 /* Read a name-value pair of strings and produce a new GstTTMLattribute.
  * Returns NULL if the attribute was unknown, and uses g_new to allocate
  * the new attribute. */
@@ -68,7 +127,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     const char *value)
 {
   GstTTMLAttribute *attr;
-  GST_LOG ("Parsing %s=%s", name, value);
+  GST_LOG ("Parsing attribute %s=%s", name, value);
   if (gst_ttml_utils_element_is_type (name, "begin")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_BEGIN;
@@ -108,6 +167,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr->value.b = !g_ascii_strcasecmp (value, "seq");
     GST_LOG ("Parsed '%s' timeContainer into sequential=%d", value,
         attr->value.b);
+  } else if (gst_ttml_utils_element_is_type (name, "color")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_COLOR;
+    attr->value.color = gst_ttml_parse_color_expression (value);
+    GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
