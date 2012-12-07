@@ -9,6 +9,7 @@
 
 #include <string.h>
 #include "gstttmlspan.h"
+#include "gstttmlstyle.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
@@ -20,13 +21,13 @@ gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
 {
   gchar *head;
   gint head_len;
-  const gchar *tail = "</span>";
-  const gint tail_len = 7;
+  gchar *tail;
+  gint tail_len;
   gchar *ptr;
 
-  /* TODO: Assuming a little-endian machine */
-  head = g_strdup_printf ("<span color=\"#%06X\">", span->style.color >> 8);
+  gst_ttml_style_gen_pango (&span->style, &head, &tail);
   head_len = strlen (head);
+  tail_len = strlen (tail);
 
   output_span->chars =
       g_realloc (output_span->chars, output_span->length +
@@ -42,6 +43,7 @@ gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
   output_span->length += head_len + span->length + tail_len;
 
   g_free (head);
+  g_free (tail);
 }
 
 /* Free a text span */
@@ -62,8 +64,7 @@ gst_ttml_span_new (guint id, guint length, const gchar *chars,
   span->id = id;
   span->length = length;
   span->chars = g_memdup (chars, length);
-  /* TODO: Assuming GstTTMLStyle does not contain malloc'ed members */
-  span->style = *style;
+  gst_ttml_style_copy (&span->style, style);
 
   /* Turn CR characters into SPACE if requested */
   if (!preserve_cr) {
