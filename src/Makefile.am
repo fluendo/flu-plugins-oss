@@ -11,7 +11,8 @@ gstttmlattribute.c \
 gstttmlstate.c \
 gstttmlevent.c \
 gstttmlspan.c \
-gstttmlutils.c
+gstttmlutils.c \
+gstttmlstyle.c
 
 libgstfluttml_la_CXXFLAGS = \
 -I$(top_srcdir)/common \
@@ -43,5 +44,6 @@ gstttmlstate.h \
 gstttmlevent.h \
 gstttmlspan.h \
 gstttmlenums.h \
-gstttmlutils.h
+gstttmlutils.h \
+gstttmlstyle.h
 

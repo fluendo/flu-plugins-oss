@@ -10,6 +10,7 @@
 #include "gstttmlattribute.h"
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
+#include "gstttmlstyle.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
@@ -29,7 +30,9 @@ gst_ttml_state_reset (GstTTMLState *state)
   state->frame_rate_den = 1;
   state->whitespace_preserve = FALSE;
   state->sequential_time_container = FALSE;
-  state->style.color = 0xFFFFFFFF;
+
+  gst_ttml_style_reset (&state->style);
+
   if (state->history) {
     GST_WARNING ("Attribute stack should have been empty");
     g_list_free_full (state->history,

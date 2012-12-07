@@ -9,13 +9,9 @@
 #include <gst-compat.h>
 #include "gstttmlforward.h"
 #include "gstttmlenums.h"
+#include "gstttmlstyle.h"
 
 G_BEGIN_DECLS
-
-/* Styling attributes */
-struct _GstTTMLStyle {
-  guint32 color;
-};
 
 /* Current state of all attributes */
 struct _GstTTMLState {
