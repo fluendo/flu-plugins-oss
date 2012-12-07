@@ -15,6 +15,7 @@ G_BEGIN_DECLS
 /* Styling attributes */
 struct _GstTTMLStyle {
   guint32 color;
+  guint32 background_color;
 };
 
 void gst_ttml_style_reset (GstTTMLStyle *style);

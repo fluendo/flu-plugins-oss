@@ -18,6 +18,7 @@ void
 gst_ttml_style_reset (GstTTMLStyle *style)
 {
   style->color = 0xFFFFFFFF;
+  style->background_color = 0x00000000;
 }
 
 /* Free internally allocated memory for the style */
@@ -38,7 +39,14 @@ gst_ttml_style_gen_pango (GstTTMLStyle *style,
     gchar **head, gchar **tail)
 {
   /* TODO: Assuming a little-endian machine */
-  *head = g_strdup_printf ("<span color=\"#%06X\">", style->color >> 8);
+  *head = g_strdup_printf (
+      "<span "
+      "color=\"#%06X\" "
+      "background=\"#%06X\" "
+      ">",
+      style->color >> 8, 
+      style->background_color >> 8);
+
   *tail = g_strdup ("</span>");
 }
 

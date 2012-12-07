@@ -172,6 +172,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr->type = GST_TTML_ATTR_COLOR;
     attr->value.color = gst_ttml_parse_color_expression (value);
     GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
+  } else if (gst_ttml_utils_element_is_type (name, "backgroundColor")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_BACKGROUND_COLOR;
+    attr->value.color = gst_ttml_parse_color_expression (value);
+    GST_LOG ("Parsed '%s' background color into #%08X", value, attr->value.color);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
