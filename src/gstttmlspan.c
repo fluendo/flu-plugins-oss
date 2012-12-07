@@ -13,14 +13,35 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
 
-/* Generate one output (text) buffer combining all currently active spans */
+/* Generate one output span combining all currently active spans and their
+ * attributes. */
 void
 gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
 {
+  gchar *head;
+  gint head_len;
+  const gchar *tail = "</span>";
+  const gint tail_len = 7;
+  gchar *ptr;
+
+  /* TODO: Assuming a little-endian machine */
+  head = g_strdup_printf ("<span color=\"#%06X\">", span->style.color >> 8);
+  head_len = strlen (head);
+
   output_span->chars =
-      g_realloc (output_span->chars, output_span->length + span->length);
-  memcpy (output_span->chars + output_span->length, span->chars, span->length);
-  output_span->length += span->length;
+      g_realloc (output_span->chars, output_span->length +
+          head_len + span->length + tail_len);
+  ptr = output_span->chars + output_span->length;
+
+  memcpy (ptr, head, head_len);
+  ptr += head_len;
+  memcpy (ptr, span->chars, span->length);
+  ptr += span->length;
+  memcpy (ptr, tail, tail_len);
+
+  output_span->length += head_len + span->length + tail_len;
+
+  g_free (head);
 }
 
 /* Free a text span */
@@ -35,12 +56,14 @@ gst_ttml_span_free (GstTTMLSpan *span)
  * but to the event that contains it. */
 GstTTMLSpan *
 gst_ttml_span_new (guint id, guint length, const gchar *chars,
-    gboolean preserve_cr)
+    const GstTTMLStyle *style, gboolean preserve_cr)
 {
   GstTTMLSpan *span = g_new (GstTTMLSpan, 1);
   span->id = id;
   span->length = length;
   span->chars = g_memdup (chars, length);
+  /* TODO: Assuming GstTTMLStyle does not contain malloc'ed members */
+  span->style = *style;
 
   /* Turn CR characters into SPACE if requested */
   if (!preserve_cr) {

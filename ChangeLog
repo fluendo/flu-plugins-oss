@@ -1,5 +1,12 @@
 2012-12-07  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_add_characters):
+	* src/gstttmlspan.c: (gst_ttml_span_compose), (gst_ttml_span_new):
+	* src/gstttmlspan.h:
+	  - Support the "color" attribute by generating appropriate Pango markup.
+
+2012-12-07  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_parse_color_expression),
 	(gst_ttml_attribute_parse):
 	* src/gstttmlattribute.h:

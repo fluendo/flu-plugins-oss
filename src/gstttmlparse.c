@@ -187,7 +187,8 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   /* Create a new span to hold these characters, with an ever-increasing
    * ID number. */
   id = parse->state.last_span_id++;
-  span = gst_ttml_span_new (id, content_size, content, preserve_cr);
+  span = gst_ttml_span_new (id, content_size, content, &parse->state.style,
+      preserve_cr);
 
   /* Insert BEGIN and END events in the timeline, with the same ID */
   event = gst_ttml_event_new_span_begin (&parse->state, span);

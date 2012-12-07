@@ -8,6 +8,7 @@
 
 #include <gst-compat.h>
 #include "gstttmlforward.h"
+#include "gstttmlstate.h"
 
 G_BEGIN_DECLS
 
@@ -17,12 +18,13 @@ struct _GstTTMLSpan {
   guint id;
   guint length;
   gchar *chars;
+  GstTTMLStyle style;
 };
 
 void gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span);
 
 GstTTMLSpan *gst_ttml_span_new (guint id, guint length,
-    const gchar *chars, gboolean preserve_cr);
+    const gchar *chars, const GstTTMLStyle *style, gboolean preserve_cr);
 
 void gst_ttml_span_free (GstTTMLSpan *span);
 
