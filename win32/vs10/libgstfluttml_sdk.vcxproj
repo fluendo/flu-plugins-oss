@@ -25,6 +25,7 @@
     <ClCompile Include="..\..\src\gstttmlparse.c" />
     <ClCompile Include="..\..\src\gstttmlspan.c" />
     <ClCompile Include="..\..\src\gstttmlstate.c" />
+    <ClCompile Include="..\..\src\gstttmlstyle.c" />
     <ClCompile Include="..\..\src\gstttmltype.c" />
     <ClCompile Include="..\..\src\gstttmlutils.c" />
   </ItemGroup>
@@ -36,6 +37,7 @@
     <ClInclude Include="..\..\src\gstttmlparse.h" />
     <ClInclude Include="..\..\src\gstttmlspan.h" />
     <ClInclude Include="..\..\src\gstttmlstate.h" />
+    <ClInclude Include="..\..\src\gstttmlstyle.h" />
     <ClInclude Include="..\..\src\gstttmltype.h" />
     <ClInclude Include="..\..\src\gstttmlutils.h" />
   </ItemGroup>
