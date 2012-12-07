@@ -12,6 +12,11 @@
 
 G_BEGIN_DECLS
 
+/* Styling attributes */
+struct _GstTTMLStyle {
+  guint32 color;
+};
+
 /* Current state of all attributes */
 struct _GstTTMLState {
   GstTTMLNodeType node_type;
@@ -26,6 +31,8 @@ struct _GstTTMLState {
   gint frame_rate_den;
   gboolean whitespace_preserve;
   gboolean sequential_time_container;
+
+  GstTTMLStyle style;
 
   GList *history;
 };

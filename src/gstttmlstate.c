@@ -29,6 +29,7 @@ gst_ttml_state_reset (GstTTMLState *state)
   state->frame_rate_den = 1;
   state->whitespace_preserve = FALSE;
   state->sequential_time_container = FALSE;
+  state->style.color = 0xFFFFFFFF;
   if (state->history) {
     GST_WARNING ("Attribute stack should have been empty");
     g_list_free_full (state->history,
@@ -72,6 +73,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
       state->sequential_time_container = attr->value.b;
+      break;
+    case GST_TTML_ATTR_COLOR:
+      state->style.color = attr->value.color;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
@@ -146,6 +150,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
       attr->value.b = state->sequential_time_container;
+      break;
+    case GST_TTML_ATTR_COLOR:
+      attr->value.color = state->style.color;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
