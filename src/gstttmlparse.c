@@ -65,18 +65,21 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
     return;
 
   /* Check if there is any active span at all */
-  if (!parse->active_spans)
-    return;
+  if (!parse->active_spans) {
+    /* Generate an artifical empty buffer to clean the text renderer */
+    buffer = gst_buffer_new_and_alloc (1);
+    GST_BUFFER_DATA (buffer) [0] = ' ';
+  } else {
+    /* Compose output text based on currently active spans */
+    g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose,
+        &span);
 
-  /* Compose output text based on currently active spans */
-  g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose,
-      &span);
+    buffer = gst_buffer_new_and_alloc (span.length);
+    memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
+    g_free (span.chars);
+  }
 
-  buffer = gst_buffer_new_and_alloc (span.length);
-  memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
   gst_buffer_set_caps (buffer, GST_PAD_CAPS (parse->srcpad));
-
-  g_free (span.chars);
 
   in_seg = gst_segment_clip (parse->segment, GST_FORMAT_TIME,
       parse->base_time + begin, parse->base_time + end,
