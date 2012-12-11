@@ -419,7 +419,7 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
 
   /* Set caps on src pad */
   if (G_UNLIKELY (!GST_PAD_CAPS (parse->srcpad))) {
-    GstCaps *caps = gst_caps_new_simple ("text/plain", NULL);
+    GstCaps *caps = gst_caps_new_simple ("text/x-pango-markup", NULL);
 
     GST_DEBUG_OBJECT (parse->srcpad, "setting caps %" GST_PTR_FORMAT, caps);
     gst_pad_set_caps (parse->srcpad, caps);
