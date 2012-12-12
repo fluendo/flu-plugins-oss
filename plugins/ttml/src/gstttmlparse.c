@@ -90,7 +90,7 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
       GstEvent *event;
 
       event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME,
-          clip_start, -1, 0);
+          parse->base_time, -1, 0);
       GST_DEBUG_OBJECT (parse, "Pushing default newsegment");
       gst_pad_push_event (parse->srcpad, event);
       parse->newsegment_needed = FALSE;
