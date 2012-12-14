@@ -24,6 +24,7 @@ struct _GstTTMLAttribute {
       gint num;
       gint den;
     };
+    gchar *string;
     guint32 color;
   } value;
 };

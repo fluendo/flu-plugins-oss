@@ -20,12 +20,14 @@ gst_ttml_style_reset (GstTTMLStyle *style)
   style->color = 0xFFFFFFFF;
   style->background_color = 0x00000000;
   style->display = TRUE;
+  style->font_family = NULL;
 }
 
 /* Free internally allocated memory for the style */
 void
 gst_ttml_style_free_content (GstTTMLStyle *style)
 {
+  g_free (style->font_family);
 }
 
 /* Make a deep copy of the style */
@@ -33,6 +35,7 @@ void
 gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style)
 {
   *dest_style = *org_style;
+  dest_style->font_family = g_strdup (org_style->font_family);
 }
 
 static gchar *
@@ -61,6 +64,10 @@ gst_ttml_style_gen_pango (GstTTMLStyle *style,
   if (style->background_color >> 8 != 0x000000)
     attrs = gst_ttml_style_str_concat (attrs,
         g_strdup_printf (" bgcolor=\"#%06X\"", style->background_color >> 8));
+
+  if (style->font_family)
+    attrs = gst_ttml_style_str_concat (attrs,
+        g_strdup_printf (" font_family=\"%s\"", style->font_family));
 
   if (strlen (attrs) > 0) {
     *head = g_strdup_printf ("<span%s>", attrs);
