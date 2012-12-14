@@ -1,5 +1,16 @@
 2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	* src/gstttmlenums.h:
+	* src/gstttmlspan.c: (gst_ttml_span_compose):
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute):
+	* src/gstttmlstyle.c: (gst_ttml_style_reset):
+	* src/gstttmlstyle.h:
+	  - Support for the "display" attribute.
+
+2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_str_concat),
 	(gst_ttml_style_gen_pango):
 	  - Better generation of Pango markup.

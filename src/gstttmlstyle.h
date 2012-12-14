@@ -16,6 +16,7 @@ G_BEGIN_DECLS
 struct _GstTTMLStyle {
   guint32 color;
   guint32 background_color;
+  gboolean display;
 };
 
 void gst_ttml_style_reset (GstTTMLStyle *style);
