@@ -197,8 +197,8 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
   gst_ttml_state_merge_attribute (state, new_attr);
   gst_ttml_attribute_free (new_attr);
 
-  GST_LOG ("Pushed attribute %p (type %d)", old_attr,
-      old_attr==NULL?-1:old_attr->type);
+  GST_LOG ("Pushed attribute 0x%p (type %s)", old_attr,
+      gst_ttml_attribute_type_name (old_attr->type));
 }
 
 /* Pops an attribute from the stack and puts in the state, overwritting the
@@ -216,7 +216,8 @@ gst_ttml_state_pop_attribute (GstTTMLState *state)
   type = attr->type;
   state->history = g_list_delete_link (state->history, state->history);
 
-  GST_LOG ("Popped attribute %p (type %d)", attr, attr==NULL?-1:type);
+  GST_LOG ("Popped attribute 0x%p (type %s)", attr,
+      gst_ttml_attribute_type_name (type));
 
   gst_ttml_state_set_attribute (state, attr);
 

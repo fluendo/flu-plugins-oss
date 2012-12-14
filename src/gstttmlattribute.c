@@ -253,3 +253,29 @@ gst_ttml_attribute_new_dur (GstClockTime dur)
   attr->value.time = dur;
   return attr;
 }
+
+#define CASE_ATTRIBUTE_NAME(x) case x: return #x; break
+
+/* Turns an attribute type into a string useful for debugging purposes. */
+const gchar *
+gst_ttml_attribute_type_name (GstTTMLAttributeType type)
+{
+  switch (type) {
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_NODE_TYPE);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BEGIN);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_END);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DUR);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_TICK_RATE);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FRAME_RATE);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FRAME_RATE_MULTIPLIER);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_WHITESPACE_PRESERVE);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_COLOR);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BACKGROUND_COLOR);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DISPLAY);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_FAMILY);
+  default:
+    break;
+  }
+  return "Unknown!";
+}
