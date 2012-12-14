@@ -19,6 +19,7 @@ gst_ttml_style_reset (GstTTMLStyle *style)
 {
   style->color = 0xFFFFFFFF;
   style->background_color = 0x00000000;
+  style->display = TRUE;
 }
 
 /* Free internally allocated memory for the style */

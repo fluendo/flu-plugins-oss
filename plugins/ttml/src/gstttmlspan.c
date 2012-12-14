@@ -25,6 +25,10 @@ gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
   gint tail_len;
   gchar *ptr;
 
+  /* Do nothing if the span is disabled */
+  if (span->style.display == FALSE)
+    return;
+
   gst_ttml_style_gen_pango (&span->style, &head, &tail);
   head_len = strlen (head);
   tail_len = strlen (tail);

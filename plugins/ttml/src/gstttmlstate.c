@@ -83,6 +83,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_BACKGROUND_COLOR:
       state->style.background_color = attr->value.color;
       break;
+    case GST_TTML_ATTR_DISPLAY:
+      state->style.display = attr->value.b;
+      break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
       break;
@@ -162,6 +165,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_BACKGROUND_COLOR:
       attr->value.color = state->style.background_color;
+      break;
+    case GST_TTML_ATTR_DISPLAY:
+      attr->value.b = state->style.display;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
