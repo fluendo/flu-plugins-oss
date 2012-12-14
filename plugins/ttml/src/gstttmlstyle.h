@@ -17,6 +17,7 @@ struct _GstTTMLStyle {
   guint32 color;
   guint32 background_color;
   gboolean display;
+  gchar *font_family;
 };
 
 void gst_ttml_style_reset (GstTTMLStyle *style);

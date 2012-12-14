@@ -182,6 +182,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr->type = GST_TTML_ATTR_DISPLAY;
     attr->value.b = !g_ascii_strcasecmp (value, "auto");
     GST_LOG ("Parsed '%s' display into display=%d", value, attr->value.b);
+  } else if (gst_ttml_utils_element_is_type (name, "fontFamily")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_FONT_FAMILY;
+    attr->value.string = g_strdup (value);
+    GST_LOG ("Parsed '%s' font family", value);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -190,14 +195,15 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   return attr;
 }
 
-/* Deallocates a GstTTMLAttribute. Required for possible attributes with
+/* Deallocates a GstTTMLAttribute. Required for attributes with
  * allocated internal memory. */
 void
 gst_ttml_attribute_free (GstTTMLAttribute *attr)
 {
-  /* Placeholder for future attributes which might want to free some internal
-   * memory before being destroyed. */
   switch (attr->type) {
+    case GST_TTML_ATTR_FONT_FAMILY:
+      g_free (attr->value.string);
+      break;
     default:
       break;
   }

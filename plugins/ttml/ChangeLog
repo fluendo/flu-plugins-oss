@@ -1,5 +1,19 @@
 2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_free):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute):
+	* src/gstttmlstyle.c: (gst_ttml_style_reset),
+	(gst_ttml_style_free_content), (gst_ttml_style_copy),
+	(gst_ttml_style_gen_pango):
+	* src/gstttmlstyle.h:
+	  - Support for the "fontFamily" attribute.
+
+2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
 	* src/gstttmlenums.h:
 	* src/gstttmlspan.c: (gst_ttml_span_compose):

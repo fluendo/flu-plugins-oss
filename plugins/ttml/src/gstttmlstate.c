@@ -86,6 +86,11 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_DISPLAY:
       state->style.display = attr->value.b;
       break;
+    case GST_TTML_ATTR_FONT_FAMILY:
+      if (state->style.font_family)
+        g_free (state->style.font_family);
+      state->style.font_family = g_strdup (attr->value.string);
+      break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
       break;
@@ -168,6 +173,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_DISPLAY:
       attr->value.b = state->style.display;
+      break;
+    case GST_TTML_ATTR_FONT_FAMILY:
+      attr->value.string = g_strdup (state->style.font_family);
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
