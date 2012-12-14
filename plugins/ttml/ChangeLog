@@ -1,5 +1,13 @@
 2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_type_name):
+	* src/gstttmlattribute.h:
+	* src/gstttmlstate.c: (gst_ttml_state_push_attribute),
+	(gst_ttml_state_pop_attribute):
+	  - Better debug output.
+
+2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_free):
 	* src/gstttmlattribute.h:

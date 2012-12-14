@@ -48,6 +48,8 @@ GstTTMLAttribute *gst_ttml_attribute_new_begin (GstClockTime begin);
 
 GstTTMLAttribute *gst_ttml_attribute_new_dur (GstClockTime dur);
 
+const gchar *gst_ttml_attribute_type_name (GstTTMLAttributeType type);
+
 G_END_DECLS
 
 #endif /* __GST_TTML_ATTRIBUTE_H__ */
