@@ -187,6 +187,18 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr->type = GST_TTML_ATTR_FONT_FAMILY;
     attr->value.string = g_strdup (value);
     GST_LOG ("Parsed '%s' font family", value);
+  } else if (gst_ttml_utils_element_is_type (name, "fontStyle")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_FONT_STYLE;
+    if (!g_ascii_strcasecmp (value, "italic"))
+      attr->value.font_style = GST_TTML_FONT_STYLE_ITALIC;
+    else if (!g_ascii_strcasecmp (value, "oblique"))
+      attr->value.font_style = GST_TTML_FONT_STYLE_OBLIQUE;
+    else
+      attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
+    GST_LOG ("Parsed '%s' font style into %d (%s)", value,
+        attr->value.font_style,
+        gst_ttml_style_get_font_style_name (attr->value.font_style));
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -274,6 +286,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BACKGROUND_COLOR);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DISPLAY);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_FAMILY);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_STYLE);
   default:
     break;
   }

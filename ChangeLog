@@ -1,3 +1,16 @@
+2012-12-19  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_type_name):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute):
+	* src/gstttmlstyle.c: (gst_ttml_style_get_font_style_name),
+	(gst_ttml_style_gen_pango):
+	* src/gstttmlstyle.h:
+	  - Support for the "fontStyle" attribute.
+
 2012-12-14  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_type_name):

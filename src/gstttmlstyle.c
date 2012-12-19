@@ -47,6 +47,22 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
+const gchar *
+gst_ttml_style_get_font_style_name (GstTTMLFontStyle style)
+{
+  switch (style) {
+    case GST_TTML_FONT_STYLE_NORMAL:
+      return "normal";
+    case GST_TTML_FONT_STYLE_ITALIC:
+      return "italic";
+    case GST_TTML_FONT_STYLE_OBLIQUE:
+      return "oblique";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 void
 gst_ttml_style_gen_pango (GstTTMLStyle *style,
     gchar **head, gchar **tail)
@@ -68,6 +84,11 @@ gst_ttml_style_gen_pango (GstTTMLStyle *style,
   if (style->font_family)
     attrs = gst_ttml_style_str_concat (attrs,
         g_strdup_printf (" font_family=\"%s\"", style->font_family));
+
+  if (style->font_style != GST_TTML_FONT_STYLE_NORMAL)
+    attrs = gst_ttml_style_str_concat (attrs,
+        g_strdup_printf (" font_style=\"%s\"",
+            gst_ttml_style_get_font_style_name (style->font_style)));
 
   if (strlen (attrs) > 0) {
     *head = g_strdup_printf ("<span%s>", attrs);
