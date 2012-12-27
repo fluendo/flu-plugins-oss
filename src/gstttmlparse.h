@@ -60,7 +60,5 @@ typedef struct _GstTTMLParseClass {
 
 GType gst_ttmlparse_get_type (void);
 
-GType gst_flussdemux_get_type (void);
-
 G_END_DECLS
 #endif /* __GST_TTMLPARSE_H__ */

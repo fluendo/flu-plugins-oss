@@ -30,8 +30,6 @@ struct _GstTTMLAttribute {
   } value;
 };
 
-gboolean gst_ttml_element_is_type (const gchar * name, const gchar * type);
-
 GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
     const char *name, const char *value);
 
