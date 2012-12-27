@@ -27,7 +27,6 @@ typedef struct _GstTTMLParse {
 
   /* XML parsing */
   xmlParserCtxtPtr xml_parser;
-  guint current_span_id;
   GstTTMLState state;
 
   /* Properties */
