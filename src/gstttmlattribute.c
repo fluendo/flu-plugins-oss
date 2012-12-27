@@ -44,8 +44,8 @@ static struct _GstTTMLNamedColor {
 
 /* Parse both types of time expressions as specified in the TTML specification,
  * be it in 00:00:00:00 or 00s forms */
-GstClockTime
-gst_ttml_parse_time_expression (const GstTTMLState *state,
+static GstClockTime
+gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
     const gchar *expr)
 {
   gdouble h, m, s, count;
@@ -95,8 +95,8 @@ gst_ttml_parse_time_expression (const GstTTMLState *state,
   | "rgba" "(" r-value "," g-value "," b-value "," a-value ")"
   | <namedColor>
  */
-guint32
-gst_ttml_parse_color_expression (const gchar *expr)
+static guint32
+gst_ttml_attribute_parse_color_expression (const gchar *expr)
 {
   guint r, g, b, a;
   if (sscanf (expr, "#%02x%02x%02x", &r, &g, &b) == 3) {
@@ -131,15 +131,15 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   if (gst_ttml_utils_element_is_type (name, "begin")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_BEGIN;
-    attr->value.time = gst_ttml_parse_time_expression (state, value);
+    attr->value.time = gst_ttml_attribute_parse_time_expression (state, value);
   } else if (gst_ttml_utils_element_is_type (name, "end")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_END;
-    attr->value.time = gst_ttml_parse_time_expression (state, value);
+    attr->value.time = gst_ttml_attribute_parse_time_expression (state, value);
   } else if (gst_ttml_utils_element_is_type (name, "dur")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_DUR;
-    attr->value.time = gst_ttml_parse_time_expression (state, value);
+    attr->value.time = gst_ttml_attribute_parse_time_expression (state, value);
   } else if (gst_ttml_utils_element_is_type (name, "tickRate")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_TICK_RATE;
@@ -170,12 +170,12 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   } else if (gst_ttml_utils_element_is_type (name, "color")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_COLOR;
-    attr->value.color = gst_ttml_parse_color_expression (value);
+    attr->value.color = gst_ttml_attribute_parse_color_expression (value);
     GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
   } else if (gst_ttml_utils_element_is_type (name, "backgroundColor")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_BACKGROUND_COLOR;
-    attr->value.color = gst_ttml_parse_color_expression (value);
+    attr->value.color = gst_ttml_attribute_parse_color_expression (value);
     GST_LOG ("Parsed '%s' background color into #%08X", value, attr->value.color);
   } else if (gst_ttml_utils_element_is_type (name, "display")) {
     attr = g_new (GstTTMLAttribute, 1);
