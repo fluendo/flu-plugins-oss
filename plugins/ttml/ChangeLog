@@ -1,5 +1,12 @@
 2012-12-27  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.h:
+	* src/gstttmlparse.h:
+	* src/gstttmlstate.h:
+	  - Remove unused forward declarations.
+
+2012-12-27  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_time_expression),
 	(gst_ttml_attribute_parse_color_expression),

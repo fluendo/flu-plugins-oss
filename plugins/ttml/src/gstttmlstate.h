@@ -49,8 +49,6 @@ void gst_ttml_state_push_attribute (GstTTMLState *state,
 
 GstTTMLAttributeType gst_ttml_state_pop_attribute (GstTTMLState *state);
 
-GstTTMLNodeType gst_ttml_node_type_parse (const gchar *name);
-
 G_END_DECLS
 
 #endif /* __GST_TTML_STATE_H__ */
