@@ -32,9 +32,6 @@ struct _GstTTMLAttribute {
 
 gboolean gst_ttml_element_is_type (const gchar * name, const gchar * type);
 
-GstClockTime gst_ttml_parse_time_expression (const GstTTMLState *state,
-    const gchar *expr);
-
 GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
     const char *name, const char *value);
 

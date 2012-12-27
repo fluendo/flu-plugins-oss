@@ -1,3 +1,12 @@
+2012-12-27  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_time_expression),
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_parse):
+	* src/gstttmlattribute.h:
+	 - Fix naming and scope of some local utility functions.
+
 2012-12-19  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
