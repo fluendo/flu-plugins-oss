@@ -16,6 +16,7 @@ G_BEGIN_DECLS
 /* Current state of all attributes */
 struct _GstTTMLState {
   GstTTMLNodeType node_type;
+  gchar *id;
   guint last_span_id;
   GstClockTime begin;
   GstClockTime end;
@@ -30,24 +31,23 @@ struct _GstTTMLState {
 
   GstTTMLStyle style;
 
-  GList *history;
+  GList *attribute_stack;
+
+  GHashTable *saved_attr_stacks;
 };
 
+void gst_ttml_state_free (GstTTMLState *state);
+
 void gst_ttml_state_reset (GstTTMLState *state);
-
-void gst_ttml_state_set_attribute (GstTTMLState *state,
-    const GstTTMLAttribute *attr);
-
-void gst_ttml_state_merge_attribute (GstTTMLState *state,
-    const GstTTMLAttribute *attr);
-
-void gst_ttml_state_get_attribute (GstTTMLState *state,
-    GstTTMLAttribute *attr);
 
 void gst_ttml_state_push_attribute (GstTTMLState *state,
     GstTTMLAttribute *new_attr);
 
 GstTTMLAttributeType gst_ttml_state_pop_attribute (GstTTMLState *state);
+
+void gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id);
+
+void gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id);
 
 G_END_DECLS
 

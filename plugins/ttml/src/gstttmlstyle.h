@@ -23,14 +23,12 @@ struct _GstTTMLStyle {
 
 void gst_ttml_style_reset (GstTTMLStyle *style);
 
-void gst_ttml_style_free_content (GstTTMLStyle *style);
-
 void gst_ttml_style_copy (GstTTMLStyle *dest_style,
     const GstTTMLStyle *org_style);
 
 const gchar *gst_ttml_style_get_font_style_name (GstTTMLFontStyle style);
 
-void gst_ttml_style_gen_pango (GstTTMLStyle *style,
+void gst_ttml_style_gen_pango (const GstTTMLStyle *style,
     gchar **head, gchar **tail);
 
 G_END_DECLS

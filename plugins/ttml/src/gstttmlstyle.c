@@ -13,24 +13,34 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
 
+/* Free internally allocated memory for the style */
+static void
+gst_ttml_style_free_content (GstTTMLStyle *style)
+{
+  g_free (style->font_family);
+}
+
+/* Free the style structure and all its internally allocated memory */
+static void
+gst_ttml_style_free (GstTTMLStyle *style)
+{
+  gst_ttml_style_free_content (style);
+  g_free (style);
+}
+
 /* Set the state to default TTML values */
 void
 gst_ttml_style_reset (GstTTMLStyle *style)
 {
+  gst_ttml_style_free_content (style);
+
   style->color = 0xFFFFFFFF;
   style->background_color = 0x00000000;
   style->display = TRUE;
   style->font_family = NULL;
 }
 
-/* Free internally allocated memory for the style */
-void
-gst_ttml_style_free_content (GstTTMLStyle *style)
-{
-  g_free (style->font_family);
-}
-
-/* Make a deep copy of the style */
+/* Make a deep copy of the style, overwritting dest_style */
 void
 gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style)
 {
@@ -38,6 +48,7 @@ gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style)
   dest_style->font_family = g_strdup (org_style->font_family);
 }
 
+/* Helper function that simply concatenates two strings */
 static gchar *
 gst_ttml_style_str_concat (gchar *str1, gchar *str2)
 {
@@ -47,6 +58,7 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
+/* Retrieve a font style name (for debugging) */
 const gchar *
 gst_ttml_style_get_font_style_name (GstTTMLFontStyle style)
 {
@@ -63,8 +75,9 @@ gst_ttml_style_get_font_style_name (GstTTMLFontStyle style)
   return "Unknown";
 }
 
+/* Generate Pango Markup for the style */
 void
-gst_ttml_style_gen_pango (GstTTMLStyle *style,
+gst_ttml_style_gen_pango (const GstTTMLStyle *style,
     gchar **head, gchar **tail)
 {
   gchar *attrs = g_strdup ("");

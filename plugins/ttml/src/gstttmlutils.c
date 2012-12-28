@@ -38,6 +38,12 @@ gst_ttml_utils_node_type_parse (const gchar *name)
   if (gst_ttml_utils_element_is_type (name, "br")) {
     return GST_TTML_NODE_TYPE_BR;
   }
+  if (gst_ttml_utils_element_is_type (name, "styling")) {
+    return GST_TTML_NODE_TYPE_STYLING;
+  }
+  if (gst_ttml_utils_element_is_type (name, "style")) {
+    return GST_TTML_NODE_TYPE_STYLE;
+  }
   return GST_TTML_NODE_TYPE_UNKNOWN;
 }
 

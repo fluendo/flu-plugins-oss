@@ -222,6 +222,10 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
   GST_DEBUG ("Parsed name '%s' into node type %d", name, node_type);
 
+  if (node_type == GST_TTML_NODE_TYPE_STYLING) {
+    parse->in_styling_node = TRUE;
+  }
+
   /* Push onto the stack the node type, which will serve as delimiter when
    * popping attributes. */
   ttml_attr = gst_ttml_attribute_new_node (node_type);
@@ -278,8 +282,27 @@ gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   GstTTMLAttributeType type;
   GstClockTime current_end = parse->state.end;
+  GstTTMLNodeType node_type;
 
   GST_LOG_OBJECT (parse, "End element: %s", name);
+  node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
+
+  switch (node_type) {
+    case GST_TTML_NODE_TYPE_STYLING:
+      if (!parse->in_styling_node) {
+        GST_WARNING_OBJECT (parse, "Unmatched closing styling node");
+      }
+      parse->in_styling_node = FALSE;
+      break;
+    case GST_TTML_NODE_TYPE_STYLE:
+      /* We are closing a style definition. Store the current style IF
+       * we are inside a <styling> node. */
+      if (parse->in_styling_node)
+        gst_ttml_state_save_attr_stack (&parse->state, parse->state.id);
+      break;
+    default:
+      break;
+  }
 
   /* Remove from the attribute stack any attribute pushed by this element */
   do {
@@ -372,6 +395,16 @@ gst_ttmlparse_sax_get_entity (void *ctx, const xmlChar * name)
 }
 
 static void
+gst_ttmlparse_sax_document_start (void *ctx)
+{
+  GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  GST_LOG_OBJECT (GST_TTMLPARSE (ctx), "Document start");
+
+  parse->in_styling_node = FALSE;
+  gst_ttml_state_reset (&parse->state);
+}
+
+static void
 gst_ttmlparse_sax_document_end (void *ctx)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
@@ -396,7 +429,7 @@ static xmlSAXHandler gst_ttmlparse_sax_handler = {
   /*. elementDecl = */ NULL,
   /*. unparsedEntityDecl = */ NULL,
   /*. setDocumentLocator = */ NULL,
-  /*. startDocument = */ NULL,
+  /*. startDocument = */ gst_ttmlparse_sax_document_start,
   /*. endDocument = */ gst_ttmlparse_sax_document_end,
   /*. startElement = */ gst_ttmlparse_sax_element_start,
   /*. endElement = */ gst_ttmlparse_sax_element_end,
@@ -409,6 +442,33 @@ static xmlSAXHandler gst_ttmlparse_sax_handler = {
   /*. error = */ gst_ttmlparse_sax_error,
   /*. fatalError = */ gst_ttmlparse_sax_error,
 };
+
+/* Free any parsing-related information held by the element */
+static void
+gst_ttmlparse_reset (GstTTMLParse * parse)
+{
+  GST_DEBUG_OBJECT (parse, "Resetting parsing information");
+
+  if (parse->xml_parser) {
+    xmlFreeParserCtxt (parse->xml_parser);
+    parse->xml_parser = NULL;
+  }
+
+  if (parse->timeline) {
+    g_list_free_full (parse->timeline,
+        (GDestroyNotify)gst_ttml_event_free);
+    parse->timeline = NULL;
+  }
+  parse->last_event_timestamp = GST_CLOCK_TIME_NONE;
+
+  if (parse->active_spans) {
+    g_list_free_full (parse->active_spans,
+        (GDestroyNotify)gst_ttml_span_free);
+    parse->active_spans = NULL;
+  }
+
+  gst_ttml_state_reset (&parse->state);
+}
 
 static GstFlowReturn
 gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
@@ -489,9 +549,8 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
       /* Destroy parser, a new one will be created if more XML files arrive */
       GST_DEBUG_OBJECT (parse, "Terminating pending XML parsing works");
       xmlParseChunk (parse->xml_parser, NULL, 0, 1);
-      GST_DEBUG_OBJECT (parse, "Destroying XML parser");
-      xmlFreeParserCtxt (parse->xml_parser);
-      parse->xml_parser = NULL;
+
+      gst_ttmlparse_reset (parse);
       parse->base_time = GST_CLOCK_TIME_NONE;
 
       /* Remove trailing whitespace, or the first thing the new parser will
@@ -533,25 +592,7 @@ gst_ttmlparse_cleanup (GstTTMLParse * parse)
   parse->newsegment_needed = TRUE;
   parse->current_gst_status = GST_FLOW_OK;
 
-  if (parse->xml_parser) {
-    xmlFreeParserCtxt (parse->xml_parser);
-    parse->xml_parser = NULL;
-  }
-
-  if (parse->timeline) {
-    g_list_free_full (parse->timeline,
-        (GDestroyNotify)gst_ttml_event_free);
-  }
-  parse->last_event_timestamp = GST_CLOCK_TIME_NONE;
-
-  if (parse->active_spans) {
-    g_list_free_full (parse->active_spans,
-        (GDestroyNotify)gst_ttml_span_free);
-  }
-
-  gst_ttml_state_reset (&parse->state);
-
-  return;
+  gst_ttmlparse_reset (parse);
 }
 
 static gboolean
@@ -768,7 +809,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->current_gst_status = GST_FLOW_OK;
   parse->timeline = NULL;
 
-  parse->state.history = NULL;
+  parse->state.attribute_stack = NULL;
   gst_ttml_state_reset (&parse->state);
 
   gst_ttmlparse_cleanup (parse);

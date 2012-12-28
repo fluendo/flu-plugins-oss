@@ -35,6 +35,8 @@ GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
 
 void gst_ttml_attribute_free (GstTTMLAttribute *attr);
 
+GstTTMLAttribute *gst_ttml_attribute_copy (GstTTMLAttribute *src);
+
 GstTTMLAttribute *gst_ttml_attribute_new_node (GstTTMLNodeType node_type);
 
 GstTTMLAttribute *gst_ttml_attribute_new_time_container (
