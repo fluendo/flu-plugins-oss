@@ -199,6 +199,16 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     GST_LOG ("Parsed '%s' font style into %d (%s)", value,
         attr->value.font_style,
         gst_ttml_style_get_font_style_name (attr->value.font_style));
+  } else if (gst_ttml_utils_element_is_type (name, "id")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_ID;
+    attr->value.string = g_strdup (value);
+    GST_LOG ("Parsed '%s' id", value);
+  } else if (gst_ttml_utils_element_is_type (name, "style")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_STYLE;
+    attr->value.string = g_strdup (value);
+    GST_LOG ("Parsed '%s' style", value);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -213,6 +223,8 @@ void
 gst_ttml_attribute_free (GstTTMLAttribute *attr)
 {
   switch (attr->type) {
+    case GST_TTML_ATTR_ID:
+    case GST_TTML_ATTR_STYLE:
     case GST_TTML_ATTR_FONT_FAMILY:
       g_free (attr->value.string);
       break;
@@ -220,6 +232,25 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
       break;
   }
   g_free (attr);
+}
+
+/* Create a copy of an attribute */
+GstTTMLAttribute *
+gst_ttml_attribute_copy (GstTTMLAttribute *src)
+{
+  GstTTMLAttribute *dest = g_new (GstTTMLAttribute, 1);
+  dest->type = src->type;
+  switch (src->type) {
+    case GST_TTML_ATTR_ID:
+    case GST_TTML_ATTR_STYLE:
+    case GST_TTML_ATTR_FONT_FAMILY:
+      dest->value.string = g_strdup (src->value.string);
+      break;
+    default:
+      dest->value = src->value;
+      break;
+  }
+  return dest;
 }
 
 /* Create a new "node_type" attribute. Typically, attribute types are created
@@ -274,6 +305,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
 {
   switch (type) {
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_NODE_TYPE);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_ID);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BEGIN);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_END);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DUR);
@@ -282,6 +314,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FRAME_RATE_MULTIPLIER);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_WHITESPACE_PRESERVE);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_STYLE);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_COLOR);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BACKGROUND_COLOR);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DISPLAY);
