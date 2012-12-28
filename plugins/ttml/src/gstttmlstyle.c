@@ -20,14 +20,6 @@ gst_ttml_style_free_content (GstTTMLStyle *style)
   g_free (style->font_family);
 }
 
-/* Free the style structure and all its internally allocated memory */
-static void
-gst_ttml_style_free (GstTTMLStyle *style)
-{
-  gst_ttml_style_free_content (style);
-  g_free (style);
-}
-
 /* Set the state to default TTML values */
 void
 gst_ttml_style_reset (GstTTMLStyle *style)
