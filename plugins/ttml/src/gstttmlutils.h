@@ -16,8 +16,6 @@ gboolean gst_ttml_utils_element_is_type (const gchar *name,
 
 GstTTMLNodeType gst_ttml_utils_node_type_parse (const gchar *name);
 
-gboolean gst_ttml_utils_is_blank_node (const gchar *content, int len);
-
 const gchar *gst_ttml_utils_node_type_name (GstTTMLNodeType type);
 
 G_END_DECLS

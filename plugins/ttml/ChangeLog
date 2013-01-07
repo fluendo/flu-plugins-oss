@@ -1,5 +1,15 @@
 2013-01-07  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_sax_characters):
+	* src/gstttmlutils.c:
+	* src/gstttmlutils.h:
+	  - Better handling of blank nodes: they cannot be ignored.
+	    Instead, we accept them and then trim heading and trailing
+	    whitespace in the final buffers (fixes Span004.xml)
+
+2013-01-07  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_sax_element_start),
 	(gst_ttmlparse_sax_characters):
 	* src/gstttmlutils.c: (gst_ttml_utils_node_type_name):

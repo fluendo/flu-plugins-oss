@@ -47,16 +47,6 @@ gst_ttml_utils_node_type_parse (const gchar *name)
   return GST_TTML_NODE_TYPE_UNKNOWN;
 }
 
-gboolean
-gst_ttml_utils_is_blank_node (const gchar *content, int len)
-{
-  while (len && g_ascii_isspace (*content)) {
-    content++;
-    len--;
-  }
-  return len == 0;
-}
-
 #define CASE_NODE_NAME(x) case x: return #x; break
 
 /* Turns a node type into a string useful for debugging purposes. */
