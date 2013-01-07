@@ -220,7 +220,8 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   GST_LOG_OBJECT (parse, "New element: %s", name);
 
   node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
-  GST_DEBUG ("Parsed name '%s' into node type %d", name, node_type);
+  GST_DEBUG ("Parsed name '%s' into node type %s",
+      name, gst_ttml_utils_node_type_name (node_type));
 
   if (node_type == GST_TTML_NODE_TYPE_STYLING) {
     parse->in_styling_node = TRUE;
@@ -332,8 +333,8 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   const gchar *content = (const gchar *) ch;
 
-  GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %d",
-      len, parse->state.node_type);
+  GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %s",
+      len, gst_ttml_utils_node_type_name (parse->state.node_type));
   GST_MEMDUMP ("Content:", (guint8 *)ch, len);
 
   /* Check if this is an ignorable blank node */
@@ -698,6 +699,7 @@ gst_ttmlparse_change_state (GstElement * element, GstStateChange transition)
 
   return ret;
 }
+
 static void
 gst_ttmlparse_get_property (GObject * object, guint prop_id, GValue * value,
     GParamSpec * pspec)

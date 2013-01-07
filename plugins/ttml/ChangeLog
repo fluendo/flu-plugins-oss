@@ -1,5 +1,13 @@
 2013-01-07  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_sax_element_start),
+	(gst_ttmlparse_sax_characters):
+	* src/gstttmlutils.c: (gst_ttml_utils_node_type_name):
+	* src/gstttmlutils.h:
+	  - Better debug messages involving node type names.
+
+2013-01-07  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlspan.c: (gst_ttml_span_new):
 	  - Proper removal of CR characters (instead of replacing by SPACE)
 
