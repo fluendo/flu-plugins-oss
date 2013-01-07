@@ -1,3 +1,8 @@
+2013-01-07  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlspan.c: (gst_ttml_span_new):
+	  - Proper removal of CR characters (instead of replacing by SPACE)
+
 2012-12-28  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstyle.c:
