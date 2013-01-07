@@ -70,12 +70,32 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
     buffer = gst_buffer_new_and_alloc (1);
     GST_BUFFER_DATA (buffer) [0] = ' ';
   } else {
+    int ndx, len;
     /* Compose output text based on currently active spans */
     g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose,
         &span);
 
-    buffer = gst_buffer_new_and_alloc (span.length);
-    memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
+    /* Trim heading and trailing whitespace, since some files are beautified
+     * with valid XML whitespace which we do not want rendered. */
+    len = span.length;
+    /* Trim tail */
+    while (len > 0 && g_ascii_isspace (span.chars[len - 1])) {
+      len--;
+    }
+    /* If the buffer only contains white space, discard it */
+    if (len == 0) {
+      g_free (span.chars);
+      return;
+    }
+    ndx = 0;
+    /* Trim head */
+    while (g_ascii_isspace (span.chars[ndx])) {
+      ndx++;
+      len--;
+    }
+
+    buffer = gst_buffer_new_and_alloc (len);
+    memcpy (GST_BUFFER_DATA (buffer), span.chars + ndx, len);
     g_free (span.chars);
   }
 
@@ -336,12 +356,6 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
   GST_DEBUG_OBJECT (parse, "Found %d chars inside node type %s",
       len, gst_ttml_utils_node_type_name (parse->state.node_type));
   GST_MEMDUMP ("Content:", (guint8 *)ch, len);
-
-  /* Check if this is an ignorable blank node */
-  if (gst_ttml_utils_is_blank_node (content, len)) {
-    GST_DEBUG_OBJECT (parse, "  (Ignoring blank node)");
-    return;
-  }
 
   switch (parse->state.node_type) {
     case GST_TTML_NODE_TYPE_P:
