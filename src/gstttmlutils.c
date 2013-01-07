@@ -57,3 +57,21 @@ gst_ttml_utils_is_blank_node (const gchar *content, int len)
   return len == 0;
 }
 
+#define CASE_NODE_NAME(x) case x: return #x; break
+
+/* Turns a node type into a string useful for debugging purposes. */
+const gchar *
+gst_ttml_utils_node_type_name (GstTTMLNodeType type)
+{
+  switch (type) {
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_UNKNOWN);
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_P);
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_SPAN);
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_BR);
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_STYLING);
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_STYLE);
+  default:
+    break;
+  }
+  return "Unknown!";
+}
