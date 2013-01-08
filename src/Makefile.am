@@ -45,5 +45,6 @@ gstttmlevent.h \
 gstttmlspan.h \
 gstttmlenums.h \
 gstttmlutils.h \
-gstttmlstyle.h
+gstttmlstyle.h \
+gstttmlforward.h
 
