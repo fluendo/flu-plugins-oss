@@ -1,5 +1,10 @@
 2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstyle.h:
+	  - Fix CR style.
+
+2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
+
 	* win32/vs10/libgstfluttml_sdk.vcxproj:
 	  - Change the Windows subsystem to CONSOLE. This has no impact
 	    at all, since this is a DLL and not an executable, but
