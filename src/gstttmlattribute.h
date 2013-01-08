@@ -27,6 +27,7 @@ struct _GstTTMLAttribute {
     gchar *string;
     guint32 color;
     GstTTMLFontStyle font_style;
+    GstTTMLFontWeight font_weight;
   } value;
 };
 
