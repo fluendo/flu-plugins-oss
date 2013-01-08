@@ -332,7 +332,7 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
 void
 gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
 {
-  GList *attr_link;
+  GList *attr_link = NULL;
 
   /* When a Style attribute is found, the previous style is pushed onto the
    * stack. However "style" is not a member of the state, so a NULL attr
@@ -340,13 +340,14 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
    */
   if (!id) return;
 
-  if (!state->saved_attr_stacks ||
-      !g_hash_table_contains (state->saved_attr_stacks, id)) {
+  if (state->saved_attr_stacks) {
+    attr_link = (GList *)g_hash_table_lookup (state->saved_attr_stacks, id);
+  }
+
+  if (!attr_link) {
     GST_WARNING ("Undefined style '%s'", id);
     return;
   }
-
-  attr_link = (GList *)g_hash_table_lookup (state->saved_attr_stacks, id);
 
   GST_DEBUG ("Applying style '%s'", id);
 
