@@ -82,6 +82,35 @@ gst_ttml_style_get_font_weight_name (GstTTMLFontWeight weight)
   return "Unknown";
 }
 
+/* Retrieve a text decoration name (for debugging) */
+const gchar *
+gst_ttml_style_get_text_decoration_name (GstTTMLTextDecoration decoration)
+{
+  if (decoration == GST_TTML_TEXT_DECORATION_NONE)
+    return "none";
+  switch (decoration) {
+    case GST_TTML_TEXT_DECORATION_UNDERLINE:
+      return "underline";
+    case GST_TTML_TEXT_DECORATION_STRIKETHROUGH:
+      return "strikethrough";
+    case GST_TTML_TEXT_DECORATION_UNDERLINE |
+        GST_TTML_TEXT_DECORATION_STRIKETHROUGH:
+      return "underline + strikethrough";
+    case GST_TTML_TEXT_DECORATION_OVERLINE:
+      return "overline";
+    case GST_TTML_TEXT_DECORATION_UNDERLINE |
+        GST_TTML_TEXT_DECORATION_OVERLINE:
+      return "underline + overline";
+    case GST_TTML_TEXT_DECORATION_UNDERLINE |
+        GST_TTML_TEXT_DECORATION_STRIKETHROUGH |
+        GST_TTML_TEXT_DECORATION_OVERLINE:
+      return "underline + strikethrough + overline";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 /* Generate Pango Markup for the style */
 void
 gst_ttml_style_gen_pango (const GstTTMLStyle *style,
@@ -114,6 +143,13 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
     attrs = gst_ttml_style_str_concat (attrs,
         g_strdup_printf (" font_weight=\"%s\"",
             gst_ttml_style_get_font_weight_name (style->font_weight)));
+
+  if (style->text_decoration & GST_TTML_TEXT_DECORATION_UNDERLINE)
+    attrs = gst_ttml_style_str_concat (attrs,
+        g_strdup_printf (" underline=\"%s\"", "single"));
+  if (style->text_decoration & GST_TTML_TEXT_DECORATION_STRIKETHROUGH)
+    attrs = gst_ttml_style_str_concat (attrs,
+        g_strdup_printf (" strikethrough=\"%s\"", "true"));
 
   if (strlen (attrs) > 0) {
     *head = g_strdup_printf ("<span%s>", attrs);

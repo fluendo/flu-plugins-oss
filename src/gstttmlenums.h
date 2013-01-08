@@ -37,7 +37,8 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_DISPLAY,
   GST_TTML_ATTR_FONT_FAMILY,
   GST_TTML_ATTR_FONT_STYLE,
-  GST_TTML_ATTR_FONT_WEIGHT
+  GST_TTML_ATTR_FONT_WEIGHT,
+  GST_TTML_ATTR_TEXT_DECORATION
 } GstTTMLAttributeType;
 
 /* Event types */
@@ -58,6 +59,14 @@ typedef enum _GstTTMLFontWeight {
   GST_TTML_FONT_WEIGHT_NORMAL,
   GST_TTML_FONT_WEIGHT_BOLD
 } GstTTMLFontWeight;
+
+/* Text decorations (More than one can be selected) */
+typedef enum _GstTTMLTextDecoration {
+  GST_TTML_TEXT_DECORATION_NONE           = 0,
+  GST_TTML_TEXT_DECORATION_UNDERLINE      = 1 << 0,
+  GST_TTML_TEXT_DECORATION_STRIKETHROUGH  = 1 << 1,
+  GST_TTML_TEXT_DECORATION_OVERLINE       = 1 << 2
+} GstTTMLTextDecoration;
 
 G_END_DECLS
 

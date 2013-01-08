@@ -28,6 +28,7 @@ struct _GstTTMLAttribute {
     guint32 color;
     GstTTMLFontStyle font_style;
     GstTTMLFontWeight font_weight;
+    GstTTMLTextDecoration text_decoration;
   } value;
 };
 

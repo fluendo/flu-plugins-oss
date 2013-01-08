@@ -6,6 +6,19 @@
 	* src/gstttmlenums.h:
 	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
 	(gst_ttml_state_get_attribute):
+	* src/gstttmlstyle.c: (gst_ttml_style_get_text_decoration_name),
+	(gst_ttml_style_gen_pango):
+	* src/gstttmlstyle.h:
+	  - Support for the textDecoration styling attribute.
+
+2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_type_name):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute):
 	* src/gstttmlstyle.c: (gst_ttml_style_get_font_weight_name),
 	(gst_ttml_style_gen_pango):
 	* src/gstttmlstyle.h:
