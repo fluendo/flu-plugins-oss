@@ -209,6 +209,19 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     GST_LOG ("Parsed '%s' font weight into %d (%s)", value,
         attr->value.font_weight,
         gst_ttml_style_get_font_weight_name (attr->value.font_weight));
+  } else if (gst_ttml_utils_element_is_type (name, "textDecoration")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_TEXT_DECORATION;
+    attr->value.text_decoration = GST_TTML_TEXT_DECORATION_NONE;
+    if (strstr (value, "underline"))
+      attr->value.text_decoration |= GST_TTML_TEXT_DECORATION_UNDERLINE;
+    if (strstr (value, "lineThrough"))
+      attr->value.text_decoration |= GST_TTML_TEXT_DECORATION_STRIKETHROUGH;
+    if (strstr (value, "overline"))
+      attr->value.text_decoration |= GST_TTML_TEXT_DECORATION_OVERLINE;
+    GST_LOG ("Parsed '%s' text decoration into %d (%s)", value,
+        attr->value.text_decoration,
+        gst_ttml_style_get_text_decoration_name (attr->value.text_decoration));
   } else if (gst_ttml_utils_element_is_type (name, "id")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_ID;
@@ -331,6 +344,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_FAMILY);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_STYLE);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_WEIGHT);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_TEXT_DECORATION);
   default:
     break;
   }

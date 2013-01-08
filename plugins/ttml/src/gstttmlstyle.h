@@ -20,6 +20,7 @@ struct _GstTTMLStyle {
   gchar *font_family;
   GstTTMLFontStyle font_style;
   GstTTMLFontWeight font_weight;
+  GstTTMLTextDecoration text_decoration;
 };
 
 void gst_ttml_style_reset (GstTTMLStyle *style);
@@ -30,6 +31,9 @@ void gst_ttml_style_copy (GstTTMLStyle *dest_style,
 const gchar *gst_ttml_style_get_font_style_name (GstTTMLFontStyle style);
 
 const gchar *gst_ttml_style_get_font_weight_name (GstTTMLFontWeight weight);
+
+const gchar *gst_ttml_style_get_text_decoration_name (
+    GstTTMLTextDecoration decoration);
 
 void gst_ttml_style_gen_pango (const GstTTMLStyle *style,
     gchar **head, gchar **tail);
