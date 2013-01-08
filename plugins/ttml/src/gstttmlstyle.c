@@ -67,6 +67,21 @@ gst_ttml_style_get_font_style_name (GstTTMLFontStyle style)
   return "Unknown";
 }
 
+/* Retrieve a font weight name (for debugging) */
+const gchar *
+gst_ttml_style_get_font_weight_name (GstTTMLFontWeight weight)
+{
+  switch (weight) {
+    case GST_TTML_FONT_WEIGHT_NORMAL:
+      return "normal";
+    case GST_TTML_FONT_WEIGHT_BOLD:
+      return "bold";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 /* Generate Pango Markup for the style */
 void
 gst_ttml_style_gen_pango (const GstTTMLStyle *style,
@@ -94,6 +109,11 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
     attrs = gst_ttml_style_str_concat (attrs,
         g_strdup_printf (" font_style=\"%s\"",
             gst_ttml_style_get_font_style_name (style->font_style)));
+  
+  if (style->font_weight != GST_TTML_FONT_WEIGHT_NORMAL)
+    attrs = gst_ttml_style_str_concat (attrs,
+        g_strdup_printf (" font_weight=\"%s\"",
+            gst_ttml_style_get_font_weight_name (style->font_weight)));
 
   if (strlen (attrs) > 0) {
     *head = g_strdup_printf ("<span%s>", attrs);

@@ -130,6 +130,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_FONT_STYLE:
       state->style.font_style = attr->value.font_style;
       break;
+    case GST_TTML_ATTR_FONT_WEIGHT:
+      state->style.font_weight = attr->value.font_weight;
+      break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);
       break;
@@ -226,6 +229,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_FONT_STYLE:
       attr->value.font_style = state->style.font_style;
+      break;
+    case GST_TTML_ATTR_FONT_WEIGHT:
+      attr->value.font_weight = state->style.font_weight;
       break;
     default:
       GST_DEBUG ("Unknown attribute type %d", attr->type);

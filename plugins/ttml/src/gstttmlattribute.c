@@ -199,6 +199,16 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     GST_LOG ("Parsed '%s' font style into %d (%s)", value,
         attr->value.font_style,
         gst_ttml_style_get_font_style_name (attr->value.font_style));
+  } else if (gst_ttml_utils_element_is_type (name, "fontWeight")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_FONT_WEIGHT;
+    if (!g_ascii_strcasecmp (value, "bold"))
+      attr->value.font_weight = GST_TTML_FONT_WEIGHT_BOLD;
+    else
+      attr->value.font_weight = GST_TTML_FONT_WEIGHT_NORMAL;
+    GST_LOG ("Parsed '%s' font weight into %d (%s)", value,
+        attr->value.font_weight,
+        gst_ttml_style_get_font_weight_name (attr->value.font_weight));
   } else if (gst_ttml_utils_element_is_type (name, "id")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_ID;
@@ -320,6 +330,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DISPLAY);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_FAMILY);
     CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_STYLE);
+    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_WEIGHT);
   default:
     break;
   }
