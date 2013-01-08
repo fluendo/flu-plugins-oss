@@ -1,5 +1,10 @@
 2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstyle.c: (gst_ttml_style_get_text_decoration_name):
+	  - Add missing case and fix gcc warning.
+
+2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_type_name):
 	* src/gstttmlattribute.h:

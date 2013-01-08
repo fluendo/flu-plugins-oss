@@ -88,7 +88,7 @@ gst_ttml_style_get_text_decoration_name (GstTTMLTextDecoration decoration)
 {
   if (decoration == GST_TTML_TEXT_DECORATION_NONE)
     return "none";
-  switch (decoration) {
+  switch ((int)decoration) {
     case GST_TTML_TEXT_DECORATION_UNDERLINE:
       return "underline";
     case GST_TTML_TEXT_DECORATION_STRIKETHROUGH:
@@ -101,6 +101,9 @@ gst_ttml_style_get_text_decoration_name (GstTTMLTextDecoration decoration)
     case GST_TTML_TEXT_DECORATION_UNDERLINE |
         GST_TTML_TEXT_DECORATION_OVERLINE:
       return "underline + overline";
+    case GST_TTML_TEXT_DECORATION_STRIKETHROUGH |
+        GST_TTML_TEXT_DECORATION_OVERLINE:
+      return "strikethrough + overline";
     case GST_TTML_TEXT_DECORATION_UNDERLINE |
         GST_TTML_TEXT_DECORATION_STRIKETHROUGH |
         GST_TTML_TEXT_DECORATION_OVERLINE:
