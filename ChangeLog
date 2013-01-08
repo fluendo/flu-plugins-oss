@@ -1,3 +1,5 @@
+=== release 0.10.3 ===
+
 2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstate.c: (gst_ttml_state_restore_attr_stack):
