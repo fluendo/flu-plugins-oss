@@ -70,32 +70,12 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
     buffer = gst_buffer_new_and_alloc (1);
     GST_BUFFER_DATA (buffer) [0] = ' ';
   } else {
-    int ndx, len;
     /* Compose output text based on currently active spans */
     g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose,
         &span);
 
-    /* Trim heading and trailing whitespace, since some files are beautified
-     * with valid XML whitespace which we do not want rendered. */
-    len = span.length;
-    /* Trim tail */
-    while (len > 0 && g_ascii_isspace (span.chars[len - 1])) {
-      len--;
-    }
-    /* If the buffer only contains white space, discard it */
-    if (len == 0) {
-      g_free (span.chars);
-      return;
-    }
-    ndx = 0;
-    /* Trim head */
-    while (g_ascii_isspace (span.chars[ndx])) {
-      ndx++;
-      len--;
-    }
-
-    buffer = gst_buffer_new_and_alloc (len);
-    memcpy (GST_BUFFER_DATA (buffer), span.chars + ndx, len);
+    buffer = gst_buffer_new_and_alloc (span.length);
+    memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
     g_free (span.chars);
   }
 
@@ -212,6 +192,10 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   id = parse->state.last_span_id++;
   span = gst_ttml_span_new (id, content_size, content, &parse->state.style,
       preserve_cr);
+  if (!span) {
+    GST_DEBUG ("Empty span. Dropping.");
+    return;
+  }
 
   /* Insert BEGIN and END events in the timeline, with the same ID */
   event = gst_ttml_event_new_span_begin (&parse->state, span);
