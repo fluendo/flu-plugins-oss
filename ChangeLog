@@ -1,3 +1,10 @@
+2013-01-09  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_add_characters):
+	* src/gstttmlspan.c: (gst_ttml_span_new):
+	  - Treat white space as indicated in the TTML spec.
+
 2013-01-08  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstyle.h:

@@ -70,20 +70,35 @@ gst_ttml_span_new (guint id, guint length, const gchar *chars,
   span->chars = g_memdup (chars, length);
   gst_ttml_style_copy (&span->style, style);
 
-  /* Remove CR characters if requested */
+  /* Remove CR characters (and surrounding white space) if requested */
   /* The malloc'ed memory will be bigger than 'length' */
   if (!preserve_cr) {
-    gchar *c = span->chars;
-    int num_cr = 0;
-    while (length) {
-      if (*c == '\n')
-        num_cr++;
-      if (num_cr > 0)
-        c[0] = c[num_cr];
-      c++;
-      length--;
+    gchar *src = span->chars;
+    gchar *dst = span->chars;
+    gboolean collapsing = FALSE;
+    gboolean first_space = FALSE;
+    while (src < span->chars + length) {
+      if (*src == '\n') {
+        src++;
+        collapsing = TRUE;
+        first_space = TRUE;
+      } else if (g_ascii_isspace (*src) && collapsing) {
+        src++;
+        if (first_space) {
+          *dst++ = ' ';
+          first_space = FALSE;
+        }
+      } else {
+        *dst++ = *src++;
+        collapsing = FALSE;
+      }
     }
-    span->length -= num_cr;
+    span->length = dst - span->chars;
+  }
+
+  if (span->length == 0) {
+    gst_ttml_span_free (span);
+    span = NULL;
   }
 
   return span;
