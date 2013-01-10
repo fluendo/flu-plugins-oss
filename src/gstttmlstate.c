@@ -101,8 +101,8 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       state->frame_rate = attr->value.d;
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      state->frame_rate_num = attr->value.num;
-      state->frame_rate_den = attr->value.den;
+      state->frame_rate_num = attr->value.fraction.num;
+      state->frame_rate_den = attr->value.fraction.den;
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       state->whitespace_preserve = attr->value.b;
@@ -204,8 +204,8 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
       attr->value.d = state->frame_rate;
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      attr->value.num = state->frame_rate_num;
-      attr->value.den = state->frame_rate_den;
+      attr->value.fraction.num = state->frame_rate_num;
+      attr->value.fraction.den = state->frame_rate_den;
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       attr->value.b = state->whitespace_preserve;

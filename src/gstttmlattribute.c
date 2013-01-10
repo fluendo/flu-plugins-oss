@@ -153,9 +153,10 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   } else if (gst_ttml_utils_element_is_type (name, "frameRateMultiplier")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FRAME_RATE_MULTIPLIER;
-    sscanf (value, "%d %d", &attr->value.num, &attr->value.den);
+    sscanf (value, "%d %d",
+        &attr->value.fraction.num, &attr->value.fraction.den);
     GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
-        attr->value.num, attr->value.den);
+        attr->value.fraction.num, attr->value.fraction.den);
   } else if (gst_ttml_utils_element_is_type (name, "space")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_WHITESPACE_PRESERVE;
