@@ -30,6 +30,9 @@ gst_ttml_style_reset (GstTTMLStyle *style)
   style->background_color = 0x00000000;
   style->display = TRUE;
   style->font_family = NULL;
+  style->font_style = GST_TTML_FONT_STYLE_NORMAL;
+  style->font_weight = GST_TTML_FONT_WEIGHT_NORMAL;
+  style->text_decoration = GST_TTML_TEXT_DECORATION_NONE;
 }
 
 /* Make a deep copy of the style, overwritting dest_style */

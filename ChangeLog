@@ -1,3 +1,9 @@
+2013-01-10  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstyle.c: (gst_ttml_style_reset):
+	  - Add missing style initializers (Not required because all are 0,
+	    but more coherent code).
+
 2013-01-09  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
