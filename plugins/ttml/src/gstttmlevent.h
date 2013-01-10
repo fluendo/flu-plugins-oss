@@ -26,10 +26,10 @@ struct _GstTTMLEvent
 {
   GstClockTime timestamp;
   GstTTMLEventType type;
-  union {
+  union _GstTTMLEventData {
     GstTTMLEventSpanBegin span_begin;
     GstTTMLEventSpanEnd span_end;
-  };
+  } data;
 };
 
 typedef void (* GstTTMLEventParseFunc)(GstTTMLEvent *event,

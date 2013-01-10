@@ -15,15 +15,15 @@ G_BEGIN_DECLS
 /* A stored attribute */
 struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
-  union {
+  union _GstTTMLAttributeValue {
     GstTTMLNodeType node_type;
     GstClockTime time;
     gdouble d;
     gboolean b;
-    struct {
+    struct _GstTTMLFraction {
       gint num;
       gint den;
-    };
+    } fraction;
     gchar *string;
     guint32 color;
     GstTTMLFontStyle font_style;

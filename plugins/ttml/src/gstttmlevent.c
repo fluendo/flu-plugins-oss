@@ -21,8 +21,8 @@ gst_ttml_event_free (GstTTMLEvent *event)
 {
   switch (event->type) {
     case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
-      if (event->span_begin.span)
-        gst_ttml_span_free (event->span_begin.span);
+      if (event->data.span_begin.span)
+        gst_ttml_span_free (event->data.span_begin.span);
       break;
     default:
       break;
@@ -47,7 +47,7 @@ gst_ttml_event_new_span_begin (GstTTMLState *state, GstTTMLSpan *span)
   else
     event->timestamp = 0;
   event->type = GST_TTML_EVENT_TYPE_SPAN_BEGIN;
-  event->span_begin.span = span;
+  event->data.span_begin.span = span;
   return event;
 }
 
@@ -60,7 +60,7 @@ gst_ttml_event_new_span_end (GstTTMLState *state, guint id)
    * open on the right */
   event->timestamp = state->end - 1;
   event->type = GST_TTML_EVENT_TYPE_SPAN_END;
-  event->span_end.id = id;
+  event->data.span_end.id = id;
   return event;
 }
 

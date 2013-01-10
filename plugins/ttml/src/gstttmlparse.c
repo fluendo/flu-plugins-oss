@@ -124,16 +124,16 @@ gst_ttmlparse_parse_event (GstTTMLEvent *event, GstTTMLParse *parse)
 
   switch (event->type) {
     case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
-      span = event->span_begin.span;
+      span = event->data.span_begin.span;
       parse->active_spans =
           gst_ttml_span_list_add (parse->active_spans, span);
       /* Remove the span from the event, so that when we free the event below
        * the span does not get fred too (it belongs to the active_spans list
        * now) */
-      event->span_begin.span = NULL;
+      event->data.span_begin.span = NULL;
       break;
     case GST_TTML_EVENT_TYPE_SPAN_END:
-      id = event->span_end.id;
+      id = event->data.span_end.id;
       parse->active_spans =
           gst_ttml_span_list_remove (parse->active_spans, id);
       break;
