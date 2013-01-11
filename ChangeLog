@@ -1,5 +1,10 @@
 2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlevent.c: (gst_ttml_event_new_span_end):
+	  - Fix invalid timestamps with open-ended intervals.
+
+2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlspan.c: (gst_ttml_span_free):
 	  - Fix tiny memleak (Thanks Valgrind!)
 
