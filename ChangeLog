@@ -1,5 +1,10 @@
 2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango):
+	  - Add missing "default" case to fix Linux build.
+
+2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_copy),
 	(gst_ttml_attribute_new_boolean), (gst_ttml_attribute_new_time),
 	(gst_ttml_attribute_new_string), (gst_ttml_attribute_new_double),

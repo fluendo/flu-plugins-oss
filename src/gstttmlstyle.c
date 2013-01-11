@@ -200,6 +200,10 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
           attrs = gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" strikethrough=\"%s\"", "true"));
         break;
+
+      default:
+        /* Ignore all other attributes, as they have no effect on the style */
+        break;
     }
     link = link->next;
   }
