@@ -1,5 +1,10 @@
 2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlspan.c: (gst_ttml_span_free):
+	  - Fix tiny memleak (Thanks Valgrind!)
+
+2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango):
 	  - Add missing "default" case to fix Linux build.
 
