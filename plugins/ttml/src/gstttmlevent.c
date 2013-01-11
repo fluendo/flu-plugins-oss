@@ -58,7 +58,10 @@ gst_ttml_event_new_span_end (GstTTMLState *state, guint id)
   GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
   /* Substracting one nanosecond is a cheap way of making intervals
    * open on the right */
-  event->timestamp = state->end - 1;
+  if (GST_CLOCK_TIME_IS_VALID (state->end))
+    event->timestamp = state->end - 1;
+  else
+    event->timestamp = state->end;
   event->type = GST_TTML_EVENT_TYPE_SPAN_END;
   event->data.span_end.id = id;
   return event;
