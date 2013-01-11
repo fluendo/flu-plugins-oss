@@ -58,6 +58,7 @@ void
 gst_ttml_span_free (GstTTMLSpan *span)
 {
   g_free (span->chars);
+  gst_ttml_style_reset (&span->style);
   g_free (span);
 }
 
