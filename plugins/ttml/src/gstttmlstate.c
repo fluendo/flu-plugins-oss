@@ -113,31 +113,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_STYLE:
       gst_ttml_state_restore_attr_stack (state, attr->value.string);
       break;
-    case GST_TTML_ATTR_COLOR:
-      state->style.color = attr->value.color;
-      break;
-    case GST_TTML_ATTR_BACKGROUND_COLOR:
-      state->style.background_color = attr->value.color;
-      break;
-    case GST_TTML_ATTR_DISPLAY:
-      state->style.display = attr->value.b;
-      break;
-    case GST_TTML_ATTR_FONT_FAMILY:
-      if (state->style.font_family)
-        g_free (state->style.font_family);
-      state->style.font_family = g_strdup (attr->value.string);
-      break;
-    case GST_TTML_ATTR_FONT_STYLE:
-      state->style.font_style = attr->value.font_style;
-      break;
-    case GST_TTML_ATTR_FONT_WEIGHT:
-      state->style.font_weight = attr->value.font_weight;
-      break;
-    case GST_TTML_ATTR_TEXT_DECORATION:
-      state->style.text_decoration = attr->value.text_decoration;
-      break;
     default:
-      GST_DEBUG ("Unknown attribute type %d", attr->type);
+      /* All Styling attributes are handled here */
+      gst_ttml_style_set_attr (&state->style, attr);
       break;
   }
 }
@@ -175,74 +153,66 @@ gst_ttml_state_merge_attribute (GstTTMLState *state,
   }
 }
 
-/* Read from the state an attribute specified in attr->type and store it in
- * attr->value */
-static void
+/* Read from the state the attribute specified by type and return a new
+ * attribute */
+static GstTTMLAttribute *
 gst_ttml_state_get_attribute (GstTTMLState *state,
-    GstTTMLAttribute *attr)
+    GstTTMLAttributeType type)
 {
-  switch (attr->type) {
+  const GstTTMLAttribute *curr_attr;
+  GstTTMLAttribute *attr;
+
+  switch (type) {
     case GST_TTML_ATTR_NODE_TYPE:
-      attr->value.node_type = state->node_type;
+      attr = gst_ttml_attribute_new_node (state->node_type);
       break;
     case GST_TTML_ATTR_ID:
-      attr->value.string = g_strdup (state->id);
+      attr = gst_ttml_attribute_new_string (type, state->id);
       break;
     case GST_TTML_ATTR_BEGIN:
-      attr->value.time = state->begin;
+      attr = gst_ttml_attribute_new_time (type, state->begin);
       break;
     case GST_TTML_ATTR_END:
-      attr->value.time = state->end;
+      attr = gst_ttml_attribute_new_time (type, state->end);
       break;
     case GST_TTML_ATTR_DUR:
-      attr->value.time = state->end - state->begin;
+      attr = gst_ttml_attribute_new_time (type, state->end - state->begin);
       break;
     case GST_TTML_ATTR_TICK_RATE:
-      attr->value.d = state->tick_rate;
+      attr = gst_ttml_attribute_new_double (type, state->tick_rate);
       break;
     case GST_TTML_ATTR_FRAME_RATE:
-      attr->value.d = state->frame_rate;
+      attr = gst_ttml_attribute_new_double (type, state->frame_rate);
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      attr->value.fraction.num = state->frame_rate_num;
-      attr->value.fraction.den = state->frame_rate_den;
+      attr = gst_ttml_attribute_new_fraction (type, state->frame_rate_den,
+          state->frame_rate_den);
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
-      attr->value.b = state->whitespace_preserve;
+      attr = gst_ttml_attribute_new_boolean (type,
+          state->whitespace_preserve);
       break;
     case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
-      attr->value.b = state->sequential_time_container;
+      attr = gst_ttml_attribute_new_boolean (type,
+          state->sequential_time_container);
       break;
     case GST_TTML_ATTR_STYLE:
       /* Nothing to do here: The style attribute is expanded into multiple
        * other attributes when set. */
-      attr->value.string = NULL;
-      break;
-    case GST_TTML_ATTR_COLOR:
-      attr->value.color = state->style.color;
-      break;
-    case GST_TTML_ATTR_BACKGROUND_COLOR:
-      attr->value.color = state->style.background_color;
-      break;
-    case GST_TTML_ATTR_DISPLAY:
-      attr->value.b = state->style.display;
-      break;
-    case GST_TTML_ATTR_FONT_FAMILY:
-      attr->value.string = g_strdup (state->style.font_family);
-      break;
-    case GST_TTML_ATTR_FONT_STYLE:
-      attr->value.font_style = state->style.font_style;
-      break;
-    case GST_TTML_ATTR_FONT_WEIGHT:
-      attr->value.font_weight = state->style.font_weight;
-      break;
-    case GST_TTML_ATTR_TEXT_DECORATION:
-      attr->value.text_decoration = state->style.text_decoration;
+      attr = gst_ttml_attribute_new_string (type, NULL);
       break;
     default:
-      GST_DEBUG ("Unknown attribute type %d", attr->type);
-      return;
+      /* All Styling attributes are handled here */
+      curr_attr = gst_ttml_style_get_attr (&state->style, type);
+      if (curr_attr) {
+        attr = gst_ttml_attribute_copy (curr_attr);
+      } else {
+        attr = gst_ttml_attribute_new_styling_default (type);
+      }
+      break;
   }
+
+  return attr;
 }
 
 /* Puts the passed-in attribute into the state, and pushes the previous value
@@ -252,9 +222,7 @@ void
 gst_ttml_state_push_attribute (GstTTMLState *state,
     GstTTMLAttribute *new_attr)
 {
-  GstTTMLAttribute *old_attr = g_new (GstTTMLAttribute, 1);
-  old_attr->type = new_attr->type;
-  gst_ttml_state_get_attribute (state, old_attr);
+  GstTTMLAttribute *old_attr = gst_ttml_state_get_attribute (state, new_attr->type);
   state->attribute_stack = g_list_prepend (state->attribute_stack, old_attr);
   gst_ttml_state_merge_attribute (state, new_attr);
   gst_ttml_attribute_free (new_attr);
@@ -308,9 +276,8 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
   while (attr_link) {
     GstTTMLAttribute *attr = (GstTTMLAttribute *)attr_link->data;
     if (attr->type > GST_TTML_ATTR_STYLE) {
-      GstTTMLAttribute *attr_copy = g_new (GstTTMLAttribute, 1);
-      attr_copy->type = attr->type;
-      gst_ttml_state_get_attribute (state, attr_copy);
+      GstTTMLAttribute *attr_copy =
+          gst_ttml_state_get_attribute (state, attr->type);
       /* This must be appended, not prepended, to preserve the list direction.
        * If the operation turns out to be too lengthy (because append must
        * traverse the whole list) alternatives can be found (like keeping

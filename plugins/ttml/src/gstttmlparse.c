@@ -74,6 +74,12 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
     g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose,
         &span);
 
+    if (span.length == 0) {
+      /* Empty buffers are useless and Pango complains about them */
+      g_free (span.chars);
+      return;
+    }
+
     buffer = gst_buffer_new_and_alloc (span.length);
     memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
     g_free (span.chars);
@@ -237,7 +243,8 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   /* If this node did not specify the time_container attribute, set it
    * manually to "parallel", as this is not inherited. */
-  ttml_attr = gst_ttml_attribute_new_time_container (FALSE);
+  ttml_attr = gst_ttml_attribute_new_boolean (
+      GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER, FALSE);
   gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   /* Manually push a 0 BEGIN attribute when in sequential mode.
    * If the node defines it, its value will overwrite this one.
@@ -245,7 +252,7 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
    * the node does not define a BEGIN time, since it is taken into account in
    * the _merge_attribute method. */
   if (is_container_seq) {
-    ttml_attr = gst_ttml_attribute_new_begin (0);
+    ttml_attr = gst_ttml_attribute_new_time (GST_TTML_ATTR_BEGIN, 0);
     gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   }
   /* Push onto the stack all attributes defined by this element */
@@ -264,7 +271,7 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
    * sequential mode. In this case this node must be ignored and this seemed
    * like the simplest way. */
   if (is_container_seq && !dur_attr_found) {
-    ttml_attr = gst_ttml_attribute_new_dur (0);
+    ttml_attr = gst_ttml_attribute_new_time (GST_TTML_ATTR_DUR, 0);
     gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   }
 

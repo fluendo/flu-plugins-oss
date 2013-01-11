@@ -1,3 +1,26 @@
+2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_copy),
+	(gst_ttml_attribute_new_boolean), (gst_ttml_attribute_new_time),
+	(gst_ttml_attribute_new_string), (gst_ttml_attribute_new_double),
+	(gst_ttml_attribute_new_fraction),
+	(gst_ttml_attribute_new_styling_default),
+	(gst_ttml_attribute_compare_type_func):
+	* src/gstttmlattribute.h:
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_sax_element_start):
+	* src/gstttmlspan.c: (gst_ttml_span_compose):
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute), (gst_ttml_state_push_attribute),
+	(gst_ttml_state_save_attr_stack):
+	* src/gstttmlstyle.c: (gst_ttml_style_reset),
+	(gst_ttml_style_copy), (gst_ttml_style_get_attr),
+	(gst_ttml_style_set_attr), (gst_ttml_style_gen_pango):
+	* src/gstttmlstyle.h:
+	  - Turn Styles into a generic list of attributes, instead of a
+	    hardcoded structure. This simplifies code somewhat, and prepares
+	    the ground for Animations.
+
 2013-01-10  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
