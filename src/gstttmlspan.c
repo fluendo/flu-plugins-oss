@@ -10,6 +10,7 @@
 #include <string.h>
 #include "gstttmlspan.h"
 #include "gstttmlstyle.h"
+#include "gstttmlattribute.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
@@ -24,9 +25,11 @@ gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
   gchar *tail;
   gint tail_len;
   gchar *ptr;
+  const GstTTMLAttribute *attr;
 
   /* Do nothing if the span is disabled */
-  if (span->style.display == FALSE)
+  attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DISPLAY);
+  if (attr && attr->value.b == FALSE)
     return;
 
   gst_ttml_style_gen_pango (&span->style, &head, &tail);

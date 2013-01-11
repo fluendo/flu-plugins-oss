@@ -260,7 +260,7 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
 
 /* Create a copy of an attribute */
 GstTTMLAttribute *
-gst_ttml_attribute_copy (GstTTMLAttribute *src)
+gst_ttml_attribute_copy (const GstTTMLAttribute *src)
 {
   GstTTMLAttribute *dest = g_new (GstTTMLAttribute, 1);
   dest->type = src->type;
@@ -288,36 +288,93 @@ gst_ttml_attribute_new_node (GstTTMLNodeType node_type)
   return attr;
 }
 
-/* Create a new "time_container" attribute. Typically, attribute types are
+/* Create a new boolean attribute. Typically, attributes are
  * created in the _attribute_parse() method above. */
 GstTTMLAttribute *
-gst_ttml_attribute_new_time_container (gboolean sequential_time_container)
+gst_ttml_attribute_new_boolean (GstTTMLAttributeType type, gboolean b)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
-  attr->type = GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER;
-  attr->value.b = sequential_time_container;
+  attr->type = type;
+  attr->value.b = b;
   return attr;
 }
 
-/* Create a new "begin" attribute. Typically, attribute types are
+/* Create a new time attribute. Typically, attributes are
  * created in the _attribute_parse() method above. */
 GstTTMLAttribute *
-gst_ttml_attribute_new_begin (GstClockTime begin)
+gst_ttml_attribute_new_time (GstTTMLAttributeType type, GstClockTime time)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
-  attr->type = GST_TTML_ATTR_BEGIN;
-  attr->value.time = begin;
+  attr->type = type;
+  attr->value.time = time;
   return attr;
 }
 
-/* Create a new "dur" attribute. Typically, attribute types are
+/* Create a new string attribute. Typically, attributes are
  * created in the _attribute_parse() method above. */
 GstTTMLAttribute *
-gst_ttml_attribute_new_dur (GstClockTime dur)
+gst_ttml_attribute_new_string (GstTTMLAttributeType type, const gchar *str)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
-  attr->type = GST_TTML_ATTR_DUR;
-  attr->value.time = dur;
+  attr->type = type;
+  attr->value.string = g_strdup (str);
+  return attr;
+}
+
+/* Create a new gdouble attribute. Typically, attributes are
+ * created in the _attribute_parse() method above. */
+GstTTMLAttribute *
+gst_ttml_attribute_new_double (GstTTMLAttributeType type, gdouble d)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = type;
+  attr->value.d = d;
+  return attr;
+}
+
+/* Create a new fraction attribute. Typically, attributes are
+ * created in the _attribute_parse() method above. */
+GstTTMLAttribute *
+gst_ttml_attribute_new_fraction (GstTTMLAttributeType type, gint num, gint den)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = type;
+  attr->value.fraction.num = num;
+  attr->value.fraction.den = den;
+  return attr;
+}
+
+/* Create a new styling attribute with its default value */
+GstTTMLAttribute *
+gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = type;
+  switch (type) {
+    case GST_TTML_ATTR_COLOR:
+      attr->value.color = 0xFFFFFFFF;
+      break;
+    case GST_TTML_ATTR_BACKGROUND_COLOR:
+      attr->value.color = 0x00000000;
+      break;
+    case GST_TTML_ATTR_DISPLAY:
+      attr->value.b = TRUE;
+      break;
+    case GST_TTML_ATTR_FONT_FAMILY:
+      attr->value.string = NULL;
+      break;
+    case GST_TTML_ATTR_FONT_STYLE:
+      attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
+    case GST_TTML_ATTR_FONT_WEIGHT:
+      attr->value.font_weight = GST_TTML_FONT_WEIGHT_NORMAL;
+      break;
+    case GST_TTML_ATTR_TEXT_DECORATION:
+      attr->value.text_decoration = GST_TTML_TEXT_DECORATION_NONE;
+      break;
+    default:
+      GST_WARNING ("This method should only be used for Styling attributes");
+      break;
+  }
   return attr;
 }
 
@@ -350,4 +407,11 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     break;
   }
   return "Unknown!";
+}
+
+gint
+gst_ttml_attribute_compare_type_func (GstTTMLAttribute *attr,
+    GstTTMLAttributeType type)
+{
+  return (attr->type != type);
 }
