@@ -259,7 +259,7 @@ gst_ttml_state_pop_attribute (GstTTMLState *state)
 
 /* Create a copy of the current attribute stack and store it in a hash table
  * with the specified ID string.
- * Create the hash table if necessary. */
+ * Create the hash table if necessary. Used for referential styling. */
 void
 gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
 {
@@ -296,6 +296,8 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
   g_hash_table_insert (state->saved_attr_stacks, id_copy, attr_stack_copy);
 }
 
+/* Retrieve the attribute stack with the given id from the hash table and
+ * apply it. Used for referential styling. */
 void
 gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
 {

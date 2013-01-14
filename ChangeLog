@@ -1,3 +1,8 @@
+2013-01-14  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstate.c:
+	  - Add a bit of missing documentation.
+
 2013-01-11  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlevent.c: (gst_ttml_event_new_span_end):
