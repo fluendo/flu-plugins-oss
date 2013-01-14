@@ -110,7 +110,7 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr)
   } else {
     struct _GstTTMLNamedColor *c = GstTTMLNamedColors;
     while (c->name) {
-      if (!g_ascii_strcasecmp (c->name, expr))
+      if (gst_ttml_utils_attr_value_is (expr, c->name))
         return c->color;
       c++;
     }
@@ -160,12 +160,12 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   } else if (gst_ttml_utils_element_is_type (name, "space")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_WHITESPACE_PRESERVE;
-    attr->value.b = !g_ascii_strcasecmp (value, "preserve");
+    attr->value.b = gst_ttml_utils_attr_value_is (value, "preserve");
     GST_LOG ("Parsed '%s' xml:space into preserve=%d", value, attr->value.b);
   } else if (gst_ttml_utils_element_is_type (name, "timeContainer")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER;
-    attr->value.b = !g_ascii_strcasecmp (value, "seq");
+    attr->value.b = gst_ttml_utils_attr_value_is (value, "seq");
     GST_LOG ("Parsed '%s' timeContainer into sequential=%d", value,
         attr->value.b);
   } else if (gst_ttml_utils_element_is_type (name, "color")) {
@@ -181,19 +181,19 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   } else if (gst_ttml_utils_element_is_type (name, "display")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_DISPLAY;
-    attr->value.b = !g_ascii_strcasecmp (value, "auto");
+    attr->value.b = gst_ttml_utils_attr_value_is (value, "auto");
     GST_LOG ("Parsed '%s' display into display=%d", value, attr->value.b);
   } else if (gst_ttml_utils_element_is_type (name, "fontFamily")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_FAMILY;
-    attr->value.string = g_strdup (value);
+    attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' font family", value);
   } else if (gst_ttml_utils_element_is_type (name, "fontStyle")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_STYLE;
-    if (!g_ascii_strcasecmp (value, "italic"))
+    if (gst_ttml_utils_attr_value_is (value, "italic"))
       attr->value.font_style = GST_TTML_FONT_STYLE_ITALIC;
-    else if (!g_ascii_strcasecmp (value, "oblique"))
+    else if (gst_ttml_utils_attr_value_is (value, "oblique"))
       attr->value.font_style = GST_TTML_FONT_STYLE_OBLIQUE;
     else
       attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
@@ -203,7 +203,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   } else if (gst_ttml_utils_element_is_type (name, "fontWeight")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_WEIGHT;
-    if (!g_ascii_strcasecmp (value, "bold"))
+    if (gst_ttml_utils_attr_value_is (value, "bold"))
       attr->value.font_weight = GST_TTML_FONT_WEIGHT_BOLD;
     else
       attr->value.font_weight = GST_TTML_FONT_WEIGHT_NORMAL;
@@ -226,12 +226,12 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
   } else if (gst_ttml_utils_element_is_type (name, "id")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_ID;
-    attr->value.string = g_strdup (value);
+    attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' id", value);
   } else if (gst_ttml_utils_element_is_type (name, "style")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_STYLE;
-    attr->value.string = g_strdup (value);
+    attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' style", value);
   } else {
     attr = NULL;

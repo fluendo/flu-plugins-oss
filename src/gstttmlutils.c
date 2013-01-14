@@ -13,7 +13,7 @@
 /* Check if the given node or attribute name matches a type, disregarding
  * possible namespaces */
 gboolean
-gst_ttml_utils_element_is_type (const gchar * name, const gchar * type)
+gst_ttml_utils_element_is_type (const gchar *name, const gchar *type)
 {
   if (!g_ascii_strcasecmp (name, type))
     return TRUE;
@@ -23,6 +23,31 @@ gst_ttml_utils_element_is_type (const gchar * name, const gchar * type)
       return TRUE;
   }
   return FALSE;
+}
+
+/* Check if the given attribute values match, disregarding possible white
+ * spaces and cases */
+gboolean
+gst_ttml_utils_attr_value_is (const gchar *str1, const gchar *str2)
+{
+  const gchar *start = str1;
+
+  /* Skip heading whitespace */
+  const gchar *end = str1 + strlen (str1);
+  while (start < end && g_ascii_isspace (*start))
+    start++;
+  str1 = start;
+
+  /* Compare strings */
+  if (g_ascii_strncasecmp (start, str2, strlen (str2)))
+    return FALSE;
+
+  /* Skip trailing whitespace */
+  start = str1 + strlen (str2);
+  while (start < end && g_ascii_isspace (*start))
+    start++;
+
+  return (start == end);
 }
 
 /* Convert a node type name into a node type enum */

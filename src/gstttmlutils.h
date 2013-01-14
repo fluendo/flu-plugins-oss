@@ -14,6 +14,8 @@ G_BEGIN_DECLS
 gboolean gst_ttml_utils_element_is_type (const gchar *name,
     const gchar *type);
 
+gboolean gst_ttml_utils_attr_value_is (const gchar *str1, const gchar *str2);
+
 GstTTMLNodeType gst_ttml_utils_node_type_parse (const gchar *name);
 
 const gchar *gst_ttml_utils_node_type_name (GstTTMLNodeType type);
