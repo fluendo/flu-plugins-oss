@@ -43,7 +43,8 @@ void gst_ttml_state_reset (GstTTMLState *state);
 void gst_ttml_state_push_attribute (GstTTMLState *state,
     GstTTMLAttribute *new_attr);
 
-GstTTMLAttributeType gst_ttml_state_pop_attribute (GstTTMLState *state);
+GstTTMLAttributeType gst_ttml_state_pop_attribute (GstTTMLState *state,
+    GstTTMLAttribute **prev_attr_ptr);
 
 void gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id);
 

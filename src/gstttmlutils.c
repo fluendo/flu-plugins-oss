@@ -62,10 +62,13 @@ gst_ttml_utils_node_type_parse (const gchar *name)
   } else
   if (gst_ttml_utils_element_is_type (name, "br")) {
     return GST_TTML_NODE_TYPE_BR;
-  }
+  } else
+  if (gst_ttml_utils_element_is_type (name, "set")) {
+    return GST_TTML_NODE_TYPE_SET;
+  } else
   if (gst_ttml_utils_element_is_type (name, "styling")) {
     return GST_TTML_NODE_TYPE_STYLING;
-  }
+  } else
   if (gst_ttml_utils_element_is_type (name, "style")) {
     return GST_TTML_NODE_TYPE_STYLE;
   }
@@ -83,6 +86,7 @@ gst_ttml_utils_node_type_name (GstTTMLNodeType type)
     CASE_NODE_NAME(GST_TTML_NODE_TYPE_P);
     CASE_NODE_NAME(GST_TTML_NODE_TYPE_SPAN);
     CASE_NODE_NAME(GST_TTML_NODE_TYPE_BR);
+    CASE_NODE_NAME(GST_TTML_NODE_TYPE_SET);
     CASE_NODE_NAME(GST_TTML_NODE_TYPE_STYLING);
     CASE_NODE_NAME(GST_TTML_NODE_TYPE_STYLE);
   default:

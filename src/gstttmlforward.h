@@ -13,6 +13,8 @@ G_BEGIN_DECLS
 typedef struct _GstTTMLState GstTTMLState;
 typedef struct _GstTTMLSpan GstTTMLSpan;
 typedef struct _GstTTMLAttribute GstTTMLAttribute;
+typedef union _GstTTMLAttributeValue GstTTMLAttributeValue;
+typedef struct _GstTTMLAttributeEvent GstTTMLAttributeEvent;
 typedef struct _GstTTMLEvent GstTTMLEvent;
 typedef struct _GstTTMLStyle GstTTMLStyle;
 

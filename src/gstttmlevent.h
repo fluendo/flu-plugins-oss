@@ -9,6 +9,7 @@
 #include "gst-compat.h"
 #include "gstttmlforward.h"
 #include "gstttmlenums.h"
+#include "gstttmlattribute.h"
 
 G_BEGIN_DECLS
 
@@ -20,6 +21,12 @@ typedef struct _GstTTMLEventSpanEnd {
   guint id;
 } GstTTMLEventSpanEnd;
 
+typedef struct _GstTTMLEventAttrUpdate {
+  guint id;
+  GstTTMLAttributeType type;
+  GstTTMLAttributeValue value;
+} GstTTMLEventAttrUpdate;
+
 /* An event to be stored in the timeline. It has a type, a timestamp and
  * type-specific data. */
 struct _GstTTMLEvent
@@ -29,6 +36,7 @@ struct _GstTTMLEvent
   union _GstTTMLEventData {
     GstTTMLEventSpanBegin span_begin;
     GstTTMLEventSpanEnd span_end;
+    GstTTMLEventAttrUpdate attr_update;
   } data;
 };
 
@@ -46,6 +54,10 @@ GstTTMLEvent * gst_ttml_event_new_span_begin (GstTTMLState *state,
 GstTTMLEvent *gst_ttml_event_new_span_end (GstTTMLState *state,
     guint id);
 
+GstTTMLEvent *gst_ttml_event_new_attr_update (guint id,
+    GstClockTime timestamp, GstTTMLAttributeType type,
+    GstTTMLAttributeValue value);
+
 GList *gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event);
 
 GList *gst_ttml_event_list_get_next (GList *timeline,
@@ -55,6 +67,8 @@ GList *gst_ttml_event_list_flush (GList *timeline,
     GstTTMLEventParseFunc parse,
     GstTTMLEventGenBufferFunc gen_buffer,
     void *userdata);
+
+const gchar *gst_ttml_event_type_name (GstTTMLEventType type);
 
 G_END_DECLS
 

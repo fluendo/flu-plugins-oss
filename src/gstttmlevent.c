@@ -67,13 +67,29 @@ gst_ttml_event_new_span_end (GstTTMLState *state, guint id)
   return event;
 }
 
+/* Creates a new ATTRIBUTE UPDATE event */
+GstTTMLEvent *
+gst_ttml_event_new_attr_update (guint id,
+    GstClockTime timestamp, GstTTMLAttributeType type,
+    GstTTMLAttributeValue value)
+{
+  GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
+  event->timestamp = timestamp;
+  event->type = GST_TTML_EVENT_TYPE_ATTR_UPDATE;
+  event->data.attr_update.id = id;
+  event->data.attr_update.type = type;
+  event->data.attr_update.value = value;
+  return event;
+}
+
 /* Insert an event into an event list (timeline), ordered by timestamp.
  * You lose ownership of the event. */
 GList *
 gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event)
 {
-  GST_DEBUG ("Inserting event type %d at %" GST_TIME_FORMAT,
-      event->type, GST_TIME_ARGS (event->timestamp));
+  GST_DEBUG ("Inserting event %s at %" GST_TIME_FORMAT,
+      gst_ttml_event_type_name (event->type),
+      GST_TIME_ARGS (event->timestamp));
   return g_list_insert_sorted (timeline, event,
       (GCompareFunc)gst_ttml_event_compare);
 }
@@ -84,8 +100,9 @@ GList *
 gst_ttml_event_list_get_next (GList *timeline, GstTTMLEvent **event)
 {
   *event = (GstTTMLEvent *)timeline->data;
-  GST_DEBUG ("Removing event type %d at %" GST_TIME_FORMAT,
-      (*event)->type, GST_TIME_ARGS ((*event)->timestamp));
+  GST_DEBUG ("Removing event %s at %" GST_TIME_FORMAT,
+      gst_ttml_event_type_name ((*event)->type),
+      GST_TIME_ARGS ((*event)->timestamp));
   return g_list_delete_link (timeline, timeline);
 }
 
@@ -120,4 +137,21 @@ gst_ttml_event_list_flush (GList *timeline,
   gen_buffer (time, time + 1, userdata); 
 
   return timeline;
+}
+
+/* Get the string representation of an event type (for debugging) */
+const gchar *
+gst_ttml_event_type_name (GstTTMLEventType type)
+{
+  switch (type) {
+    case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
+      return "SPAN_BEGIN";
+    case GST_TTML_EVENT_TYPE_SPAN_END:
+      return "SPAN_END";
+    case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
+      return "ATTRIBUTE_UPDATE";
+    default:
+      break;
+  }
+  return "Unknown!";
 }

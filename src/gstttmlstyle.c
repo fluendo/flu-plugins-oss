@@ -10,6 +10,7 @@
 #include <string.h>
 #include "gstttmlstyle.h"
 #include "gstttmlattribute.h"
+#include "gstttmlevent.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
@@ -25,19 +26,21 @@ gst_ttml_style_reset (GstTTMLStyle *style)
 
 /* Make a deep copy of the style, overwritting dest_style */
 void
-gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style)
+gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style,
+    gboolean include_timeline)
 {
   GList *link;
   dest_style->attributes = g_list_copy (org_style->attributes);
   link = dest_style->attributes;
   while (link) {
-    link->data = gst_ttml_attribute_copy ((GstTTMLAttribute *)link->data);
+    link->data = gst_ttml_attribute_copy ((GstTTMLAttribute *)link->data,
+          include_timeline);
     link = link->next;
   }
 }
 
-/* Retrieve the given attribute type */
-const GstTTMLAttribute *
+/* Retrieve the given attribute type. It belongs to the style, do not free. */
+GstTTMLAttribute *
 gst_ttml_style_get_attr (GstTTMLStyle *style, GstTTMLAttributeType type)
 {
   GList *link;
@@ -51,22 +54,28 @@ gst_ttml_style_get_attr (GstTTMLStyle *style, GstTTMLAttributeType type)
 }
 
 /* Put the given attribute into the list (making a copy). If that type
- * already exists, it is replaced (freeing it first) */
-void
+ * already exists, it is replaced. The previous value is returned, or a new
+ * default styling value. Do not forget to free them! */
+GstTTMLAttribute *
 gst_ttml_style_set_attr (GstTTMLStyle *style, const GstTTMLAttribute *attr)
 {
+  GstTTMLAttribute *ret_attr;
+
   GList *prev_link = g_list_find_custom (style->attributes,
       (gconstpointer)attr->type,
       (GCompareFunc)gst_ttml_attribute_compare_type_func);
 
-  GstTTMLAttribute *new_attr = gst_ttml_attribute_copy (attr);
+  GstTTMLAttribute *new_attr = gst_ttml_attribute_copy (attr, TRUE);
 
   if (prev_link) {
-    gst_ttml_attribute_free ((GstTTMLAttribute *)prev_link->data);
+    ret_attr = (GstTTMLAttribute *)prev_link->data;
     prev_link->data = new_attr;
   } else {
+    ret_attr = gst_ttml_attribute_new_styling_default (attr->type);
     style->attributes = g_list_prepend (style->attributes, new_attr);
   }
+
+  return ret_attr;
 }
 
 /* Helper function that simply concatenates two strings */
@@ -219,3 +228,27 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
   g_free (attrs);
 }
 
+/* Generate events for each animated attribute, and add them to the timeline */
+GList *
+gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle *style,
+    GList *timeline)
+{
+  GList *attr_link = style->attributes;
+
+  while (attr_link) {
+    GstTTMLAttribute *attr = (GstTTMLAttribute *)attr_link->data;
+    GList *event_link = attr->timeline;
+    while (event_link) {
+      GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *)event_link->data;
+      GstTTMLEvent *new_event =
+          gst_ttml_event_new_attr_update (span_id, event->timestamp,
+              attr->type, event->value);
+      timeline = gst_ttml_event_list_insert (timeline, new_event);
+
+      event_link = event_link->next;
+    }
+
+    attr_link = attr_link->next;
+  }
+  return timeline;
+}

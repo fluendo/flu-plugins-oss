@@ -14,6 +14,7 @@ typedef enum _GstTTMLNodeType {
   GST_TTML_NODE_TYPE_P,
   GST_TTML_NODE_TYPE_SPAN,
   GST_TTML_NODE_TYPE_BR,
+  GST_TTML_NODE_TYPE_SET,
   GST_TTML_NODE_TYPE_STYLING,
   GST_TTML_NODE_TYPE_STYLE
 } GstTTMLNodeType;
@@ -44,7 +45,8 @@ typedef enum _GstTTMLAttributeType {
 /* Event types */
 typedef enum _GstTTMLEventType {
   GST_TTML_EVENT_TYPE_SPAN_BEGIN,
-  GST_TTML_EVENT_TYPE_SPAN_END
+  GST_TTML_EVENT_TYPE_SPAN_END,
+  GST_TTML_EVENT_TYPE_ATTR_UPDATE
 } GstTTMLEventType;
 
 /* Font Styles */
