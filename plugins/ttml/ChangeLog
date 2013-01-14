@@ -1,5 +1,15 @@
 2013-01-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_parse):
+	* src/gstttmlutils.c: (gst_ttml_utils_element_is_type),
+	(gst_ttml_utils_attr_value_is):
+	* src/gstttmlutils.h:
+	  - Enhanced resilience against whitespace in attribute values.
+
+2013-01-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstate.c:
 	  - Add a bit of missing documentation.
 
