@@ -12,24 +12,32 @@
 
 G_BEGIN_DECLS
 
+union _GstTTMLAttributeValue {
+  GstTTMLNodeType node_type;
+  GstClockTime time;
+  gdouble d;
+  gboolean b;
+  struct _GstTTMLFraction {
+    gint num;
+    gint den;
+  } fraction;
+  gchar *string;
+  guint32 color;
+  GstTTMLFontStyle font_style;
+  GstTTMLFontWeight font_weight;
+  GstTTMLTextDecoration text_decoration;
+};
+
+struct _GstTTMLAttributeEvent {
+  GstClockTime timestamp;
+  GstTTMLAttributeValue value;
+};
+
 /* A stored attribute */
 struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
-  union _GstTTMLAttributeValue {
-    GstTTMLNodeType node_type;
-    GstClockTime time;
-    gdouble d;
-    gboolean b;
-    struct _GstTTMLFraction {
-      gint num;
-      gint den;
-    } fraction;
-    gchar *string;
-    guint32 color;
-    GstTTMLFontStyle font_style;
-    GstTTMLFontWeight font_weight;
-    GstTTMLTextDecoration text_decoration;
-  } value;
+  GstTTMLAttributeValue value;
+  GList *timeline;
 };
 
 GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
@@ -37,7 +45,8 @@ GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
 
 void gst_ttml_attribute_free (GstTTMLAttribute *attr);
 
-GstTTMLAttribute *gst_ttml_attribute_copy (const GstTTMLAttribute *src);
+GstTTMLAttribute *gst_ttml_attribute_copy (const GstTTMLAttribute *src,
+      gboolean include_timeline);
 
 GstTTMLAttribute *gst_ttml_attribute_new_node (GstTTMLNodeType node_type);
 
@@ -63,6 +72,9 @@ const gchar *gst_ttml_attribute_type_name (GstTTMLAttributeType type);
 
 gint gst_ttml_attribute_compare_type_func (GstTTMLAttribute *attr,
     GstTTMLAttributeType type);
+
+void gst_ttml_attribute_add_event (GstTTMLAttribute *attr,
+    GstClockTime timestamp, GstTTMLAttributeValue value);
 
 G_END_DECLS
 

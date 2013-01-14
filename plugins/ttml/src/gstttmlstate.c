@@ -71,11 +71,15 @@ gst_ttml_state_reset (GstTTMLState *state)
 
 /* Puts the given GstTTMLAttribute into the state, overwritting the current
  * value. Normally you would use gst_ttmlparse_state_push_attribute() to
- * store the current value into an attribute stack before overwritting it. */
-static void
+ * store the current value into an attribute stack before overwritting it.
+ * The overwritten current value (if any) is returned. Do not forget to free
+ * it! */
+static GstTTMLAttribute *
 gst_ttml_state_set_attribute (GstTTMLState *state,
     const GstTTMLAttribute *attr)
 {
+  GstTTMLAttribute *ret_attr = NULL;
+
   switch (attr->type) {
     case GST_TTML_ATTR_NODE_TYPE:
       state->node_type = attr->value.node_type;
@@ -115,9 +119,11 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       break;
     default:
       /* All Styling attributes are handled here */
-      gst_ttml_style_set_attr (&state->style, attr);
+      ret_attr = gst_ttml_style_set_attr (&state->style, attr);
       break;
   }
+
+  return ret_attr;
 }
 
 /* MERGES the given GstTTMLAttribute into the state. The effect of the merge
@@ -127,6 +133,8 @@ static void
 gst_ttml_state_merge_attribute (GstTTMLState *state,
     const GstTTMLAttribute *attr)
 {
+  GstTTMLAttribute *prev_attr;
+
   switch (attr->type) {
     case GST_TTML_ATTR_BEGIN:
       state->begin = attr->value.time;
@@ -148,7 +156,9 @@ gst_ttml_state_merge_attribute (GstTTMLState *state,
         state->end = MIN (state->end, state->container_end);
       break;
     default:
-      gst_ttml_state_set_attribute (state, attr);
+      prev_attr = gst_ttml_state_set_attribute (state, attr);
+      if (prev_attr)
+        gst_ttml_attribute_free (prev_attr);
       break;
   }
 }
@@ -205,7 +215,7 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
       /* All Styling attributes are handled here */
       curr_attr = gst_ttml_style_get_attr (&state->style, type);
       if (curr_attr) {
-        attr = gst_ttml_attribute_copy (curr_attr);
+        attr = gst_ttml_attribute_copy (curr_attr, TRUE);
       } else {
         attr = gst_ttml_attribute_new_styling_default (type);
       }
@@ -232,11 +242,12 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
 }
 
 /* Pops an attribute from the stack and puts in the state, overwritting the
- * current value */
+ * current value, which is returned. Do not forget to free it! */
 GstTTMLAttributeType
-gst_ttml_state_pop_attribute (GstTTMLState *state)
+gst_ttml_state_pop_attribute (GstTTMLState *state,
+    GstTTMLAttribute **prev_attr_ptr)
 {
-  GstTTMLAttribute *attr;
+  GstTTMLAttribute *attr, *prev_attr;
   GstTTMLAttributeType type;
 
   if (!state->attribute_stack) {
@@ -250,7 +261,9 @@ gst_ttml_state_pop_attribute (GstTTMLState *state)
   GST_LOG ("Popped attribute 0x%p (type %s)", attr,
       gst_ttml_attribute_type_name (type));
 
-  gst_ttml_state_set_attribute (state, attr);
+  prev_attr = gst_ttml_state_set_attribute (state, attr);
+  if (prev_attr_ptr)
+    *prev_attr_ptr = prev_attr;
 
   gst_ttml_attribute_free (attr);
 
@@ -323,7 +336,7 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
   while (attr_link) {
     GstTTMLAttribute *attr = (GstTTMLAttribute *)attr_link->data;
     if (attr->type > GST_TTML_ATTR_STYLE) {
-      GstTTMLAttribute *attr_copy = gst_ttml_attribute_copy (attr);
+      GstTTMLAttribute *attr_copy = gst_ttml_attribute_copy (attr, TRUE);
       gst_ttml_state_push_attribute (state, attr_copy);
     }
 

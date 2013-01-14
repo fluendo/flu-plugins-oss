@@ -125,23 +125,26 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
 void
 gst_ttmlparse_parse_event (GstTTMLEvent *event, GstTTMLParse *parse)
 {
-  GstTTMLSpan *span;
-  guint id;
-
   switch (event->type) {
     case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
-      span = event->data.span_begin.span;
       parse->active_spans =
-          gst_ttml_span_list_add (parse->active_spans, span);
+          gst_ttml_span_list_add (parse->active_spans,
+              event->data.span_begin.span);
       /* Remove the span from the event, so that when we free the event below
-       * the span does not get fred too (it belongs to the active_spans list
+       * the span does not get freed too (it belongs to the active_spans list
        * now) */
       event->data.span_begin.span = NULL;
       break;
     case GST_TTML_EVENT_TYPE_SPAN_END:
-      id = event->data.span_end.id;
       parse->active_spans =
-          gst_ttml_span_list_remove (parse->active_spans, id);
+          gst_ttml_span_list_remove (parse->active_spans,
+              event->data.span_end.id);
+      break;
+    case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
+      gst_ttml_span_list_update_attr (parse->active_spans,
+          event->data.attr_update.id,
+          event->data.attr_update.type,
+          event->data.attr_update.value);
       break;
     default:
       GST_WARNING ("Unknown event type");
@@ -212,6 +215,9 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   parse->timeline =
       gst_ttml_event_list_insert (parse->timeline, event);
 
+  parse->timeline =
+    gst_ttml_style_gen_span_events (id, &parse->state.style, parse->timeline);
+
   parse->last_event_timestamp = event->timestamp;
 }
 
@@ -233,8 +239,13 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   GST_DEBUG ("Parsed name '%s' into node type %s",
       name, gst_ttml_utils_node_type_name (node_type));
 
-  if (node_type == GST_TTML_NODE_TYPE_STYLING) {
-    parse->in_styling_node = TRUE;
+  /* Special actions for some node types */
+  switch (node_type) {
+    case GST_TTML_NODE_TYPE_STYLING:
+      parse->in_styling_node = TRUE;
+      break;
+    default:
+      break;
   }
 
   /* Push onto the stack the node type, which will serve as delimiter when
@@ -292,14 +303,17 @@ static void
 gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
+  GstTTMLAttribute *prev_attr;
   GstTTMLAttributeType type;
+  GstClockTime current_begin = parse->state.begin;
   GstClockTime current_end = parse->state.end;
-  GstTTMLNodeType node_type;
+  GstTTMLNodeType current_node_type;
 
   GST_LOG_OBJECT (parse, "End element: %s", name);
-  node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
+  current_node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
 
-  switch (node_type) {
+  /* Special actions for some node types */
+  switch (current_node_type) {
     case GST_TTML_NODE_TYPE_STYLING:
       if (!parse->in_styling_node) {
         GST_WARNING_OBJECT (parse, "Unmatched closing styling node");
@@ -318,7 +332,18 @@ gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
 
   /* Remove from the attribute stack any attribute pushed by this element */
   do {
-    type = gst_ttml_state_pop_attribute (&parse->state);
+    type = gst_ttml_state_pop_attribute (&parse->state, &prev_attr);
+    if (current_node_type == GST_TTML_NODE_TYPE_SET &&
+        type > GST_TTML_ATTR_STYLE) {
+      /* We are popping a styling attribute from a SET node: turn it into a
+       * couple of entries in that attribute's timeline in the parent style */
+      GstTTMLAttribute *attr;
+      attr = gst_ttml_style_get_attr (&parse->state.style, type);
+      gst_ttml_attribute_add_event (attr, current_begin, prev_attr->value);
+      gst_ttml_attribute_add_event (attr, current_end - 1, attr->value);
+    }
+    if (prev_attr)
+      gst_ttml_attribute_free (prev_attr);
   } while (type != GST_TTML_ATTR_NODE_TYPE);
 
   /* Now that we are back to our parent's context, set this time framework as

@@ -238,6 +238,10 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
   }
 
+  if (attr) {
+    attr->timeline = NULL;
+  }
+
   return attr;
 }
 
@@ -255,12 +259,16 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
     default:
       break;
   }
+  if (attr->timeline) {
+    g_list_free_full (attr->timeline, g_free);
+  }
   g_free (attr);
 }
 
 /* Create a copy of an attribute */
 GstTTMLAttribute *
-gst_ttml_attribute_copy (const GstTTMLAttribute *src)
+gst_ttml_attribute_copy (const GstTTMLAttribute *src,
+    gboolean include_timeline)
 {
   GstTTMLAttribute *dest = g_new (GstTTMLAttribute, 1);
   dest->type = src->type;
@@ -274,6 +282,17 @@ gst_ttml_attribute_copy (const GstTTMLAttribute *src)
       dest->value = src->value;
       break;
   }
+  if (src->timeline && include_timeline) {
+    /* Copy the timeline too */
+    GList *link = dest->timeline = g_list_copy (src->timeline);
+    while (link) {
+      GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *)link->data;
+      link->data = g_memdup (event, sizeof (*event));
+      link = link->next;
+    }
+  } else {
+    dest->timeline = NULL;
+  }
   return dest;
 }
 
@@ -284,6 +303,7 @@ gst_ttml_attribute_new_node (GstTTMLNodeType node_type)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = GST_TTML_ATTR_NODE_TYPE;
+  attr->timeline = NULL;
   attr->value.node_type = node_type;
   return attr;
 }
@@ -295,6 +315,7 @@ gst_ttml_attribute_new_boolean (GstTTMLAttributeType type, gboolean b)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = type;
+  attr->timeline = NULL;
   attr->value.b = b;
   return attr;
 }
@@ -306,6 +327,7 @@ gst_ttml_attribute_new_time (GstTTMLAttributeType type, GstClockTime time)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = type;
+  attr->timeline = NULL;
   attr->value.time = time;
   return attr;
 }
@@ -317,6 +339,7 @@ gst_ttml_attribute_new_string (GstTTMLAttributeType type, const gchar *str)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = type;
+  attr->timeline = NULL;
   attr->value.string = g_strdup (str);
   return attr;
 }
@@ -328,6 +351,7 @@ gst_ttml_attribute_new_double (GstTTMLAttributeType type, gdouble d)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = type;
+  attr->timeline = NULL;
   attr->value.d = d;
   return attr;
 }
@@ -339,6 +363,7 @@ gst_ttml_attribute_new_fraction (GstTTMLAttributeType type, gint num, gint den)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = type;
+  attr->timeline = NULL;
   attr->value.fraction.num = num;
   attr->value.fraction.den = den;
   return attr;
@@ -350,6 +375,7 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
 {
   GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
   attr->type = type;
+  attr->timeline = NULL;
   switch (type) {
     case GST_TTML_ATTR_COLOR:
       attr->value.color = 0xFFFFFFFF;
@@ -409,9 +435,32 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
   return "Unknown!";
 }
 
+/* Comparison function for attribute types */
 gint
 gst_ttml_attribute_compare_type_func (GstTTMLAttribute *attr,
     GstTTMLAttributeType type)
 {
   return (attr->type != type);
+}
+
+/* Comparison function for attribute events, using their timestamps */
+static gint
+gst_ttml_attribute_event_compare (GstTTMLAttributeEvent *a,
+    GstTTMLAttributeEvent *b)
+{
+  return a->timestamp > b->timestamp ? 1 : -1;
+}
+
+/* Create a new event and add it to the timeline of an attribute */
+void
+gst_ttml_attribute_add_event (GstTTMLAttribute *attr, GstClockTime timestamp,
+    GstTTMLAttributeValue value)
+{
+  GstTTMLAttributeEvent *event = g_new (GstTTMLAttributeEvent, 1);
+  event->timestamp = timestamp;
+  event->value = value;
+  attr->timeline = g_list_insert_sorted (attr->timeline, event,
+      (GCompareFunc)gst_ttml_attribute_event_compare);
+  GST_DEBUG ("Added attribute event to %s at %" GST_TIME_FORMAT,
+      gst_ttml_attribute_type_name (attr->type), GST_TIME_ARGS (timestamp));
 }

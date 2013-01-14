@@ -72,7 +72,7 @@ gst_ttml_span_new (guint id, guint length, const gchar *chars,
   span->id = id;
   span->length = length;
   span->chars = g_memdup (chars, length);
-  gst_ttml_style_copy (&span->style, style);
+  gst_ttml_style_copy (&span->style, style, FALSE);
 
   /* Remove CR characters (and surrounding white space) if requested */
   /* The malloc'ed memory will be bigger than 'length' */
@@ -143,4 +143,31 @@ gst_ttml_span_list_remove (GList *active_spans, guint id)
   gst_ttml_span_free ((GstTTMLSpan *)link->data);
   link->data = NULL;
   return g_list_delete_link (active_spans, link);
+}
+
+/* Update the value of the specified attribute of the specified span id */
+void
+gst_ttml_span_list_update_attr (GList *active_spans, guint id,
+    GstTTMLAttributeType type, GstTTMLAttributeValue value)
+{
+  GList *link = NULL;
+  GstTTMLSpan *span;
+  GstTTMLAttribute *attr;
+
+  GST_DEBUG ("Updating span with id %d, attr %s", id,
+        gst_ttml_attribute_type_name (type));
+  link = g_list_find_custom (active_spans, &id,
+      (GCompareFunc)gst_ttml_span_compare_id);
+  if (!link) {
+    GST_WARNING ("Could not find span with id %d", id);
+    return;
+  }
+  span = (GstTTMLSpan *)link->data;
+  attr = gst_ttml_style_get_attr (&span->style, type);
+  if (!attr) {
+    GST_WARNING ("Could not find attr %s in span",
+        gst_ttml_attribute_type_name (type));
+    return;
+  }
+  attr->value = value;
 }
