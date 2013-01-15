@@ -71,8 +71,7 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
     GST_BUFFER_DATA (buffer) [0] = ' ';
   } else {
     /* Compose output text based on currently active spans */
-    g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose,
-        &span);
+    g_list_foreach (parse->active_spans, (GFunc)gst_ttml_span_compose, &span);
 
     if (span.length == 0) {
       /* Empty buffers are useless and Pango complains about them */
@@ -142,8 +141,7 @@ gst_ttmlparse_parse_event (GstTTMLEvent *event, GstTTMLParse *parse)
       break;
     case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
       gst_ttml_span_list_update_attr (parse->active_spans,
-          event->data.attr_update.id,
-          event->data.attr_update.attr);
+          event->data.attr_update.id, event->data.attr_update.attr);
       break;
     default:
       GST_WARNING ("Unknown event type");
@@ -180,7 +178,7 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
 
   if (parse->state.begin >= parse->state.end) {
     GST_DEBUG ("Span with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
-        ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS(parse->state.begin),
+        ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (parse->state.begin),
         GST_TIME_ARGS (parse->state.end));
     return;
   }
@@ -207,15 +205,14 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
 
   /* Insert BEGIN and END events in the timeline, with the same ID */
   event = gst_ttml_event_new_span_begin (&parse->state, span);
-  parse->timeline =
-      gst_ttml_event_list_insert (parse->timeline, event);
+  parse->timeline = gst_ttml_event_list_insert (parse->timeline, event);
 
   event = gst_ttml_event_new_span_end (&parse->state, id);
-  parse->timeline =
-      gst_ttml_event_list_insert (parse->timeline, event);
+  parse->timeline = gst_ttml_event_list_insert (parse->timeline, event);
 
   parse->timeline =
-    gst_ttml_style_gen_span_events (id, &parse->state.style, parse->timeline);
+      gst_ttml_style_gen_span_events (id, &parse->state.style,
+          parse->timeline);
 
   parse->last_event_timestamp = event->timestamp;
 }
@@ -253,8 +250,9 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
   gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   /* If this node did not specify the time_container attribute, set it
    * manually to "parallel", as this is not inherited. */
-  ttml_attr = gst_ttml_attribute_new_boolean (
-      GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER, FALSE);
+  ttml_attr =
+      gst_ttml_attribute_new_boolean (GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER,
+      FALSE);
   gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   /* Manually push a 0 BEGIN attribute when in sequential mode.
    * If the node defines it, its value will overwrite this one.
@@ -439,11 +437,10 @@ gst_ttmlparse_sax_document_end (void *ctx)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   GST_LOG_OBJECT (GST_TTMLPARSE (ctx), "Document complete");
-  
+
   parse->timeline = gst_ttml_event_list_flush (parse->timeline,
       (GstTTMLEventParseFunc)gst_ttmlparse_parse_event,
-      (GstTTMLEventGenBufferFunc)gst_ttmlparse_gen_buffer,
-      parse);
+      (GstTTMLEventGenBufferFunc)gst_ttmlparse_gen_buffer, parse);
 }
 
 static xmlSAXHandler gst_ttmlparse_sax_handler = {
@@ -553,10 +550,11 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
     /* Feed this data to the SAX parser. The rest of the processing takes place
      * in the callbacks. */
     if (!parse->xml_parser) {
-      GST_DEBUG_OBJECT (parse, "Creating XML parser and parsing chunk (%d bytes)",
-          buffer_len);
-      parse->xml_parser = xmlCreatePushParserCtxt (&gst_ttmlparse_sax_handler,
-          parse, buffer_data, buffer_len, NULL);
+      GST_DEBUG_OBJECT (parse,
+          "Creating XML parser and parsing chunk (%d bytes)", buffer_len);
+      parse->xml_parser =
+          xmlCreatePushParserCtxt (&gst_ttmlparse_sax_handler, parse,
+          buffer_data, buffer_len, NULL);
       if (!parse->xml_parser) {
         GST_ERROR_OBJECT (parse, "XML parser creation failed");
         goto beach;
@@ -805,8 +803,7 @@ gst_ttmlparse_class_init (GstTTMLParseClass * klass)
   g_object_class_install_property (gobject_class, PROP_ASSUME_ORDERED_SPANS,
       g_param_spec_boolean ("assume_ordered_spans", "Assume ordered spans",
           "Generate buffers as soon as possible, by assuming that text "
-          "spans will arrive in order", 
-          FALSE, G_PARAM_READWRITE));
+          "spans will arrive in order", FALSE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =

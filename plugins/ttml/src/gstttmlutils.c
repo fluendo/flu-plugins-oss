@@ -56,20 +56,15 @@ gst_ttml_utils_node_type_parse (const gchar *name)
 {
   if (gst_ttml_utils_element_is_type (name, "p")) {
     return GST_TTML_NODE_TYPE_P;
-  } else
-  if (gst_ttml_utils_element_is_type (name, "span")) {
+  } else if (gst_ttml_utils_element_is_type (name, "span")) {
     return GST_TTML_NODE_TYPE_SPAN;
-  } else
-  if (gst_ttml_utils_element_is_type (name, "br")) {
+  } else if (gst_ttml_utils_element_is_type (name, "br")) {
     return GST_TTML_NODE_TYPE_BR;
-  } else
-  if (gst_ttml_utils_element_is_type (name, "set")) {
+  } else if (gst_ttml_utils_element_is_type (name, "set")) {
     return GST_TTML_NODE_TYPE_SET;
-  } else
-  if (gst_ttml_utils_element_is_type (name, "styling")) {
+  } else if (gst_ttml_utils_element_is_type (name, "styling")) {
     return GST_TTML_NODE_TYPE_STYLING;
-  } else
-  if (gst_ttml_utils_element_is_type (name, "style")) {
+  } else if (gst_ttml_utils_element_is_type (name, "style")) {
     return GST_TTML_NODE_TYPE_STYLE;
   }
   return GST_TTML_NODE_TYPE_UNKNOWN;
@@ -82,15 +77,15 @@ const gchar *
 gst_ttml_utils_node_type_name (GstTTMLNodeType type)
 {
   switch (type) {
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_UNKNOWN);
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_P);
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_SPAN);
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_BR);
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_SET);
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_STYLING);
-    CASE_NODE_NAME(GST_TTML_NODE_TYPE_STYLE);
-  default:
-    break;
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_UNKNOWN);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_P);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_SPAN);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_BR);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_SET);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_STYLING);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_STYLE);
+    default:
+      break;
   }
   return "Unknown!";
 }

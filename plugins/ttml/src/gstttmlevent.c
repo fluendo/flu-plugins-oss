@@ -45,7 +45,7 @@ gst_ttml_event_compare (GstTTMLEvent *a, GstTTMLEvent *b)
 GstTTMLEvent *
 gst_ttml_event_new_span_begin (GstTTMLState *state, GstTTMLSpan *span)
 {
-  GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
+  GstTTMLEvent *event = g_new0 (GstTTMLEvent, 1);
   if (GST_CLOCK_TIME_IS_VALID (state->begin))
     event->timestamp = state->begin;
   else
@@ -59,7 +59,7 @@ gst_ttml_event_new_span_begin (GstTTMLState *state, GstTTMLSpan *span)
 GstTTMLEvent *
 gst_ttml_event_new_span_end (GstTTMLState *state, guint id)
 {
-  GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
+  GstTTMLEvent *event = g_new0 (GstTTMLEvent, 1);
   /* Substracting one nanosecond is a cheap way of making intervals
    * open on the right */
   if (GST_CLOCK_TIME_IS_VALID (state->end))
@@ -76,7 +76,7 @@ GstTTMLEvent *
 gst_ttml_event_new_attr_update (guint id,
     GstClockTime timestamp, GstTTMLAttribute *attr)
 {
-  GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
+  GstTTMLEvent *event = g_new0 (GstTTMLEvent, 1);
   event->timestamp = timestamp;
   event->type = GST_TTML_EVENT_TYPE_ATTR_UPDATE;
   event->data.attr_update.id = id;
@@ -136,7 +136,7 @@ gst_ttml_event_list_flush (GList *timeline,
   /* Generate one last buffer to clear the last span. It will be empty,
    * because the timeline is empty, so its duration does not really matter.
    */
-  gen_buffer (time, time + 1, userdata); 
+  gen_buffer (time, time + 1, userdata);
 
   return timeline;
 }

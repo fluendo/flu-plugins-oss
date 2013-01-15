@@ -104,9 +104,9 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr)
   } else if (sscanf (expr, "#%02x%02x%02x%02x", &r, &g, &b, &a) == 4) {
     return MAKE_COLOR (r, g, b, a);
   } else if (sscanf (expr, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
-    return MAKE_COLOR(r, g, b, 0xFF);
+    return MAKE_COLOR (r, g, b, 0xFF);
   } else if (sscanf (expr, "rgba(%d,%d,%d,%d)", &r, &g, &b, &a) == 4) {
-    return MAKE_COLOR(r, g, b, a);
+    return MAKE_COLOR (r, g, b, a);
   } else {
     struct _GstTTMLNamedColor *c = GstTTMLNamedColors;
     while (c->name) {
@@ -115,8 +115,8 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr)
       c++;
     }
   }
- 
- return 0xFFFFFFFF; 
+
+  return 0xFFFFFFFF;
 }
 
 /* Read a name-value pair of strings and produce a new GstTTMLattribute.
@@ -177,7 +177,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_BACKGROUND_COLOR;
     attr->value.color = gst_ttml_attribute_parse_color_expression (value);
-    GST_LOG ("Parsed '%s' background color into #%08X", value, attr->value.color);
+    GST_LOG ("Parsed '%s' background color into #%08X", value,
+        attr->value.color);
   } else if (gst_ttml_utils_element_is_type (name, "display")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_DISPLAY;
@@ -260,7 +261,8 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
       break;
   }
   if (attr->timeline) {
-    g_list_free_full (attr->timeline, (GDestroyNotify)gst_ttml_attribute_event_free);
+    g_list_free_full (attr->timeline,
+        (GDestroyNotify) gst_ttml_attribute_event_free);
   }
   g_free (attr);
 }
@@ -419,26 +421,26 @@ const gchar *
 gst_ttml_attribute_type_name (GstTTMLAttributeType type)
 {
   switch (type) {
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_NODE_TYPE);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_ID);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BEGIN);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_END);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DUR);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_TICK_RATE);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FRAME_RATE);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FRAME_RATE_MULTIPLIER);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_WHITESPACE_PRESERVE);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_STYLE);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_COLOR);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_BACKGROUND_COLOR);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_DISPLAY);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_FAMILY);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_STYLE);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_FONT_WEIGHT);
-    CASE_ATTRIBUTE_NAME(GST_TTML_ATTR_TEXT_DECORATION);
-  default:
-    break;
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_NODE_TYPE);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_ID);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BEGIN);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_END);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_DUR);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TICK_RATE);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FRAME_RATE);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FRAME_RATE_MULTIPLIER);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_WHITESPACE_PRESERVE);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_STYLE);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_COLOR);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BACKGROUND_COLOR);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_DISPLAY);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_FAMILY);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_STYLE);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_WEIGHT);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_DECORATION);
+    default:
+      break;
   }
   return "Unknown!";
 }
