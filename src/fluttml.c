@@ -22,7 +22,7 @@ plugin_init (GstPlugin * plugin)
       "Fluendo TTML parser");
 
   if (!gst_element_register (plugin, "ttmlparse", GST_RANK_MARGINAL,
-      gst_ttmlparse_get_type ()))
+          gst_ttmlparse_get_type ()))
     return FALSE;
 
   gst_ttmltype_init (plugin);
@@ -36,4 +36,3 @@ FLUENDO_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR,
     "fluttml", fluttml, "Fluendo TTML Plugin",
     plugin_init, VERSION, GST_LICENSE_UNKNOWN, PACKAGE_NAME,
     "http://www.fluendo.com");
-

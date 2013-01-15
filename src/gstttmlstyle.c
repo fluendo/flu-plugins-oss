@@ -242,7 +242,7 @@ gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle *style,
       GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *)event_link->data;
       GstTTMLEvent *new_event =
           gst_ttml_event_new_attr_update (span_id, event->timestamp,
-              event->attr);
+          event->attr);
       timeline = gst_ttml_event_list_insert (timeline, new_event);
 
       event_link = event_link->next;

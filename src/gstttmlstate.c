@@ -166,8 +166,7 @@ gst_ttml_state_merge_attribute (GstTTMLState *state,
 /* Read from the state the attribute specified by type and return a new
  * attribute */
 static GstTTMLAttribute *
-gst_ttml_state_get_attribute (GstTTMLState *state,
-    GstTTMLAttributeType type)
+gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
 {
   const GstTTMLAttribute *curr_attr;
   GstTTMLAttribute *attr;
@@ -199,8 +198,7 @@ gst_ttml_state_get_attribute (GstTTMLState *state,
           state->frame_rate_den);
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
-      attr = gst_ttml_attribute_new_boolean (type,
-          state->whitespace_preserve);
+      attr = gst_ttml_attribute_new_boolean (type, state->whitespace_preserve);
       break;
     case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
       attr = gst_ttml_attribute_new_boolean (type,
@@ -232,7 +230,8 @@ void
 gst_ttml_state_push_attribute (GstTTMLState *state,
     GstTTMLAttribute *new_attr)
 {
-  GstTTMLAttribute *old_attr = gst_ttml_state_get_attribute (state, new_attr->type);
+  GstTTMLAttribute *old_attr =
+      gst_ttml_state_get_attribute (state, new_attr->type);
   state->attribute_stack = g_list_prepend (state->attribute_stack, old_attr);
   gst_ttml_state_merge_attribute (state, new_attr);
   gst_ttml_attribute_free (new_attr);
@@ -281,8 +280,8 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
   gchar *id_copy;
 
   if (!state->saved_attr_stacks) {
-    state->saved_attr_stacks = g_hash_table_new_full (
-        g_str_hash, g_str_equal, g_free,
+    state->saved_attr_stacks =
+        g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
         (GDestroyNotify)gst_ttml_state_free_attr_stack);
   }
 
@@ -320,7 +319,8 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
    * stack. However "style" is not a member of the state, so a NULL attr
    * is actually pushed. Here we filter out this kind of styles.
    */
-  if (!id) return;
+  if (!id)
+    return;
 
   if (state->saved_attr_stacks) {
     attr_link = (GList *)g_hash_table_lookup (state->saved_attr_stacks, id);
@@ -334,7 +334,7 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
   GST_DEBUG ("Applying style '%s'", id);
 
   while (attr_link) {
-    GstTTMLAttribute *attr = (GstTTMLAttribute *)attr_link->data;
+    GstTTMLAttribute *attr = (GstTTMLAttribute *) attr_link->data;
     if (attr->type > GST_TTML_ATTR_STYLE) {
       GstTTMLAttribute *attr_copy = gst_ttml_attribute_copy (attr, TRUE);
       gst_ttml_state_push_attribute (state, attr_copy);

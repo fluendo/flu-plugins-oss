@@ -39,10 +39,9 @@ struct _GstTTMLEvent
   } data;
 };
 
-typedef void (* GstTTMLEventParseFunc)(GstTTMLEvent *event,
-    void *userdata);
+typedef void (*GstTTMLEventParseFunc) (GstTTMLEvent *event, void *userdata);
 
-typedef void (* GstTTMLEventGenBufferFunc)(GstClockTime begin,
+typedef void (*GstTTMLEventGenBufferFunc) (GstClockTime begin,
     GstClockTime end, void *userdata);
 
 void gst_ttml_event_free (GstTTMLEvent *event);
@@ -50,24 +49,20 @@ void gst_ttml_event_free (GstTTMLEvent *event);
 GstTTMLEvent * gst_ttml_event_new_span_begin (GstTTMLState *state,
     GstTTMLSpan *span);
 
-GstTTMLEvent *gst_ttml_event_new_span_end (GstTTMLState *state,
-    guint id);
+GstTTMLEvent *gst_ttml_event_new_span_end (GstTTMLState *state, guint id);
 
 GstTTMLEvent *gst_ttml_event_new_attr_update (guint id,
     GstClockTime timestamp, GstTTMLAttribute *attr);
 
 GList *gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event);
 
-GList *gst_ttml_event_list_get_next (GList *timeline,
-      GstTTMLEvent **event);
+GList *gst_ttml_event_list_get_next (GList *timeline, GstTTMLEvent **event);
 
 GList *gst_ttml_event_list_flush (GList *timeline,
     GstTTMLEventParseFunc parse,
-    GstTTMLEventGenBufferFunc gen_buffer,
-    void *userdata);
+    GstTTMLEventGenBufferFunc gen_buffer, void *userdata);
 
 const gchar *gst_ttml_event_type_name (GstTTMLEventType type);
 
 G_END_DECLS
-
 #endif /* __GST_TTML_EVENT_H__ */

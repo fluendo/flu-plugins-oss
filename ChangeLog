@@ -1,5 +1,30 @@
 2013-01-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/fluttml.c: (plugin_init):
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_parse), (gst_ttml_attribute_free),
+	(gst_ttml_attribute_type_name), (gst_ttml_attribute_add_event):
+	* src/gstttmlevent.c: (gst_ttml_event_new_span_begin),
+	(gst_ttml_event_new_span_end), (gst_ttml_event_new_attr_update),
+	(gst_ttml_event_list_flush):
+	* src/gstttmlevent.h:
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_parse_event), (gst_ttmlparse_add_characters),
+	(gst_ttmlparse_sax_element_start),
+	(gst_ttmlparse_sax_document_end), (gst_ttmlparse_chain),
+	(gst_ttmlparse_class_init):
+	* src/gstttmlspan.c: (gst_ttml_span_list_update_attr):
+	* src/gstttmlstate.c: (gst_ttml_state_get_attribute),
+	(gst_ttml_state_push_attribute), (gst_ttml_state_save_attr_stack),
+	(gst_ttml_state_restore_attr_stack):
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_span_events):
+	* src/gstttmlutils.c: (gst_ttml_utils_node_type_parse),
+	(gst_ttml_utils_node_type_name):
+	  - gst-indent
+
+2013-01-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_free),
 	(gst_ttml_attribute_event_free), (gst_ttml_attribute_add_event):
 	* src/gstttmlattribute.h:
