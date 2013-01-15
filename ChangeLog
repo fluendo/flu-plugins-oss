@@ -1,5 +1,10 @@
 2013-01-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_add_characters):
+	  - Fix spans with no "begin" attribute.
+
+2013-01-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/fluttml.c: (plugin_init):
 	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_color_expression),

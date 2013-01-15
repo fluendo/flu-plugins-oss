@@ -176,7 +176,8 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
     return;
   }
 
-  if (parse->state.begin >= parse->state.end) {
+  if (GST_CLOCK_TIME_IS_VALID (parse->state.begin) &&
+      parse->state.begin >= parse->state.end) {
     GST_DEBUG ("Span with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
         ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (parse->state.begin),
         GST_TIME_ARGS (parse->state.end));
