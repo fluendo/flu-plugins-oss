@@ -33,7 +33,7 @@ GList *gst_ttml_span_list_add (GList *active_spans, GstTTMLSpan *span);
 GList * gst_ttml_span_list_remove (GList *active_spans, guint id);
 
 void gst_ttml_span_list_update_attr (GList *active_spans, guint id,
-    GstTTMLAttributeType type, GstTTMLAttributeValue value);
+    GstTTMLAttribute *attr);
 
 G_END_DECLS
 
