@@ -24,6 +24,10 @@ gst_ttml_event_free (GstTTMLEvent *event)
       if (event->data.span_begin.span)
         gst_ttml_span_free (event->data.span_begin.span);
       break;
+    case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
+      if (event->data.attr_update.attr)
+        gst_ttml_attribute_free (event->data.attr_update.attr);
+      break;
     default:
       break;
   }
@@ -70,15 +74,13 @@ gst_ttml_event_new_span_end (GstTTMLState *state, guint id)
 /* Creates a new ATTRIBUTE UPDATE event */
 GstTTMLEvent *
 gst_ttml_event_new_attr_update (guint id,
-    GstClockTime timestamp, GstTTMLAttributeType type,
-    GstTTMLAttributeValue value)
+    GstClockTime timestamp, GstTTMLAttribute *attr)
 {
   GstTTMLEvent *event = g_new0(GstTTMLEvent, 1);
   event->timestamp = timestamp;
   event->type = GST_TTML_EVENT_TYPE_ATTR_UPDATE;
   event->data.attr_update.id = id;
-  event->data.attr_update.type = type;
-  event->data.attr_update.value = value;
+  event->data.attr_update.attr = gst_ttml_attribute_copy (attr, FALSE);
   return event;
 }
 

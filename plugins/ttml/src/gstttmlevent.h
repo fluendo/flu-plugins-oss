@@ -23,8 +23,7 @@ typedef struct _GstTTMLEventSpanEnd {
 
 typedef struct _GstTTMLEventAttrUpdate {
   guint id;
-  GstTTMLAttributeType type;
-  GstTTMLAttributeValue value;
+  GstTTMLAttribute *attr;
 } GstTTMLEventAttrUpdate;
 
 /* An event to be stored in the timeline. It has a type, a timestamp and
@@ -55,8 +54,7 @@ GstTTMLEvent *gst_ttml_event_new_span_end (GstTTMLState *state,
     guint id);
 
 GstTTMLEvent *gst_ttml_event_new_attr_update (guint id,
-    GstClockTime timestamp, GstTTMLAttributeType type,
-    GstTTMLAttributeValue value);
+    GstClockTime timestamp, GstTTMLAttribute *attr);
 
 GList *gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event);
 

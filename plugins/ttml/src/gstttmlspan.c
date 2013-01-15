@@ -148,14 +148,14 @@ gst_ttml_span_list_remove (GList *active_spans, guint id)
 /* Update the value of the specified attribute of the specified span id */
 void
 gst_ttml_span_list_update_attr (GList *active_spans, guint id,
-    GstTTMLAttributeType type, GstTTMLAttributeValue value)
+    GstTTMLAttribute *attr)
 {
   GList *link = NULL;
   GstTTMLSpan *span;
-  GstTTMLAttribute *attr;
+  GstTTMLAttribute *prev_attr;
 
   GST_DEBUG ("Updating span with id %d, attr %s", id,
-        gst_ttml_attribute_type_name (type));
+      gst_ttml_attribute_type_name (attr->type));
   link = g_list_find_custom (active_spans, &id,
       (GCompareFunc)gst_ttml_span_compare_id);
   if (!link) {
@@ -163,11 +163,6 @@ gst_ttml_span_list_update_attr (GList *active_spans, guint id,
     return;
   }
   span = (GstTTMLSpan *)link->data;
-  attr = gst_ttml_style_get_attr (&span->style, type);
-  if (!attr) {
-    GST_WARNING ("Could not find attr %s in span",
-        gst_ttml_attribute_type_name (type));
-    return;
-  }
-  attr->value = value;
+  prev_attr = gst_ttml_style_set_attr (&span->style, attr);
+  gst_ttml_attribute_free (prev_attr);
 }

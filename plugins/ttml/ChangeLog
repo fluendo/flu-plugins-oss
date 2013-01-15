@@ -1,3 +1,20 @@
+2013-01-15  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_free),
+	(gst_ttml_attribute_event_free), (gst_ttml_attribute_add_event):
+	* src/gstttmlattribute.h:
+	* src/gstttmlevent.c: (gst_ttml_event_free),
+	(gst_ttml_event_new_attr_update):
+	* src/gstttmlevent.h:
+	* src/gstttmlforward.h:
+	* src/gstttmlparse.c: (gst_ttmlparse_parse_event),
+	(gst_ttmlparse_sax_element_end):
+	* src/gstttmlspan.c: (gst_ttml_span_list_update_attr):
+	* src/gstttmlspan.h:
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_span_events):
+	  - Fix animated attributes memory handling (according to Valgrind,
+	    it is solid now).
+
 2013-01-14  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),

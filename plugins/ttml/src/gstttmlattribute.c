@@ -260,9 +260,17 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
       break;
   }
   if (attr->timeline) {
-    g_list_free_full (attr->timeline, g_free);
+    g_list_free_full (attr->timeline, (GDestroyNotify)gst_ttml_attribute_event_free);
   }
   g_free (attr);
+}
+
+/* Deallocates a GstTTMLAttributeEvent */
+void
+gst_ttml_attribute_event_free (GstTTMLAttributeEvent *attr_event)
+{
+  gst_ttml_attribute_free (attr_event->attr);
+  g_free (attr_event);
 }
 
 /* Create a copy of an attribute */
@@ -451,16 +459,18 @@ gst_ttml_attribute_event_compare (GstTTMLAttributeEvent *a,
   return a->timestamp > b->timestamp ? 1 : -1;
 }
 
-/* Create a new event and add it to the timeline of an attribute */
+/* Create a new event containing the src_attr and add it to the timeline of
+ * dst_attr */
 void
-gst_ttml_attribute_add_event (GstTTMLAttribute *attr, GstClockTime timestamp,
-    GstTTMLAttributeValue value)
+gst_ttml_attribute_add_event (GstTTMLAttribute *dst_attr,
+    GstClockTime timestamp, GstTTMLAttribute *src_attr)
 {
   GstTTMLAttributeEvent *event = g_new (GstTTMLAttributeEvent, 1);
   event->timestamp = timestamp;
-  event->value = value;
-  attr->timeline = g_list_insert_sorted (attr->timeline, event,
+  event->attr = gst_ttml_attribute_copy (src_attr, FALSE);
+  dst_attr->timeline = g_list_insert_sorted (dst_attr->timeline, event,
       (GCompareFunc)gst_ttml_attribute_event_compare);
   GST_DEBUG ("Added attribute event to %s at %" GST_TIME_FORMAT,
-      gst_ttml_attribute_type_name (attr->type), GST_TIME_ARGS (timestamp));
+      gst_ttml_attribute_type_name (src_attr->type),
+      GST_TIME_ARGS (timestamp));
 }

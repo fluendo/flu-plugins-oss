@@ -143,8 +143,7 @@ gst_ttmlparse_parse_event (GstTTMLEvent *event, GstTTMLParse *parse)
     case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
       gst_ttml_span_list_update_attr (parse->active_spans,
           event->data.attr_update.id,
-          event->data.attr_update.type,
-          event->data.attr_update.value);
+          event->data.attr_update.attr);
       break;
     default:
       GST_WARNING ("Unknown event type");
@@ -339,8 +338,8 @@ gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
        * couple of entries in that attribute's timeline in the parent style */
       GstTTMLAttribute *attr;
       attr = gst_ttml_style_get_attr (&parse->state.style, type);
-      gst_ttml_attribute_add_event (attr, current_begin, prev_attr->value);
-      gst_ttml_attribute_add_event (attr, current_end - 1, attr->value);
+      gst_ttml_attribute_add_event (attr, current_begin, prev_attr);
+      gst_ttml_attribute_add_event (attr, current_end - 1, attr);
     }
     if (prev_attr)
       gst_ttml_attribute_free (prev_attr);
