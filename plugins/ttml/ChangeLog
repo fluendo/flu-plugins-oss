@@ -1,5 +1,11 @@
 2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/ttml-play.sh:
+	* testsuite/ttml-record.sh:
+	  - Couple of tools to automate unit testing.
+
+2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* testsuite/Animation/Animation001.xml:
 	* testsuite/Animation/Animation002.xml:
 	* testsuite/Animation/Animation003.xml:
