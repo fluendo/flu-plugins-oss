@@ -1,5 +1,20 @@
 2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default),
+	(gst_ttml_attribute_type_name):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlstyle.c: (gst_ttml_style_get_font_size_unit_name),
+	(gst_ttml_style_gen_pango):
+	* src/gstttmlstyle.h:
+	  - PARTIAL support for fontSize. Some of the font metrics require
+	    knowing the current font size, which cannot be done through
+	    Pango markup. Pixel measures are honored, other measures
+	    are approximated.
+
+2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlspan.c: (gst_ttml_span_new):
 	  - Remove VS warning by adding explicit cast.
 

@@ -37,6 +37,7 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_BACKGROUND_COLOR,
   GST_TTML_ATTR_DISPLAY,
   GST_TTML_ATTR_FONT_FAMILY,
+  GST_TTML_ATTR_FONT_SIZE,
   GST_TTML_ATTR_FONT_STYLE,
   GST_TTML_ATTR_FONT_WEIGHT,
   GST_TTML_ATTR_TEXT_DECORATION
@@ -48,6 +49,12 @@ typedef enum _GstTTMLEventType {
   GST_TTML_EVENT_TYPE_SPAN_END,
   GST_TTML_EVENT_TYPE_ATTR_UPDATE
 } GstTTMLEventType;
+
+/* Font Size units */
+typedef enum _GstTTMLFontSizeUnit {
+  GST_TTML_FONT_SIZE_PIXELS,
+  GST_TTML_FONT_SIZE_RELATIVE
+} GstTTMLFontSizeUnit;
 
 /* Font Styles */
 typedef enum _GstTTMLFontStyle {
