@@ -86,6 +86,18 @@ gst_ttml_span_new (guint id, guint length, const gchar *chars,
         src++;
         collapsing = TRUE;
         first_space = TRUE;
+
+        if (src == span->chars + 1) {
+          /* This removes ALL spaces after a line break (instead of leaving
+           * only one), if the line break is the first character in the span.
+           * This does not follow the spec and might break some (strange)
+           * scenarios, but removes the ugly single space at the beginning
+           * of spans caused by XML indentation. IMHO, this looks much nicer.
+           * Moreover, this hides a bug we have when this single space appears
+           * before a <set> node and therefore is incorrectly unaffected by
+           * the animation. */
+          first_space = FALSE;
+        }
       } else if (g_ascii_isspace (*src) && collapsing) {
         src++;
         if (first_space) {
