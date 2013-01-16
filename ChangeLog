@@ -1,5 +1,10 @@
 2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_copy):
+	  - Fix incorrect memory handling on attributes with multiple <set>s
+
+2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_new_styling_default),
 	(gst_ttml_attribute_type_name):
