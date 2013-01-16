@@ -1,6 +1,11 @@
 2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlspan.c: (gst_ttml_span_new):
+	  - Remove VS warning by adding explicit cast.
+
+2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlspan.c: (gst_ttml_span_new):
 	  - Remove ugly single space at beginning of spans caused by
 	    XML indentation. THIS DOES NOT FOLLOW THE SPEC, and might
 	    break some (strange) scenarios, but IMHO looks nicer and

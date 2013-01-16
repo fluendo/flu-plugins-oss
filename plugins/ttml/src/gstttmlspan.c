@@ -71,7 +71,7 @@ gst_ttml_span_new (guint id, guint length, const gchar *chars,
   GstTTMLSpan *span = g_new (GstTTMLSpan, 1);
   span->id = id;
   span->length = length;
-  span->chars = g_memdup (chars, length);
+  span->chars = (gchar *)g_memdup (chars, length);
   gst_ttml_style_copy (&span->style, style, FALSE);
 
   /* Remove CR characters (and surrounding white space) if requested */
