@@ -317,8 +317,11 @@ gst_ttml_attribute_copy (const GstTTMLAttribute *src,
     /* Copy the timeline too */
     GList *link = dest->timeline = g_list_copy (src->timeline);
     while (link) {
-      GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *)link->data;
-      link->data = g_memdup (event, sizeof (*event));
+      GstTTMLAttributeEvent *src_event = (GstTTMLAttributeEvent *)link->data;
+      GstTTMLAttributeEvent *dst_event = g_new (GstTTMLAttributeEvent, 1);
+      dst_event->timestamp = src_event->timestamp;
+      dst_event->attr = gst_ttml_attribute_copy (src_event->attr, FALSE);
+      link->data = dst_event;
       link = link->next;
     }
   } else {
