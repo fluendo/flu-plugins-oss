@@ -176,6 +176,12 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
     return;
   }
 
+  if (parse->state.node_type == GST_TTML_NODE_TYPE_P &&
+      parse->state.sequential_time_container) {
+    /* Anonymous spans have 0 duration when inside sequential containers */
+    return;
+  }
+
   if (GST_CLOCK_TIME_IS_VALID (parse->state.begin) &&
       parse->state.begin >= parse->state.end) {
     GST_DEBUG ("Span with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
