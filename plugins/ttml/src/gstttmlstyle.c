@@ -88,6 +88,21 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
+/* Retrieve a font size unit name (for debugging) */
+const gchar *
+gst_ttml_style_get_font_size_unit_name (GstTTMLFontSizeUnit unit)
+{
+  switch (unit) {
+    case GST_TTML_FONT_SIZE_PIXELS:
+      return "pixels";
+    case GST_TTML_FONT_SIZE_RELATIVE:
+      return "relative";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 /* Retrieve a font style name (for debugging) */
 const gchar *
 gst_ttml_style_get_font_style_name (GstTTMLFontStyle style)
@@ -183,6 +198,16 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
         if (attr->value.string)
           attrs = gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" font_family=\"%s\"", attr->value.string));
+        break;
+        
+      case GST_TTML_ATTR_FONT_SIZE:
+        if (attr->value.font_size.unit == GST_TTML_FONT_SIZE_PIXELS)
+          attrs = gst_ttml_style_str_concat (attrs,
+              g_strdup_printf (" font=\"%gpx\"", attr->value.font_size.f));
+        else if (attr->value.font_size.f != 1.f)
+          attrs = gst_ttml_style_str_concat (attrs,
+              g_strdup_printf (" font_size=\"%s\"",
+              attr->value.font_size.f > 1 ? "larger" : "smaller"));
         break;
 
       case GST_TTML_ATTR_FONT_STYLE:

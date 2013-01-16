@@ -127,6 +127,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     const char *value)
 {
   GstTTMLAttribute *attr;
+  int n;
   GST_LOG ("Parsing attribute %s=%s", name, value);
   if (gst_ttml_utils_element_is_type (name, "begin")) {
     attr = g_new (GstTTMLAttribute, 1);
@@ -189,6 +190,26 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr->type = GST_TTML_ATTR_FONT_FAMILY;
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' font family", value);
+  } else if (gst_ttml_utils_element_is_type (name, "fontSize")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_FONT_SIZE;
+    attr->value.font_size.f = 1.f;
+    sscanf (value, "%f%n", &attr->value.font_size.f, &n);
+    if (gst_ttml_utils_attr_value_is (value + n, "px")) {
+      attr->value.font_size.unit = GST_TTML_FONT_SIZE_PIXELS;
+    } else if (gst_ttml_utils_attr_value_is (value + n, "em")) {
+      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+    } else if (gst_ttml_utils_attr_value_is (value + n, "c")) {
+      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+    } else if (gst_ttml_utils_attr_value_is (value + n, "%")) {
+      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+      attr->value.font_size.f /= 100.0;
+    } else {
+      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+    }
+    GST_LOG ("Parsed '%s' font size into %g (%s)", value,
+      attr->value.font_size.f,
+      gst_ttml_style_get_font_size_unit_name (attr->value.font_size.unit));
   } else if (gst_ttml_utils_element_is_type (name, "fontStyle")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_STYLE;
@@ -399,6 +420,10 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
     case GST_TTML_ATTR_FONT_FAMILY:
       attr->value.string = NULL;
       break;
+    case GST_TTML_ATTR_FONT_SIZE:
+      attr->value.font_size.f = 1.f;
+      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+      break;
     case GST_TTML_ATTR_FONT_STYLE:
       attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
     case GST_TTML_ATTR_FONT_WEIGHT:
@@ -436,6 +461,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BACKGROUND_COLOR);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_DISPLAY);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_FAMILY);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_SIZE);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_STYLE);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_WEIGHT);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_DECORATION);
