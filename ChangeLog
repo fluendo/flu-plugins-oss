@@ -1,5 +1,10 @@
 2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_add_characters):
+	  - Add support for corner case (anonymous spans inside seq containers)
+
+2013-01-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_copy):
 	  - Fix incorrect memory handling on attributes with multiple <set>s
 
