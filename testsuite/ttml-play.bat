@@ -1,0 +1,1 @@
+i:\gstreamer-sdk\0.10\x86\bin\gst-launch-0.10.exe filesrc location=%1 ! ttmlparse ! textoverlay name=o ! ffmpegcolorspace ! autovideosink videotestsrc ! video/x-raw-rgb,width=640,height=480 ! timeoverlay ! o.
