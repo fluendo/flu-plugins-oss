@@ -1,5 +1,11 @@
 2013-01-18  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_sax_warning),
+	(gst_ttmlparse_sax_error):
+	  - Fix build when GST DEBUG is disabled.
+
+2013-01-18  Xavi Artigas  <xartigas@fluendo.com>
+
 	* win32/include/config-orig.h:
 	  - config.h for Windows.
 
