@@ -1,5 +1,10 @@
 2013-01-18  Xavi Artigas  <xartigas@fluendo.com>
 
+	* win32/include/config-orig.h:
+	  - config.h for Windows.
+
+2013-01-18  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmltype.c: (gst_ttmltype_find):
 	  - Fix overzealous detection of ttml files.
 
