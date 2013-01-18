@@ -28,7 +28,7 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
       checks |= 0x01;
     if (!memcmp (data, tag_tt, sizeof (tag_tt) - 1))
       checks |= 0x02;
-    if (checks & 0x03) {
+    if (checks == 0x03) {
       gst_type_find_suggest (tf, GST_TYPE_FIND_MAXIMUM, TTML_CAPS);
       return;
     } else {
