@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include <libxml/parser.h>
+#include <gst/gstconfig.h>
 
 #include "gstttmlparse.h"
 #include "gstttmlstate.h"
@@ -394,24 +395,28 @@ gst_ttmlparse_sax_characters (void *ctx, const xmlChar *ch, int len)
 static void
 gst_ttmlparse_sax_warning (void *ctx, const char *message, ...)
 {
+#ifndef GST_DISABLE_GST_DEBUG
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   va_list va;
   va_start (va, message);
   gst_debug_log_valist (GST_CAT_DEFAULT, GST_LEVEL_WARNING, __FILE__,
       __FUNCTION__, __LINE__, G_OBJECT (parse), message, va);
   va_end (va);
+#endif /* GST_DISABLE_GST_DEBUG */
 }
 
 /* Parse SAX errors (simply shown as debug logs) */
 static void
 gst_ttmlparse_sax_error (void *ctx, const char *message, ...)
 {
+#ifndef GST_DISABLE_GST_DEBUG
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   va_list va;
   va_start (va, message);
   gst_debug_log_valist (GST_CAT_DEFAULT, GST_LEVEL_ERROR, __FILE__,
       __FUNCTION__, __LINE__, G_OBJECT (parse), message, va);
   va_end (va);
+#endif /* GST_DISABLE_GST_DEBUG */
 }
 
 /* Parse comments from XML (simply shown as debug logs) */
