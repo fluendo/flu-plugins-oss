@@ -7,6 +7,8 @@
 #include "config.h"
 #endif
 
+#include "locale.h"
+
 #include "gstttmlattribute.h"
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
@@ -51,7 +53,9 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
   gdouble h, m, s, count;
   char metric[3] = "\0\0";
   GstClockTime res = GST_CLOCK_TIME_NONE;
+  char *previous_locale = setlocale (LC_NUMERIC, NULL);
 
+  setlocale (LC_NUMERIC, "C");
   if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
     res = (GstClockTime)((h * 3600 + m * 60 + s) * GST_SECOND);
   } else if (sscanf (expr, "%lf%2[hmstf]", &count, metric) == 2) {
@@ -84,6 +88,7 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
   } else {
     GST_WARNING ("Unrecognized time expression: %s", expr);
   }
+  setlocale (LC_NUMERIC, previous_locale);
   GST_LOG ("Parsed %s into %" GST_TIME_FORMAT, expr, GST_TIME_ARGS (res));
   return res;
 }
@@ -128,6 +133,9 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
 {
   GstTTMLAttribute *attr;
   int n;
+  char *previous_locale = setlocale (LC_NUMERIC, NULL);
+
+  setlocale (LC_NUMERIC, "C");
   GST_LOG ("Parsing attribute %s=%s", name, value);
   if (gst_ttml_utils_element_is_type (name, "begin")) {
     attr = g_new (GstTTMLAttribute, 1);
@@ -259,6 +267,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
   }
+  setlocale (LC_NUMERIC, previous_locale);
 
   if (attr) {
     attr->timeline = NULL;

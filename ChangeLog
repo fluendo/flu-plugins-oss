@@ -1,3 +1,12 @@
+2013-02-12  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_time_expression),
+	(gst_ttml_attribute_parse):
+	  - Avoid using the system's locale with sscanf (fixes
+	    parsing fractional time expressions like 4.5s in
+	    French or Spanish)
+
 2013-01-18  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_sax_warning),
