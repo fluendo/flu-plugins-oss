@@ -554,7 +554,7 @@ gst_ttmlparse_chain (GstPad * pad, GstBuffer * buffer)
     if (next_buffer_data) {
       next_buffer_data += 5;
       GST_DEBUG_OBJECT (parse, "Detected XML document end at position %d of %d",
-          next_buffer_data - buffer_data, buffer_len);
+          (int)(next_buffer_data - buffer_data), buffer_len);
       next_buffer_len = buffer_len - (next_buffer_data - buffer_data);
       buffer_len = next_buffer_data - buffer_data;
     }
