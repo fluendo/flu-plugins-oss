@@ -1,0 +1,20 @@
+2013-02-15  Xavi Artigas  <xartigas@fluendo.com>
+
+	* examples/multidl.c: (data_cb), (done_cb), (main):
+	* lib/fludownloader.c: (fludownloader_new),
+	(fludownloader_new_task):
+	* lib/fludownloader.h:
+	  - gst-indent
+
+2013-02-15  Xavi Artigas  <xartigas@fluendo.com>
+
+	* Makefile.am:
+	* configure.ac:
+	* examples/multidl.c: (data_cb), (done_cb), (main):
+	* lib/fludownloader.c: (_write_function), (_remove_task),
+	(_process_curl_messages), (_thread_function), (fludownloader_init),
+	(fludownloader_shutdown), (fludownloader_new),
+	(fludownloader_destroy), (fludownloader_new_task),
+	(fludownloader_abort_task):
+	* lib/fludownloader.h:
+	  - First working version of the library and example file.
