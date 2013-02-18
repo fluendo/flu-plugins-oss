@@ -11,10 +11,11 @@
 
 #define TIMEOUT 100000          /* 100ms */
 
-/*
+/*****************************************************************************
  * Private functions and structs
- */
+ *****************************************************************************/
 
+/* Takes care of a session, which might include multiple tasks */
 struct _FluDownloader
 {
   /* Threading stuff */
@@ -28,9 +29,11 @@ struct _FluDownloader
 
   /* CURL stuff */
   CURLM *handle;                /* CURL multi handler */
-  int running_tasks;
+  int num_running_tasks;
+  GList *running_tasks;
 };
 
+/* Takes care of one task (file) */
 struct _FluDownloaderTask
 {
   CURL *handle;                 /* CURL easy handler */
@@ -51,14 +54,20 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   return total_size;
 }
 
+/* Removes a task. Transfer will be interrupted if it had already started.
+ * Call with the lock taken. */
 static void
 _remove_task (FluDownloader *context, FluDownloaderTask *task)
 {
   curl_multi_remove_handle (context->handle, task->handle);
   curl_easy_cleanup (task->handle);
+  context->running_tasks = g_list_remove (context->running_tasks, task);
   g_free (task);
 }
 
+/* Read messages from CURL (Only the DONE message exists as of libCurl 7.29)
+ * Inform the user about finished tasks and remove them from internal list.
+ * Call with lock taken. */
 static void
 _process_curl_messages (FluDownloader *context)
 {
@@ -83,12 +92,16 @@ _process_curl_messages (FluDownloader *context)
   }
 }
 
+/* Main function of the downloading thread. Just wait from events from libCurl
+ * and keep calling its "perform" method until signalled to exit through the
+ * "shutdown" var. Releases the lock when sleeping so other threads can
+ * interact with the FluDownloder structure. */
 static gpointer
 _thread_function (FluDownloader *context)
 {
   fd_set rfds, wfds, efds;
   int max_fd;
-  int running_tasks;
+  int num_running_tasks;
 
   g_mutex_lock (context->mutex);
   while (!context->shutdown) {
@@ -111,21 +124,21 @@ _thread_function (FluDownloader *context)
       /* There are some fd requiring immediate action! */
     }
 
-    curl_multi_perform (context->handle, &running_tasks);
+    curl_multi_perform (context->handle, &num_running_tasks);
 
-    if (running_tasks != context->running_tasks) {
+    if (num_running_tasks != context->num_running_tasks) {
       /* Some task has finished, find out which one and inform */
       _process_curl_messages (context);
-      context->running_tasks = running_tasks;
+      context->num_running_tasks = num_running_tasks;
     }
   }
   g_mutex_unlock (context->mutex);
   return NULL;
 }
 
-/*
+/*****************************************************************************
  * Public functions
- */
+ *****************************************************************************/
 
 void
 fludownloader_init ()
@@ -177,6 +190,9 @@ fludownloader_destroy (FluDownloader *context)
   /* Wait for thread to finish */
   g_thread_join (context->thread);
 
+  /* Abort and free all tasks */
+  fludownloader_abort_all_tasks (context);
+
   g_mutex_free (context->mutex);
 
   /* FIXME: This will crash libcurl if no easy handles have ever been added */
@@ -209,7 +225,8 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
 
   g_mutex_lock (context->mutex);
   curl_multi_add_handle (context->handle, task->handle);
-  context->running_tasks++;
+  context->num_running_tasks++;
+  context->running_tasks = g_list_append (context->running_tasks, task);
   g_mutex_unlock (context->mutex);
 
   return task;
@@ -220,5 +237,15 @@ fludownloader_abort_task (FluDownloader *context, FluDownloaderTask *task)
 {
   g_mutex_lock (context->mutex);
   _remove_task (context, task);
+  g_mutex_unlock (context->mutex);
+}
+
+void
+fludownloader_abort_all_tasks (FluDownloader * context)
+{
+  g_mutex_lock (context->mutex);
+  while (context->running_tasks) {
+    _remove_task (context, context->running_tasks->data);
+  }
   g_mutex_unlock (context->mutex);
 }

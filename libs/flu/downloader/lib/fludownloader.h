@@ -46,4 +46,8 @@ FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
 void
 fludownloader_abort_task (FluDownloader * context, FluDownloaderTask * task);
 
+/* Abort ALL download tasks, both running and scheduled. */
+void
+fludownloader_abort_all_tasks (FluDownloader * context);
+
 #endif /* _FLUDOWNLOADER_H */
