@@ -1,5 +1,10 @@
 2013-02-18  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (_thread_function):
+	  - Fix select() call.
+
+2013-02-18  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (data_cb), (main):
 	* lib/fludownloader.c: (_remove_task), (_thread_function),
 	(fludownloader_destroy), (fludownloader_new_task),

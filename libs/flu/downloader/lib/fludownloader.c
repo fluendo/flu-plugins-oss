@@ -118,7 +118,7 @@ _thread_function (FluDownloader *context)
       tv.tv_sec = 0;
       tv.tv_usec = TIMEOUT;
       g_mutex_unlock (context->mutex);
-      select (max_fd, &rfds, NULL, NULL, &tv);
+      select (max_fd + 1, &rfds, NULL, NULL, &tv);
       g_mutex_lock (context->mutex);
     } else {
       /* There are some fd requiring immediate action! */
