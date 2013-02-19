@@ -85,7 +85,9 @@ _process_curl_messages (FluDownloader *context)
     /* Retrieve task and result code, and inform user */
     curl_easy_getinfo (easy, CURLINFO_PRIVATE, (char **) &task);
     curl_easy_getinfo (easy, CURLINFO_RESPONSE_CODE, &code);
-    context->done_cb (code, task->user_data);
+    if (context->done_cb) {
+      context->done_cb (code, task->user_data);
+    }
 
     /* Remove the easy handle and free the task */
     _remove_task (context, task);
@@ -206,6 +208,9 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
 {
   FluDownloaderTask *task;
 
+  if (context == NULL || url == NULL)
+    return NULL;
+
   task = g_new0 (FluDownloaderTask, 1);
   task->user_data = user_data;
   task->context = context;
@@ -236,6 +241,9 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
 void
 fludownloader_abort_task (FluDownloader *context, FluDownloaderTask *task)
 {
+  if (context == NULL || task == NULL)
+    return;
+
   g_mutex_lock (context->mutex);
   _remove_task (context, task);
   g_mutex_unlock (context->mutex);
@@ -244,9 +252,25 @@ fludownloader_abort_task (FluDownloader *context, FluDownloaderTask *task)
 void
 fludownloader_abort_all_tasks (FluDownloader * context)
 {
+  if (context == NULL)
+    return;
+
   g_mutex_lock (context->mutex);
   while (context->running_tasks) {
     _remove_task (context, context->running_tasks->data);
+  }
+  g_mutex_unlock (context->mutex);
+}
+
+void
+fludownloader_abort_all_pending_tasks (FluDownloader * context)
+{
+  if (context == NULL || context->running_tasks == NULL)
+    return;
+
+  g_mutex_lock (context->mutex);
+  while (context->running_tasks->next) {
+    _remove_task (context, context->running_tasks->next->data);
   }
   g_mutex_unlock (context->mutex);
 }

@@ -1,5 +1,17 @@
 2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (main):
+	* lib/fludownloader.c: (_process_curl_messages),
+	(fludownloader_new_task), (fludownloader_abort_task),
+	(fludownloader_abort_all_tasks),
+	(fludownloader_abort_all_pending_tasks):
+	* lib/fludownloader.h:
+	  - Add API to abort all PENDING tasks (allowing the current one to finish)
+	  - Update example.
+	  - Add safety checks on input parameters
+
+2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* configure.ac:
 	  - Having fun with autotools.
 

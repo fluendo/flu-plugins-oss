@@ -35,9 +35,11 @@ main (int argc, char *argv[])
   fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/sintel_trailer-720p.mp4", NULL, (gpointer) 4);
   fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/Sintel_Trailer.480p.DivX_Plus_HD.mkv", "100-200", (gpointer) 5);
 
-  g_printf ("Press a key\n");
+  g_printf ("Press ENTER to abort all pending tasks\n");
   getchar ();
-  g_printf ("Key pressed\n");
+  fludownloader_abort_all_pending_tasks (dl);
+  g_printf ("Press ENTER to end\n");
+  getchar ();
 
   fludownloader_destroy (dl);
   fludownloader_shutdown ();

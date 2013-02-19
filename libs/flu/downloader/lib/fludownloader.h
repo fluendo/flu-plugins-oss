@@ -51,4 +51,9 @@ fludownloader_abort_task (FluDownloader * context, FluDownloaderTask * task);
 void
 fludownloader_abort_all_tasks (FluDownloader * context);
 
+/* Abort ALL PENDING download tasks, this is, allow the current one to finish
+ * and remove all the scheduled ones. */
+void
+fludownloader_abort_all_pending_tasks (FluDownloader * context);
+
 #endif /* _FLUDOWNLOADER_H */
