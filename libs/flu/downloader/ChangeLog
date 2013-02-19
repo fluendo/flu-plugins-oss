@@ -1,5 +1,10 @@
 2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* configure.ac:
+	  - Having fun with autotools.
+
+2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (main):
 	* lib/fludownloader.c: (fludownloader_new_task):
 	* lib/fludownloader.h:
