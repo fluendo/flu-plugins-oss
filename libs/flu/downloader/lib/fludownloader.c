@@ -202,7 +202,7 @@ fludownloader_destroy (FluDownloader *context)
 
 FluDownloaderTask *
 fludownloader_new_task (FluDownloader *context, const gchar *url,
-    gpointer user_data)
+    const gchar *range, gpointer user_data)
 {
   FluDownloaderTask *task;
 
@@ -222,6 +222,7 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
   /* Allow redirections */
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
+  curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
 
   g_mutex_lock (context->mutex);
   curl_multi_add_handle (context->handle, task->handle);

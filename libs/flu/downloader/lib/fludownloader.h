@@ -36,9 +36,10 @@ FluDownloader *fludownloader_new (FluDownloaderDataCallback data_cb,
 void fludownloader_destroy (FluDownloader * context);
 
 /* Add a URL to be downloaded. Task will start immediately if possible,
- * or will be queued. */
+ * or will be queued. Ranges are in HTTP format, or NULL to retrieve the
+ * whole content. */
 FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
-    const gchar * url, gpointer user_data);
+    const gchar * url, const gchar *range, gpointer user_data);
 
 /* Abort download task or remove it from queue if it has not started yet.
  * Tasks are automatically removed when they finish, so there is no need

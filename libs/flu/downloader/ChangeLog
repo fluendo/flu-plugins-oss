@@ -1,5 +1,12 @@
 2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (main):
+	* lib/fludownloader.c: (fludownloader_new_task):
+	* lib/fludownloader.h:
+	  - Support for range requests. Update example.
+
+2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* Makefile.am:
 	* configure.ac:
 	  - Deploy pc and header files.
