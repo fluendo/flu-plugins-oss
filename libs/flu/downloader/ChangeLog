@@ -1,3 +1,9 @@
+2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
+	* Makefile.am:
+	* configure.ac:
+	  - Deploy pc and header files.
+
 2013-02-18  Xavi Artigas  <xartigas@fluendo.com>
 
 	* examples/multidl.c: (main):

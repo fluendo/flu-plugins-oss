@@ -6,6 +6,7 @@ noinst_HEADERS =
 
 noinst_LTLIBRARIES =
 lib_LTLIBRARIES = libfludownloader.la
+include_HEADERS = $(top_srcdir)/lib/fludownloader.h
 
 bin_PROGRAMS = multidl
 
@@ -23,7 +24,7 @@ multidl_CFLAGS = -I$(top_srcdir)/lib -I$(top_srcdir) $(FLUDOWNLOADER_CFLAGS)
 
 multidl_LDADD = $(top_builddir)/libfludownloader.la
 
-pcfiles =
+pcfiles = $(top_builddir)/fludownloader.pc
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = $(pcfiles)
 
