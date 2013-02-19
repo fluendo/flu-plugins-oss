@@ -146,11 +146,14 @@ void
 fludownloader_init ()
 {
   g_thread_init (NULL);
+
+  curl_global_init (CURL_GLOBAL_ALL);
 }
 
 void
 fludownloader_shutdown ()
 {
+  curl_global_cleanup ();
 }
 
 FluDownloader *

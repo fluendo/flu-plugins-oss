@@ -1,5 +1,12 @@
 2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (fludownloader_init),
+	(fludownloader_shutdown):
+	  - Add global init/cleanup of libCurl. Init was done automatically before,
+	    but it is nicer to call it explicitly.
+
+2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (main):
 	* lib/fludownloader.c: (_process_curl_messages),
 	(fludownloader_new_task), (fludownloader_abort_task),
