@@ -1,3 +1,15 @@
+2013-02-20  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_write_function), (_is_task_running),
+	(_remove_task), (_abort_task), (_process_curl_messages),
+	(_thread_function), (fludownloader_destroy),
+	(fludownloader_new_task), (fludownloader_abort_task),
+	(fludownloader_abort_all_tasks):
+	* lib/fludownloader.h:
+	  - Allow the current downloading task to be aborted immediately.
+	    This makes libCurl start a new TCP stream, but it is still faster than
+	    waiting for the current task to complete, if it is a big file.
+
 2013-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
 	* lib/fludownloader.c: (fludownloader_init),

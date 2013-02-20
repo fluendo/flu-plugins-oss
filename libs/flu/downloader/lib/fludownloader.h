@@ -47,13 +47,10 @@ FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
 void
 fludownloader_abort_task (FluDownloader * context, FluDownloaderTask * task);
 
-/* Abort ALL download tasks, both running and scheduled. */
+/* Abort ALL download tasks. If including_current is TRUE, event the currently
+ * running task is interrupted. Otherwise, that one is allowed to finish. */
 void
-fludownloader_abort_all_tasks (FluDownloader * context);
-
-/* Abort ALL PENDING download tasks, this is, allow the current one to finish
- * and remove all the scheduled ones. */
-void
-fludownloader_abort_all_pending_tasks (FluDownloader * context);
+fludownloader_abort_all_tasks (FluDownloader * context,
+    gboolean including_current);
 
 #endif /* _FLUDOWNLOADER_H */
