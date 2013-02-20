@@ -1,5 +1,12 @@
 2013-02-20  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (data_cb), (main):
+	* lib/fludownloader.c: (_write_function):
+	* lib/fludownloader.h:
+	  - Allow tasks to be aborted from the callback. Update example.
+
+2013-02-20  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c: (_write_function), (_is_task_running),
 	(_remove_task), (_abort_task), (_process_curl_messages),
 	(_thread_function), (fludownloader_destroy),

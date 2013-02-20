@@ -53,7 +53,8 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   }
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
-    cb (buffer, total_size, task->user_data);
+    if (!cb (buffer, total_size, task->user_data))
+      return 0;
   }
 
   return total_size;

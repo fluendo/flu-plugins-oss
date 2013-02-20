@@ -4,11 +4,12 @@
 #include <stdio.h>
 #include "fludownloader.h"
 
-void
+gboolean
 data_cb (void *buffer, size_t size, gpointer user_data)
 {
 //  g_printf ("Data from #%d:\n", (int) user_data);
 //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
+  return TRUE;
 }
 
 void
@@ -35,9 +36,9 @@ main (int argc, char *argv[])
   fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/sintel_trailer-720p.mp4", NULL, (gpointer) 4);
   fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/Sintel_Trailer.480p.DivX_Plus_HD.mkv", "100-200", (gpointer) 5);
 
-  g_printf ("Press ENTER to abort all pending tasks\n");
+  g_printf ("Press ENTER to abort all tasks\n");
   getchar ();
-  fludownloader_abort_all_pending_tasks (dl);
+  fludownloader_abort_all_tasks (dl, TRUE);
   g_printf ("Press ENTER to end\n");
   getchar ();
 

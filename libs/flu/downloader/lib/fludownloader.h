@@ -15,9 +15,11 @@
 typedef struct _FluDownloader FluDownloader;
 typedef struct _FluDownloaderTask FluDownloaderTask;
 
-typedef void (*FluDownloaderDataCallback) (void *buffer, size_t size,
+/* Data callback. Return FALSE to cancel this download immediately. */
+typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
     gpointer user_data);
 
+/* Done callback. Called when a download finishes. */
 typedef void (*FluDownloaderDoneCallback) (int response_code,
     gpointer user_data);
 
