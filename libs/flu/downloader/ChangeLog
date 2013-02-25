@@ -1,3 +1,12 @@
+2013-02-25  Xavi Artigas  <xartigas@fluendo.com>
+
+	* examples/multidl.c: (done_cb):
+	* lib/fludownloader.c: (_write_function), (_process_curl_messages):
+	* lib/fludownloader.h:
+	  - Report downloaded size upon task completion. This seems the only way to
+	    detect errors when dealing with the FILE protocol.
+	  - Update example.
+
 2013-02-20  Xavi Artigas  <xartigas@fluendo.com>
 
 	* examples/multidl.c: (data_cb), (main):

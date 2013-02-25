@@ -13,9 +13,10 @@ data_cb (void *buffer, size_t size, gpointer user_data)
 }
 
 void
-done_cb (int response_code, gpointer user_data)
+done_cb (int response_code, size_t downloaded_size, gpointer user_data)
 {
-  g_printf ("Transfer #%d done. Code = %d\n", (int) user_data, response_code);
+  g_printf ("Transfer #%d done. Code = %d. %zd downloaded bytes.\n",
+      (int) user_data, response_code, downloaded_size);
 }
 
 int

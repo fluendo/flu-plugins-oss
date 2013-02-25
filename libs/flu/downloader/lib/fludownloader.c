@@ -39,6 +39,7 @@ struct _FluDownloaderTask
   gpointer user_data;           /* User data */
   FluDownloader *context;
   gboolean abort;               /* Signal the write callback to return error */
+  size_t downloaded_size;       /* Amount of bytes downloaded */
 };
 
 static size_t
@@ -46,6 +47,8 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     FluDownloaderTask *task)
 {
   size_t total_size = size * nmemb;
+
+  task->downloaded_size += total_size;
 
   if (task->abort) {
     /* The task has been signalled to abort. Return 0 so libCurl stops it. */
@@ -126,7 +129,7 @@ _process_curl_messages (FluDownloader *context)
       /* If the task was told to abort, there is no need to inform the user */
       curl_easy_getinfo (easy, CURLINFO_RESPONSE_CODE, &code);
       if (context->done_cb) {
-        context->done_cb (code, task->user_data);
+        context->done_cb (code, task->downloaded_size, task->user_data);
       }
     }
 
