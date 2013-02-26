@@ -35,18 +35,24 @@ struct _FluDownloader
 /* Takes care of one task (file) */
 struct _FluDownloaderTask
 {
-  CURL *handle;                 /* CURL easy handler */
-  gpointer user_data;           /* User data */
+  /* Homekeeping stuff */
   FluDownloader *context;
+  gpointer user_data;           /* Application's user data */
   gboolean abort;               /* Signal the write callback to return error */
 
+  /* Download control */
   size_t total_size;            /* File size reported by HTTP headers */
   size_t downloaded_size;       /* Amount of bytes downloaded */
 
+  /* CURL stuff */
+  CURL *handle;                 /* CURL easy handler */
+
+  /* Header parsing */
   gboolean first_header_line;   /* Next header line will be a status line */
   gboolean response_ok;         /* This is an OK header */
 };
 
+/* Gets called by libCurl when new data is received */
 static size_t
 _write_function (void *buffer, size_t size, size_t nmemb,
     FluDownloaderTask *task)
