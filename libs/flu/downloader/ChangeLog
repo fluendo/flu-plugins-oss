@@ -1,3 +1,9 @@
+2013-02-26  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_header_function),
+	(fludownloader_new_task):
+	  - Parse HTTP headers to find out file sizes (still unused).
+
 2013-02-25  Xavi Artigas  <xartigas@fluendo.com>
 
 	* examples/multidl.c: (done_cb):

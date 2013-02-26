@@ -39,7 +39,12 @@ struct _FluDownloaderTask
   gpointer user_data;           /* User data */
   FluDownloader *context;
   gboolean abort;               /* Signal the write callback to return error */
+
+  size_t total_size;            /* File size reported by HTTP headers */
   size_t downloaded_size;       /* Amount of bytes downloaded */
+
+  gboolean first_header_line;   /* Next header line will be a status line */
+  gboolean response_ok;         /* This is an OK header */
 };
 
 static size_t
@@ -59,6 +64,35 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     if (!cb (buffer, total_size, task->user_data))
       return 0;
   }
+
+  return total_size;
+}
+
+/* Gets called by libCurl for each received HTTP header line */
+static size_t
+_header_function (const char *line, size_t size, size_t nmemb,
+    FluDownloaderTask *task)
+{
+  size_t total_size = size * nmemb;
+
+  if (task->first_header_line) {
+    /* This is the status line */
+    gint code;
+    if (sscanf (line, "%*s %d", &code) == 1) {
+      task->response_ok = (code >= 200) && (code <= 299);
+    }
+  } else {
+    /* This is another header line */
+    size_t size;
+    if (task->response_ok &&
+        sscanf (line, "Content-Length:%zd", &size) == 1) {
+      /* Context length parsed ok */
+      task->total_size = size;
+    }
+  }
+
+  task->first_header_line =
+      (total_size > 1 && line[0] == 13 && line[1] == 10);
 
   return total_size;
 }
@@ -266,11 +300,15 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
   task = g_new0 (FluDownloaderTask, 1);
   task->user_data = user_data;
   task->context = context;
+  task->first_header_line = TRUE;
 
   task->handle = curl_easy_init ();
   curl_easy_setopt (task->handle, CURLOPT_WRITEFUNCTION,
       (curl_write_callback) _write_function);
   curl_easy_setopt (task->handle, CURLOPT_WRITEDATA, task);
+  curl_easy_setopt (task->handle, CURLOPT_HEADERFUNCTION,
+      (curl_write_callback) _header_function);
+  curl_easy_setopt (task->handle, CURLOPT_HEADERDATA, task);
   curl_easy_setopt (task->handle, CURLOPT_PRIVATE, task);
   curl_easy_setopt (task->handle, CURLOPT_NOPROGRESS, 1L);
   curl_easy_setopt (task->handle, CURLOPT_USERAGENT, "curl/7.29.0");
