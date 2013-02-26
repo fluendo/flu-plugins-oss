@@ -1,5 +1,10 @@
 2013-02-26  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (data_cb), (main):
+	  - Update example.
+
+2013-02-26  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c:
 	  - Add comments and rearrange structure members.
 
