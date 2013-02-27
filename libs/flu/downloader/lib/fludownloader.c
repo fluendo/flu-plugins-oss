@@ -39,6 +39,7 @@ struct _FluDownloaderTask
   FluDownloader *context;
   gpointer user_data;           /* Application's user data */
   gboolean abort;               /* Signal the write callback to return error */
+  gboolean running;             /* Has it already been passed to libCurl? */
 
   /* Download control */
   size_t total_size;            /* File size reported by HTTP headers */
@@ -103,45 +104,35 @@ _header_function (const char *line, size_t size, size_t nmemb,
   return total_size;
 }
 
-/* Find out if a task has already started running (and we are receiving
- * data) or is it still queued (regardless of whether the GET has already
- * been issued or not). Call with lock taken. */
-static gboolean
-_is_task_running (FluDownloaderTask *task)
-{
-  double time;
-
-  curl_easy_getinfo (task->handle, CURLINFO_STARTTRANSFER_TIME, &time);
-
-  return time > 0.0;
-}
-
 /* Removes a task. Transfer will NOT be interrupted if it had already started.
  * Call with the lock taken. */
 static void
 _remove_task (FluDownloader *context, FluDownloaderTask *task)
 {
-  curl_multi_remove_handle (context->handle, task->handle);
+  if (task->running) {
+    /* If the task has already been submitted to libCurl, remove it.
+     * If libCurl has already issued the GET, it will close the connection
+     * and restart from 0 all running tasks that had not been aborted.
+     * We should only reach this point when shutting down or when
+     * removing a completed task. */
+    curl_multi_remove_handle (context->handle, task->handle);
+  }
   curl_easy_cleanup (task->handle);
   context->queued_tasks = g_list_remove (context->queued_tasks, task);
   g_free (task);
 }
 
-/* Aborts a task. If including_current is TRUE, even the currently running
- * task is interrupted. Call with the lock taken. */
+/* Aborts a task. If the GET had already been issued, connection will be reset
+ * once data for this task starts arriving (so previous downloads are allowed
+ * to finish). Call with the lock taken. */
 static void
-_abort_task (FluDownloader *context, FluDownloaderTask *task,
-    gboolean including_current)
+_abort_task (FluDownloader *context, FluDownloaderTask *task)
 {
-  if (_is_task_running (task)) {
-    if (including_current) {
-      /* This is running, we need to halt if from the write callback */
-      task->abort = TRUE;
-    }
+  if (task->running) {
+    /* This is running, we need to halt if from the write callback */
+    task->abort = TRUE;
   } else {
-    /* This is an scheduled task (although the GET might have already been
-     * issued due to HTTP pipelining). We can remove it and libCurl won't
-     * let it start. */
+    /* This is an scheduled task, libCurl knows nothing about it yet */
     _remove_task (context, task);
   }
 }
@@ -175,6 +166,47 @@ _process_curl_messages (FluDownloader *context)
 
     /* Remove the easy handle and free the task */
     _remove_task (context, task);
+  }
+}
+
+/* Examine the list of queued tasks to see if there is any that can be started.
+ * Call with the lock taken. */
+static void
+_schedule_tasks (FluDownloader *context)
+{
+  FluDownloaderTask *first_task, *next_task = NULL;
+
+  /* Check if there is ANY queued task */
+  if (!context->queued_tasks)
+    return;
+
+  /* Check if the first task is already running */
+  first_task = (FluDownloaderTask *)context->queued_tasks->data;
+  if (!first_task->running) {
+    next_task = first_task;
+  } else {
+    GList *next_task_link = context->queued_tasks->next;
+    /* Cheeck if there exists a next enqueued task */
+    if (next_task_link) {
+      next_task = (FluDownloaderTask *)next_task_link->data;
+      /* Check if it is already running */
+      if (next_task->running) {
+        /* Nothing to do then */
+        next_task = NULL;
+      } else {
+        /* Check if the current task is advanced enough so we can pipeline
+         * the next one. */
+        if (first_task->total_size > 0 &&
+            first_task->downloaded_size < 3 * first_task->total_size / 4) {
+          next_task = NULL;
+        }
+      }
+    }
+  }
+
+  if (next_task) {
+    next_task->running = TRUE;
+    curl_multi_add_handle (context->handle, next_task->handle);
   }
 }
 
@@ -215,6 +247,9 @@ _thread_function (FluDownloader *context)
 
     /* Keep an eye on possible finished tasks */
     _process_curl_messages (context);
+
+    /* See if any queued task can be started */
+    _schedule_tasks (context);
   }
   g_mutex_unlock (context->mutex);
   return NULL;
@@ -327,7 +362,7 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
 
   g_mutex_lock (context->mutex);
   context->queued_tasks = g_list_append (context->queued_tasks, task);
-  curl_multi_add_handle (context->handle, task->handle);
+  _schedule_tasks (context);
   g_mutex_unlock (context->mutex);
 
   return task;
@@ -340,7 +375,7 @@ fludownloader_abort_task (FluDownloader *context, FluDownloaderTask *task)
     return;
 
   g_mutex_lock (context->mutex);
-  _abort_task (context, task, TRUE);
+  _abort_task (context, task);
   g_mutex_unlock (context->mutex);
 }
 
@@ -355,10 +390,16 @@ fludownloader_abort_all_tasks (FluDownloader * context,
 
   g_mutex_lock (context->mutex);
   link = context->queued_tasks;
+
   while (link) {
     GList *next = link->next;
-    _abort_task (context, link->data, including_current);
+    FluDownloaderTask *task = link->data;
+
+    if (link->prev || including_current) {
+      _abort_task (context, task);
+    }
     link = next;
   }
+
   g_mutex_unlock (context->mutex);
 }

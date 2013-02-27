@@ -1,3 +1,15 @@
+2013-02-27  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_remove_task), (_abort_task),
+	(_schedule_tasks), (_thread_function), (fludownloader_new_task),
+	(fludownloader_abort_task), (fludownloader_abort_all_tasks):
+	  - Do not immediately pass all tasks to libCurl. Keep a list and pass them
+	    one by one once the current transfer reaches 75% of the file (if known).
+	    This allows having only one running task and at most one pipelined when
+	    the current one is about to finish, which allows HTTP pipelining AND
+	    reduces the risk of having to abort a transfer (which implies a new TCP
+	    connection).
+
 2013-02-26  Xavi Artigas  <xartigas@fluendo.com>
 
 	* examples/multidl.c: (data_cb), (main):
