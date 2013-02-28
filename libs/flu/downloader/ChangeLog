@@ -1,3 +1,9 @@
+2013-02-28  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (fludownloader_init),
+	(fludownloader_shutdown):
+	  - Add init lock, to allow multithreaded initialization.
+
 2013-02-27  Xavi Artigas  <xartigas@fluendo.com>
 
 	* lib/fludownloader.c: (_remove_task), (_abort_task),

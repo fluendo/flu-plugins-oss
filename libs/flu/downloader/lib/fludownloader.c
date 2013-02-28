@@ -15,6 +15,9 @@
  * Private functions and structs
  *****************************************************************************/
 
+static GStaticMutex _init_lock = G_STATIC_MUTEX_INIT;
+static gint _init_count = 0;
+
 /* Takes care of a session, which might include multiple tasks */
 struct _FluDownloader
 {
@@ -262,15 +265,28 @@ _thread_function (FluDownloader *context)
 void
 fludownloader_init ()
 {
-  g_thread_init (NULL);
+  g_static_mutex_lock (&_init_lock);
+  _init_count++;
 
-  curl_global_init (CURL_GLOBAL_ALL);
+  if (_init_count == 1) {
+    g_thread_init (NULL);
+    curl_global_init (CURL_GLOBAL_ALL);
+  }
+
+  g_static_mutex_unlock (&_init_lock);
 }
 
 void
 fludownloader_shutdown ()
 {
-  curl_global_cleanup ();
+  g_static_mutex_lock (&_init_lock);
+  _init_count--;
+
+  if (_init_count == 0) {
+    curl_global_cleanup ();
+  }
+
+  g_static_mutex_unlock (&_init_lock);
 }
 
 FluDownloader *
