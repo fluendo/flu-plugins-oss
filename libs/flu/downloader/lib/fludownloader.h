@@ -56,9 +56,14 @@ void
 fludownloader_abort_all_tasks (FluDownloader * context,
     gboolean including_current);
 
+/* Lock the library. This allows making multiple library calls in an atomic
+ * fashion (as long as they do not try to get the lock) */
 void fludownloader_lock (FluDownloader * context);
+
+/* Unlock the library */
 void fludownloader_unlock (FluDownloader * context);
 
+/* Retrieve the URL thas was used for a given task */
 const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
 
 #endif /* _FLUDOWNLOADER_H */

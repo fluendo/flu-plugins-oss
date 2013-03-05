@@ -1,5 +1,10 @@
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.h:
+	  - A bit of comments
+
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c: (fludownloader_abort_task):
 	* lib/fludownloader.h:
 	  - Small change to API to avoid redundant parameter.
