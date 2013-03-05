@@ -1,3 +1,8 @@
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
+	* fludownloader.pc.in:
+	  - Add missing file.
+
 2013-02-28  Xavi Artigas  <xartigas@fluendo.com>
 
 	* lib/fludownloader.c: (fludownloader_init),
