@@ -434,7 +434,7 @@ fludownloader_unlock (FluDownloader * context)
   g_mutex_unlock (context->mutex);
 }
 
-gchar *
+const gchar *
 fludownloader_task_get_url (FluDownloaderTask * task)
 {
   gchar *url = NULL;

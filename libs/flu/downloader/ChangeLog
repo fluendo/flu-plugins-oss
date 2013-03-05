@@ -1,5 +1,11 @@
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c:
+	* lib/fludownloader.h:
+	  - Return const gchar to make sure it is not free'd.
+
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (done_cb):
 	* lib/fludownloader.c: (fludownloader_task_get_url):
 	* lib/fludownloader.h:
