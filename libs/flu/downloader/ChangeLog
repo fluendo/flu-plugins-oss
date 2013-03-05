@@ -1,5 +1,12 @@
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (_report_task_done), (_write_function),
+	(_process_curl_messages):
+	  - Handle correctly the case where a single call to curl_process() produces
+	    data for two tasks.
+
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c:
 	* lib/fludownloader.h:
 	  - Return const gchar to make sure it is not free'd.

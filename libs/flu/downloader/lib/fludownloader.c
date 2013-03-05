@@ -56,6 +56,22 @@ struct _FluDownloaderTask
   gboolean response_ok;         /* This is an OK header */
 };
 
+static void
+_report_task_done (FluDownloaderTask * task)
+{
+  /* If the task was told to abort, there is no need to inform the user */
+  if (task->abort == FALSE) {
+    long code = 0;
+
+    /* Retrieve result code, and inform user */
+    curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE, &code);
+    if (task->context->done_cb) {
+      task->context->done_cb (code, task->downloaded_size, task->user_data,
+          task);
+    }
+  }
+}
+
 /* Gets called by libCurl when new data is received */
 static size_t
 _write_function (void *buffer, size_t size, size_t nmemb,
@@ -69,6 +85,22 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     /* The task has been signalled to abort. Return 0 so libCurl stops it. */
     return 0;
   }
+
+  if (task->context->queued_tasks &&
+      task->context->queued_tasks->data != task) {
+    FluDownloaderTask *prev_task =
+        (FluDownloaderTask *)task->context->queued_tasks->data;
+
+    /* This is not the currently running task, therefore, it must have finished
+     * and a new one has started, but we have not called process_curl_messages
+     * yet and therefore we had not noticed before. Tell the user about the
+     * finished task. */
+    _report_task_done (prev_task);
+
+    /* Also mark it as aborted so the user does not get notified again */
+    prev_task->abort = TRUE;
+  }
+
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task))
@@ -151,21 +183,17 @@ _process_curl_messages (FluDownloader *context)
 
   while ((msg = curl_multi_info_read (context->handle, &nmsgs))) {
     CURL *easy = msg->easy_handle;
-    long code = 0;
     FluDownloaderTask *task;
 
     if (msg->msg != CURLMSG_DONE || !context->done_cb || !easy)
       continue;
 
-    /* Retrieve task and result code, and inform user */
+    /* Retrieve task */
     curl_easy_getinfo (easy, CURLINFO_PRIVATE, (char **) &task);
-    if (task && task->abort == FALSE) {
-      /* If the task was told to abort, there is no need to inform the user */
-      curl_easy_getinfo (easy, CURLINFO_RESPONSE_CODE, &code);
-      if (context->done_cb) {
-        context->done_cb (code, task->downloaded_size, task->user_data, task);
-      }
-    }
+    if (!task)
+      continue;
+
+    _report_task_done (task);
 
     /* Remove the easy handle and free the task */
     _remove_task (context, task);
