@@ -1,5 +1,11 @@
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (fludownloader_abort_task):
+	* lib/fludownloader.h:
+	  - Small change to API to avoid redundant parameter.
+
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c: (_report_task_done), (_write_function),
 	(_process_curl_messages):
 	  - Handle correctly the case where a single call to curl_process() produces

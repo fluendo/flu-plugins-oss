@@ -415,9 +415,15 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
 }
 
 void
-fludownloader_abort_task (FluDownloader *context, FluDownloaderTask *task)
+fludownloader_abort_task (FluDownloaderTask *task)
 {
-  if (context == NULL || task == NULL)
+  FluDownloader *context;
+
+  if (task == NULL)
+    return;
+
+  context = task->context;
+  if (context == NULL)
     return;
 
   g_mutex_lock (context->mutex);

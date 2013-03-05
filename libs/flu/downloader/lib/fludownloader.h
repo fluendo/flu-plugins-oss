@@ -48,7 +48,7 @@ FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
  * Tasks are automatically removed when they finish, so there is no need
  * to call this unless premature termination is desired. */
 void
-fludownloader_abort_task (FluDownloader * context, FluDownloaderTask * task);
+fludownloader_abort_task (FluDownloaderTask * task);
 
 /* Abort ALL download tasks. If including_current is TRUE, event the currently
  * running task is interrupted. Otherwise, that one is allowed to finish. */
