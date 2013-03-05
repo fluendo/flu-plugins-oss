@@ -1,5 +1,13 @@
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (done_cb):
+	* lib/fludownloader.c: (fludownloader_task_get_url):
+	* lib/fludownloader.h:
+	  - Add API to report the URL of a task. This is EXPERIMENTAL, as the lock
+	    cannot be taken since we might want to call this from the data callback.
+
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (data_cb), (done_cb), (main):
 	* lib/fludownloader.c: (_write_function), (_process_curl_messages),
 	(fludownloader_new_task), (fludownloader_lock),

@@ -59,4 +59,6 @@ fludownloader_abort_all_tasks (FluDownloader * context,
 void fludownloader_lock (FluDownloader * context);
 void fludownloader_unlock (FluDownloader * context);
 
+gchar *fludownloader_task_get_url (FluDownloaderTask * task);
+
 #endif /* _FLUDOWNLOADER_H */

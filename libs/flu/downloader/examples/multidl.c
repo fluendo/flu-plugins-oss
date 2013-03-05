@@ -18,8 +18,9 @@ void
 done_cb (int response_code, size_t downloaded_size, gpointer user_data,
     FluDownloaderTask *task)
 {
-  g_printf ("Transfer #%d done. Code = %d. %zd downloaded bytes.\n",
-      (int) user_data, response_code, downloaded_size);
+  g_printf ("Transfer #%d done. Code = %d. %zd downloaded bytes (%s).\n",
+      (int) user_data, response_code, downloaded_size,
+      fludownloader_task_get_url (task));
 }
 
 int
