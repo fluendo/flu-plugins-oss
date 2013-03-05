@@ -1,5 +1,16 @@
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (data_cb), (done_cb), (main):
+	* lib/fludownloader.c: (_write_function), (_process_curl_messages),
+	(fludownloader_new_task), (fludownloader_lock),
+	(fludownloader_unlock):
+	* lib/fludownloader.h:
+	  - Add API to report the task that produced a data or done callback.
+	  - Add API to lock/unlock the library and allow adding a task without taking
+	    the library lock. This allows adding tasks in bucnhes.
+
+2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* fludownloader.pc.in:
 	  - Add missing file.
 

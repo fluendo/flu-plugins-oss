@@ -6,7 +6,8 @@
 #include "fludownloader.h"
 
 gboolean
-data_cb (void *buffer, size_t size, gpointer user_data)
+data_cb (void *buffer, size_t size, gpointer user_data,
+    FluDownloaderTask *task)
 {
 //  g_printf ("Received %d bytes from #%d\n", size, (int) user_data);
 //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
@@ -14,7 +15,8 @@ data_cb (void *buffer, size_t size, gpointer user_data)
 }
 
 void
-done_cb (int response_code, size_t downloaded_size, gpointer user_data)
+done_cb (int response_code, size_t downloaded_size, gpointer user_data,
+    FluDownloaderTask *task)
 {
   g_printf ("Transfer #%d done. Code = %d. %zd downloaded bytes.\n",
       (int) user_data, response_code, downloaded_size);
@@ -47,20 +49,22 @@ main (int argc, char *argv[])
   /* Test large numbers of enqueued tasks */
   {
     int i;
+    fludownloader_lock (dl1);
     for (i=1; i<=atoi (argv[1]); i++) {
       char *url;
 //      url = g_strdup_printf ("http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp%d.m4s", i);
       url = g_strdup_printf ("http://dash.fluendo.fluendo.lan:8080/ElephantsDream/ed_4s/ed_4sec_50kbit/ed_4sec%d.m4s", i);
-      fludownloader_new_task (dl1, url, NULL, (gpointer)i);
+      fludownloader_new_task (dl1, url, NULL, (gpointer)i, FALSE);
       g_free (url);
     }
 
     for (i=1; i<8; i++) {
       char *url;
       url = g_strdup_printf ("http://dash.fluendo.fluendo.lan:8080/ElephantsDream/ttml_eng_demuxed/eng_%02d.mp4", i);
-      fludownloader_new_task (dl2, url, NULL, (gpointer)1000 + i);
+      fludownloader_new_task (dl2, url, NULL, (gpointer)1000 + i, TRUE);
       g_free (url);
     }
+    fludownloader_unlock (dl1);
   }
 #endif
 

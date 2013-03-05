@@ -71,7 +71,7 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   }
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
-    if (!cb (buffer, total_size, task->user_data))
+    if (!cb (buffer, total_size, task->user_data, task))
       return 0;
   }
 
@@ -163,7 +163,7 @@ _process_curl_messages (FluDownloader *context)
       /* If the task was told to abort, there is no need to inform the user */
       curl_easy_getinfo (easy, CURLINFO_RESPONSE_CODE, &code);
       if (context->done_cb) {
-        context->done_cb (code, task->downloaded_size, task->user_data);
+        context->done_cb (code, task->downloaded_size, task->user_data, task);
       }
     }
 
@@ -347,7 +347,7 @@ fludownloader_destroy (FluDownloader *context)
 
 FluDownloaderTask *
 fludownloader_new_task (FluDownloader *context, const gchar *url,
-    const gchar *range, gpointer user_data)
+    const gchar *range, gpointer user_data, gboolean locked)
 {
   FluDownloaderTask *task;
 
@@ -376,10 +376,12 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
   curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
 
-  g_mutex_lock (context->mutex);
+  if (locked)
+    g_mutex_lock (context->mutex);
   context->queued_tasks = g_list_append (context->queued_tasks, task);
   _schedule_tasks (context);
-  g_mutex_unlock (context->mutex);
+  if (locked)
+    g_mutex_unlock (context->mutex);
 
   return task;
 }
@@ -419,3 +421,16 @@ fludownloader_abort_all_tasks (FluDownloader * context,
 
   g_mutex_unlock (context->mutex);
 }
+
+void
+fludownloader_lock (FluDownloader * context)
+{
+  g_mutex_lock (context->mutex);
+}
+
+void
+fludownloader_unlock (FluDownloader * context)
+{
+  g_mutex_unlock (context->mutex);
+}
+

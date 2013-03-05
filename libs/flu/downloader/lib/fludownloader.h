@@ -17,11 +17,11 @@ typedef struct _FluDownloaderTask FluDownloaderTask;
 
 /* Data callback. Return FALSE to cancel this download immediately. */
 typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
-    gpointer user_data);
+    gpointer user_data, FluDownloaderTask *task);
 
 /* Done callback. Called when a download finishes. */
 typedef void (*FluDownloaderDoneCallback) (int response_code,
-    size_t downloaded_size, gpointer user_data);
+    size_t downloaded_size, gpointer user_data, FluDownloaderTask *task);
 
 /* Initialize the library */
 void fludownloader_init ();
@@ -41,7 +41,8 @@ void fludownloader_destroy (FluDownloader * context);
  * or will be queued. Ranges are in HTTP format, or NULL to retrieve the
  * whole content. */
 FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
-    const gchar * url, const gchar *range, gpointer user_data);
+    const gchar * url, const gchar *range, gpointer user_data,
+    gboolean locked);
 
 /* Abort download task or remove it from queue if it has not started yet.
  * Tasks are automatically removed when they finish, so there is no need
@@ -54,5 +55,8 @@ fludownloader_abort_task (FluDownloader * context, FluDownloaderTask * task);
 void
 fludownloader_abort_all_tasks (FluDownloader * context,
     gboolean including_current);
+
+void fludownloader_lock (FluDownloader * context);
+void fludownloader_unlock (FluDownloader * context);
 
 #endif /* _FLUDOWNLOADER_H */
