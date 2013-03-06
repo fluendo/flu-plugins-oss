@@ -9,7 +9,7 @@ gboolean
 data_cb (void *buffer, size_t size, gpointer user_data,
     FluDownloaderTask *task)
 {
-//  g_printf ("Received %d bytes from #%d\n", size, (int) user_data);
+  g_printf ("Received %d bytes from #%d\n", size, (int) user_data);
 //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
   return TRUE;
 }
@@ -26,12 +26,11 @@ done_cb (int response_code, size_t downloaded_size, gpointer user_data,
 int
 main (int argc, char *argv[])
 {
-  FluDownloader *dl1, *dl2;
+  FluDownloader *dl1 = NULL, *dl2 = NULL;
 
   fludownloader_init ();
   dl1 = fludownloader_new (data_cb, done_cb);
-  dl2 = fludownloader_new (data_cb, done_cb);
-  if (!dl1 || !dl2) {
+  if (!dl1) {
     g_printf ("fludownloader_new failed\n");
     return -1;
   }
@@ -46,10 +45,16 @@ main (int argc, char *argv[])
   fludownloader_new_task (dl, "file:///home/fluendo/psvn/libfludownloader/configure", NULL, (gpointer)1000);
 #endif
 
-#if 1
+#if 0
   /* Test large numbers of enqueued tasks */
   {
     int i;
+    
+    dl2 = fludownloader_new (data_cb, done_cb);
+    if (!dl2) {
+      g_printf ("fludownloader_new failed\n");
+      return -1;
+    }
     fludownloader_lock (dl1);
     for (i=1; i<=atoi (argv[1]); i++) {
       char *url;
@@ -74,18 +79,30 @@ main (int argc, char *argv[])
   fludownloader_new_task (dl, "http://www.google.com", NULL, (gpointer) 1);
 #endif
 
+#if 1
+  /* Test file downloads mixed with HTTP */
+  fludownloader_lock (dl1);
+  fludownloader_new_task (dl1, "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", NULL, (gpointer) 0, FALSE);
+  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/aclocal.m4", NULL, (gpointer) 1, FALSE);
+  fludownloader_new_task (dl1, "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp2.m4s", NULL, (gpointer) 2, FALSE);
+  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/configure", NULL, (gpointer) 3, FALSE);
+  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/ltmain.sh", NULL, (gpointer) 4, FALSE);
+  fludownloader_unlock (dl1);
+#endif
+
 #if 0
   g_printf ("Press ENTER to abort all tasks\n");
   getchar ();
-  fludownloader_abort_all_tasks (dl2, FALSE);
+  fludownloader_abort_all_tasks (dl1, TRUE);
 
-  fludownloader_new_task (dl, "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp10.m4s", NULL, (gpointer) 555);
+//  fludownloader_new_task (dl, "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp10.m4s", NULL, (gpointer) 555);
 #endif
   g_printf ("Press ENTER to end\n");
   getchar ();
 
   fludownloader_destroy (dl1);
-  fludownloader_destroy (dl2);
+  if (dl2)
+    fludownloader_destroy (dl2);
   fludownloader_shutdown ();
 
   return 0;
