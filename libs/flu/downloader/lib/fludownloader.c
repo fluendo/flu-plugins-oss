@@ -43,6 +43,7 @@ struct _FluDownloaderTask
   gpointer user_data;           /* Application's user data */
   gboolean abort;               /* Signal the write callback to return error */
   gboolean running;             /* Has it already been passed to libCurl? */
+  gboolean is_file;             /* URL starts with file:// */
 
   /* Download control */
   size_t total_size;            /* File size reported by HTTP headers */
@@ -221,7 +222,7 @@ _schedule_tasks (FluDownloader *context)
     if (next_task_link) {
       next_task = (FluDownloaderTask *)next_task_link->data;
       /* Check if it is already running */
-      if (next_task->running) {
+      if (next_task->running || next_task->is_file) {
         /* Nothing to do then */
         next_task = NULL;
       } else {
@@ -386,6 +387,7 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
   task->user_data = user_data;
   task->context = context;
   task->first_header_line = TRUE;
+  task->is_file = g_str_has_prefix (url, "file://");
 
   task->handle = curl_easy_init ();
   curl_easy_setopt (task->handle, CURLOPT_WRITEFUNCTION,

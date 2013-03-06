@@ -1,3 +1,9 @@
+2013-03-06  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_schedule_tasks), (fludownloader_new_task):
+	  - Do not allow file:// downloads to be overlapped with HTTP ones, since
+	    packets arrive much earlier and therefore out-of-order.
+
 2013-03-05  Xavi Artigas  <xartigas@fluendo.com>
 
 	* lib/fludownloader.h:
