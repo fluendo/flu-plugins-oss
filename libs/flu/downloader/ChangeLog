@@ -1,5 +1,12 @@
 2013-03-06  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (_report_task_done):
+	  - Return valid status codes for file transfers. Apparently libCurl does
+	    not provide them, so we only check if the amount of downloaded data
+	    is > 0.
+
+2013-03-06  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c: (_schedule_tasks):
 	  - Make extra sure that files are not overlapped with HTTP downloads.
 

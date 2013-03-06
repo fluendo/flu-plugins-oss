@@ -65,7 +65,12 @@ _report_task_done (FluDownloaderTask * task)
     long code = 0;
 
     /* Retrieve result code, and inform user */
-    curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE, &code);
+    if (task->is_file)
+      /* Sort of HTTP status codes emulation.
+       * FIXME: To be replaced by actual library error codes */
+      code = task->downloaded_size > 0 ? 200 : 404;
+    else
+      curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE, &code);
     if (task->context->done_cb) {
       task->context->done_cb (code, task->downloaded_size, task->user_data,
           task);
