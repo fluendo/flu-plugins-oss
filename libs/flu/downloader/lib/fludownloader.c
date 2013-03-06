@@ -222,7 +222,7 @@ _schedule_tasks (FluDownloader *context)
     if (next_task_link) {
       next_task = (FluDownloaderTask *)next_task_link->data;
       /* Check if it is already running */
-      if (next_task->running || next_task->is_file) {
+      if (next_task->running || next_task->is_file || first_task->is_file) {
         /* Nothing to do then */
         next_task = NULL;
       } else {

@@ -1,5 +1,10 @@
 2013-03-06  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (_schedule_tasks):
+	  - Make extra sure that files are not overlapped with HTTP downloads.
+
+2013-03-06  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (data_cb), (main):
 	  - Update example with mixed file/HTTP downloads.
 
