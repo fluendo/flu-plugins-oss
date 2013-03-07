@@ -1,3 +1,8 @@
+2013-03-07  Jorge Zapata  <jzapata@fluendo.com>
+
+	* lib/fludownloader.c: (fludownloader_new_task):
+	Set "fludownloader" as the user agent
+
 2013-03-07  Julien Moutte <julien@fluendo.com>
 
 	* examples/multidl.c: (data_cb), (done_cb): Fix build on 64 bits.
