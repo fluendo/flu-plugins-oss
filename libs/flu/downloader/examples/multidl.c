@@ -9,7 +9,7 @@ gboolean
 data_cb (void *buffer, size_t size, gpointer user_data,
     FluDownloaderTask *task)
 {
-  g_printf ("Received %d bytes from #%d\n", size, (int) user_data);
+  g_printf ("Received %" G_GSIZE_FORMAT " bytes from #%p\n", size, user_data);
 //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
   return TRUE;
 }
@@ -18,8 +18,8 @@ void
 done_cb (int response_code, size_t downloaded_size, gpointer user_data,
     FluDownloaderTask *task)
 {
-  g_printf ("Transfer #%d done. Code = %d. %zd downloaded bytes (%s).\n",
-      (int) user_data, response_code, downloaded_size,
+  g_printf ("Transfer #%p done. Code = %d. %zd downloaded bytes (%s).\n",
+      user_data, response_code, downloaded_size,
       fludownloader_task_get_url (task));
 }
 
