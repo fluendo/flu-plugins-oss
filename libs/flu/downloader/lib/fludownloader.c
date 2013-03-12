@@ -260,6 +260,7 @@ _thread_function (FluDownloader *context)
 
   g_mutex_lock (context->mutex);
   while (!context->shutdown) {
+    FD_ZERO (&rfds);
     curl_multi_fdset (context->handle, &rfds, &wfds, &efds, &max_fd);
     if (max_fd == -1) {
       /* There is nothing happening: wait a bit (and release the mutex) */

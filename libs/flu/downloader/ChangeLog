@@ -1,3 +1,8 @@
+2013-03-12  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_thread_function):
+	  - Fix sockets watched by select(). This was causing 100% cpu sometimes.
+
 2013-03-07  Jorge Zapata  <jzapata@fluendo.com>
 
 	* lib/fludownloader.c: (fludownloader_new_task):
