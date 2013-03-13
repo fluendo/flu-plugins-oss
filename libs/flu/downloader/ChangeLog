@@ -1,5 +1,14 @@
 2013-03-13  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (done_cb), (main):
+	* lib/fludownloader.c: (_report_task_done):
+	* lib/fludownloader.h:
+	  - Return an error code in the done callbacks besides the HTTP status code,
+	    which is strange for file:// transfers. This simplifies applications.
+	  - Update example.
+
+2013-03-13  Xavi Artigas  <xartigas@fluendo.com>
+
 	* Makefile.am:
 	  - Do not install the example program.
 

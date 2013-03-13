@@ -15,13 +15,21 @@
 typedef struct _FluDownloader FluDownloader;
 typedef struct _FluDownloaderTask FluDownloaderTask;
 
+typedef enum _FluDownloaderTaskOutcome
+{
+  FLUDOWNLOADER_TASK_OK,
+  FLUDOWNLOADER_TASK_ERROR,
+} FluDownloaderTaskOutcome;
+  
+
 /* Data callback. Return FALSE to cancel this download immediately. */
 typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
     gpointer user_data, FluDownloaderTask *task);
 
 /* Done callback. Called when a download finishes. */
-typedef void (*FluDownloaderDoneCallback) (int response_code,
-    size_t downloaded_size, gpointer user_data, FluDownloaderTask *task);
+typedef void (*FluDownloaderDoneCallback) (FluDownloaderTaskOutcome outcome,
+    int http_status_code, size_t downloaded_size, gpointer user_data,
+    FluDownloaderTask *task);
 
 /* Initialize the library */
 void fludownloader_init ();

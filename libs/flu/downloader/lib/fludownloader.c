@@ -62,18 +62,22 @@ _report_task_done (FluDownloaderTask * task)
 {
   /* If the task was told to abort, there is no need to inform the user */
   if (task->abort == FALSE) {
-    long code = 0;
+    FluDownloaderTaskOutcome outcome = FLUDOWNLOADER_TASK_OK;
+    long http_status_code = 0;
 
     /* Retrieve result code, and inform user */
     if (task->is_file)
-      /* Sort of HTTP status codes emulation.
-       * FIXME: To be replaced by actual library error codes */
-      code = task->downloaded_size > 0 ? 200 : 404;
-    else
-      curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE, &code);
+      outcome = task->downloaded_size > 0 ? FLUDOWNLOADER_TASK_OK :
+          FLUDOWNLOADER_TASK_ERROR;
+    else {
+      curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
+          &http_status_code);
+      outcome = http_status_code < 299 ? FLUDOWNLOADER_TASK_OK :
+          FLUDOWNLOADER_TASK_ERROR;
+    }
     if (task->context->done_cb) {
-      task->context->done_cb (code, task->downloaded_size, task->user_data,
-          task);
+      task->context->done_cb (outcome, http_status_code, task->downloaded_size,
+          task->user_data, task);
     }
   }
 }
