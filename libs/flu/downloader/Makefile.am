@@ -8,7 +8,7 @@ noinst_LTLIBRARIES =
 lib_LTLIBRARIES = libfludownloader.la
 include_HEADERS = $(top_srcdir)/lib/fludownloader.h
 
-bin_PROGRAMS = multidl
+noinst_PROGRAMS = multidl
 
 libfludownloader_la_SOURCES = $(top_srcdir)/lib/fludownloader.c $(top_srcdir)/lib/fludownloader.h
 
