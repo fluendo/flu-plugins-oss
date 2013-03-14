@@ -1,3 +1,8 @@
+2013-03-14  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_thread_function):
+	  - Clear the dummy write and exception fd's to avoid waiting on useless fd's
+
 2013-03-13  Xavi Artigas  <xartigas@fluendo.com>
 
 	* examples/multidl.c: (done_cb), (main):
