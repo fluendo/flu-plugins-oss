@@ -7,6 +7,8 @@
 
 #include "curl/curl.h"
 
+#include <glib/gstdio.h>        /* g_stat */
+
 #include <unistd.h>             /* sleep */
 
 #define TIMEOUT 100000          /* 100ms */
@@ -400,6 +402,18 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
   task->context = context;
   task->first_header_line = TRUE;
   task->is_file = g_str_has_prefix (url, "file://");
+  if (task->is_file) {
+    /* Find out file size now, because we will not be able to parse any
+     * HTTP header for file transfers. */
+    struct stat s;
+    gchar *path = g_filename_from_uri (url, NULL, NULL);
+    if (path) {
+      if (g_stat (path, &s) == 0) {
+        task->total_size = s.st_size;
+      }
+      g_free (path);
+    }
+  }
 
   task->handle = curl_easy_init ();
   curl_easy_setopt (task->handle, CURLOPT_WRITEFUNCTION,
@@ -492,4 +506,10 @@ fludownloader_task_get_url (FluDownloaderTask * task)
 //  g_mutex_unlock (task->context->mutex);
 
   return url;
+}
+
+size_t
+fludownloader_task_get_length (FluDownloaderTask * task)
+{
+  return task->total_size;
 }

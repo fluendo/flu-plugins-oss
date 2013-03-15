@@ -1,3 +1,12 @@
+2013-03-15  Xavi Artigas  <xartigas@fluendo.com>
+
+	* examples/multidl.c: (data_cb):
+	* lib/fludownloader.c: (fludownloader_new_task),
+	(fludownloader_task_get_url), (fludownloader_task_get_length):
+	* lib/fludownloader.h:
+	  - Add API to retrieve download size before it is complete.
+	  - Update example.
+
 2013-03-14  Xavi Artigas  <xartigas@fluendo.com>
 
 	* lib/fludownloader.c: (_thread_function):

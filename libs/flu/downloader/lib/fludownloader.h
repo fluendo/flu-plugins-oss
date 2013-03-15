@@ -74,4 +74,9 @@ void fludownloader_unlock (FluDownloader * context);
 /* Retrieve the URL thas was used for a given task */
 const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
 
+/* Retrieve the content length of a given task, as returned by the
+ * server. Can be 0 if the task has not started yet or if the server did not
+ * report it. Works for file:// transfers too. */
+size_t fludownloader_task_get_length (FluDownloaderTask * task);
+
 #endif /* _FLUDOWNLOADER_H */

@@ -9,7 +9,9 @@ gboolean
 data_cb (void *buffer, size_t size, gpointer user_data,
     FluDownloaderTask *task)
 {
-  g_printf ("Received %" G_GSIZE_FORMAT " bytes from #%p\n", size, user_data);
+  g_printf ("Received %" G_GSIZE_FORMAT " bytes from #%p"
+      " (Total size = %zd)\n", size, user_data,
+      fludownloader_task_get_length (task));
 //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
   return TRUE;
 }
