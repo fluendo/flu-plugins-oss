@@ -1,5 +1,10 @@
 2013-03-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* lib/fludownloader.c: (fludownloader_task_get_url):
+	  - Remove useless, commented-out locks.
+	
+2013-03-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* examples/multidl.c: (data_cb):
 	* lib/fludownloader.c: (fludownloader_new_task),
 	(fludownloader_task_get_url), (fludownloader_task_get_length):
