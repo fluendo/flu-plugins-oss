@@ -1,3 +1,11 @@
+2013-03-18  Xavi Artigas  <xartigas@fluendo.com>
+
+	* examples/multidl.c: (main):
+	* lib/fludownloader.c: (_thread_function), (fludownloader_new):
+	* lib/fludownloader.h:
+	  - Add API to set a polling period if desired. This allows reducing the CPU
+	    consumption by sacrificing network throughput.
+
 2013-03-15  Xavi Artigas  <xartigas@fluendo.com>
 
 	* lib/fludownloader.c: (fludownloader_task_get_url):

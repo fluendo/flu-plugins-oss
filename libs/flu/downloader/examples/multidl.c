@@ -33,7 +33,7 @@ main (int argc, char *argv[])
   FluDownloader *dl1 = NULL, *dl2 = NULL;
 
   fludownloader_init ();
-  dl1 = fludownloader_new (data_cb, done_cb);
+  dl1 = fludownloader_new (data_cb, done_cb, 0);
   if (!dl1) {
     g_printf ("fludownloader_new failed\n");
     return -1;
@@ -41,12 +41,12 @@ main (int argc, char *argv[])
 
 #if 0
   /* Manual list of tests */
-  fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/_index.html", NULL, (gpointer) 1);
-  fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/Sintel_Trailer1.480p.DivX_Plus_HD.mkv", "1000-2000", (gpointer) 2);
-  fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/sintel_trailer-480p.mp4", NULL, (gpointer) 3);
-  fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/sintel_trailer-720p.mp4", NULL, (gpointer) 4);
-  fludownloader_new_task (dl, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/Sintel_Trailer.480p.DivX_Plus_HD.mkv", NULL, (gpointer) 5);
-  fludownloader_new_task (dl, "file:///home/fluendo/psvn/libfludownloader/configure", NULL, (gpointer)1000);
+  fludownloader_new_task (dl1, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/_index.html", NULL, (gpointer) 1, TRUE);
+  fludownloader_new_task (dl1, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/Sintel_Trailer1.480p.DivX_Plus_HD.mkv", "1000-2000", (gpointer) 2, TRUE);
+  fludownloader_new_task (dl1, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/sintel_trailer-480p.mp4", NULL, (gpointer) 3, TRUE);
+  fludownloader_new_task (dl1, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/sintel_trailer-720p.mp4", NULL, (gpointer) 4, TRUE);
+  fludownloader_new_task (dl1, "http://ftp.nluug.nl/ftp/graphics/blender/apricot/trailer/Sintel_Trailer.480p.DivX_Plus_HD.mkv", NULL, (gpointer) 5, TRUE);
+  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/configure", NULL, (gpointer)1000, TRUE);
 #endif
 
 #if 0
@@ -54,7 +54,7 @@ main (int argc, char *argv[])
   {
     int i;
     
-    dl2 = fludownloader_new (data_cb, done_cb);
+    dl2 = fludownloader_new (data_cb, done_cb, 0);
     if (!dl2) {
       g_printf ("fludownloader_new failed\n");
       return -1;

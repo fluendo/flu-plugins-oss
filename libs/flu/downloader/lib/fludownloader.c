@@ -35,6 +35,10 @@ struct _FluDownloader
   /* CURL stuff */
   CURLM *handle;                /* CURL multi handler */
   GList *queued_tasks;
+
+  /* CPU control stuff */
+  gboolean use_polling;         /* Do not use select() */
+  guint polling_period;         /* uSeconds to wait between curl checks */
 };
 
 /* Takes care of one task (file) */
@@ -270,10 +274,10 @@ _thread_function (FluDownloader *context)
     FD_ZERO (&wfds);
     FD_ZERO (&efds);
     curl_multi_fdset (context->handle, &rfds, &wfds, &efds, &max_fd);
-    if (max_fd == -1) {
+    if (max_fd == -1 || context->use_polling) {
       /* There is nothing happening: wait a bit (and release the mutex) */
       g_mutex_unlock (context->mutex);
-      usleep (TIMEOUT);
+      usleep (context->polling_period);
       g_mutex_lock (context->mutex);
     } else if (max_fd > 0) {
       /* There are some active fd's: wait for them (and release the mutex) */
@@ -334,11 +338,13 @@ fludownloader_shutdown ()
 
 FluDownloader *
 fludownloader_new (FluDownloaderDataCallback data_cb,
-    FluDownloaderDoneCallback done_cb)
+    FluDownloaderDoneCallback done_cb, guint polling_period)
 {
   FluDownloader *context = g_new0 (FluDownloader, 1);
   context->data_cb = data_cb;
   context->done_cb = done_cb;
+  context->use_polling = polling_period > 0;
+  context->polling_period = polling_period > 0 ? polling_period : TIMEOUT;
 
   context->handle = curl_multi_init ();
   if (!context->handle)
