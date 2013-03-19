@@ -1,3 +1,7 @@
+2013-03-19  Fluendo <julien@fluendo.com>
+
+	* configure.ac: Fix configure for new_release.sh script.
+
 2013-03-19  Xavi Artigas  <xartigas@fluendo.com>
 
 	* examples/multidl.c: (main):
