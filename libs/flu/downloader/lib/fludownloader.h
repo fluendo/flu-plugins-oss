@@ -37,13 +37,9 @@ void fludownloader_init ();
 /* Shutdown the library */
 void fludownloader_shutdown ();
 
-/* Create a new FluDownloader session
- * The polling_period (in uSeconds) sets the wait between curl checks.
- * It is useful to reduce CPU consumption (by reducing throughput too).
- * Set it to 0 to disable polling and use select(), resulting in
- * maximum network throughput (and CPU consumption). */
+/* Create a new FluDownloader session */
 FluDownloader *fludownloader_new (FluDownloaderDataCallback data_cb,
-    FluDownloaderDoneCallback done_cb, guint polling_period);
+    FluDownloaderDoneCallback done_cb);
 
 /* Destroy a FluDownloader context and free related resources.
  * Abort outstanding tasks and close all connections. */
@@ -82,5 +78,12 @@ const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
  * server. Can be 0 if the task has not started yet or if the server did not
  * report it. Works for file:// transfers too. */
 size_t fludownloader_task_get_length (FluDownloaderTask * task);
+
+/* The polling_period (in uSeconds) sets the wait between curl checks.
+ * It is useful to reduce CPU consumption (by reducing throughput too).
+ * Set it to 0 to disable polling and use select(), resulting in
+ * maximum network throughput (and CPU consumption). */
+void fludownloader_set_polling_period (FluDownloader * context, gint period);
+gint fludownloader_get_polling_period (FluDownloader * context);
 
 #endif /* _FLUDOWNLOADER_H */

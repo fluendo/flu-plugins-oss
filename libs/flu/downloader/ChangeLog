@@ -1,5 +1,15 @@
 2013-03-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* examples/multidl.c: (main):
+	* lib/fludownloader.c: (fludownloader_new),
+	(fludownloader_task_get_length),
+	(fludownloader_set_polling_period),
+	(fludownloader_get_polling_period):
+	* lib/fludownloader.h:
+	  - Change polling period API to allow it to be set/get at any time.
+
+2013-03-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* lib/fludownloader.c: (_thread_function):
 	  - Use g_usleep() instead of usleep() for portability.
 

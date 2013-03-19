@@ -33,11 +33,15 @@ main (int argc, char *argv[])
   FluDownloader *dl1 = NULL, *dl2 = NULL;
 
   fludownloader_init ();
-  dl1 = fludownloader_new (data_cb, done_cb, 0);
+  dl1 = fludownloader_new (data_cb, done_cb);
   if (!dl1) {
     g_printf ("fludownloader_new failed\n");
     return -1;
   }
+
+  /* Disable polling. This is the default behaviour.
+   * It is set here for testing. */
+  fludownloader_set_polling_period (dl1, 0);
 
 #if 0
   /* Manual list of tests */
@@ -54,7 +58,7 @@ main (int argc, char *argv[])
   {
     int i;
     
-    dl2 = fludownloader_new (data_cb, done_cb, 0);
+    dl2 = fludownloader_new (data_cb, done_cb);
     if (!dl2) {
       g_printf ("fludownloader_new failed\n");
       return -1;

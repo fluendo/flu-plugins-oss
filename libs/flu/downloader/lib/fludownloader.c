@@ -36,7 +36,7 @@ struct _FluDownloader
 
   /* CPU control stuff */
   gboolean use_polling;         /* Do not use select() */
-  guint polling_period;         /* uSeconds to wait between curl checks */
+  gint polling_period;          /* uSeconds to wait between curl checks */
 };
 
 /* Takes care of one task (file) */
@@ -336,13 +336,13 @@ fludownloader_shutdown ()
 
 FluDownloader *
 fludownloader_new (FluDownloaderDataCallback data_cb,
-    FluDownloaderDoneCallback done_cb, guint polling_period)
+    FluDownloaderDoneCallback done_cb)
 {
   FluDownloader *context = g_new0 (FluDownloader, 1);
   context->data_cb = data_cb;
   context->done_cb = done_cb;
-  context->use_polling = polling_period > 0;
-  context->polling_period = polling_period > 0 ? polling_period : TIMEOUT;
+  context->use_polling = FALSE;
+  context->polling_period = TIMEOUT;
 
   context->handle = curl_multi_init ();
   if (!context->handle)
@@ -514,4 +514,24 @@ size_t
 fludownloader_task_get_length (FluDownloaderTask * task)
 {
   return task->total_size;
+}
+
+void
+fludownloader_set_polling_period (FluDownloader * context, gint period)
+{
+  g_mutex_lock (context->mutex);
+  context->use_polling = period > 0;
+  context->polling_period = period > 0 ? period : TIMEOUT;
+  g_mutex_unlock (context->mutex);
+}
+
+gint
+fludownloader_get_polling_period (FluDownloader * context)
+{
+  gint ret;
+  g_mutex_lock (context->mutex);
+  ret = context->use_polling ? context->polling_period : 0;
+  g_mutex_unlock (context->mutex);
+
+  return ret;
 }
