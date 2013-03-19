@@ -30,3 +30,4 @@ pkgconfig_DATA = $(pcfiles)
 
 EXTRA_DIST =
 
+include common/release.mak
