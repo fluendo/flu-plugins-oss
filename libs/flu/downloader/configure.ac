@@ -1,6 +1,7 @@
 AC_PREREQ(2.52)
 
-AC_INIT(fludownloader, 0.0.1, support@fluendo.com)
+AC_INIT(Fluendo HTTP downloader library, 0.0.0.1, ,
+    libfludownloader)
 
 AC_CONFIG_SRCDIR(configure.ac)
 
