@@ -9,8 +9,6 @@
 
 #include <glib/gstdio.h>        /* g_stat */
 
-#include <unistd.h>             /* sleep */
-
 #define TIMEOUT 100000          /* 100ms */
 
 /*****************************************************************************
@@ -277,7 +275,7 @@ _thread_function (FluDownloader *context)
     if (max_fd == -1 || context->use_polling) {
       /* There is nothing happening: wait a bit (and release the mutex) */
       g_mutex_unlock (context->mutex);
-      usleep (context->polling_period);
+      g_usleep (context->polling_period);
       g_mutex_lock (context->mutex);
     } else if (max_fd > 0) {
       /* There are some active fd's: wait for them (and release the mutex) */
