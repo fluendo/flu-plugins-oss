@@ -1,3 +1,8 @@
+2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c:
+	  - Whitespace in comments.
+
 2013-02-13  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
