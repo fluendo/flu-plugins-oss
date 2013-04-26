@@ -1,5 +1,10 @@
 2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstate.c:
+	  - Remove bogus warning when applying empty styles.
+
+2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c:
 	  - Use SAX2 interface instead of SAX, to simplify later processing of
 	    namespaces.

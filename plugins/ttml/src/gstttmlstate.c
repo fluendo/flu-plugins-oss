@@ -323,12 +323,11 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
     return;
 
   if (state->saved_attr_stacks) {
-    attr_link = (GList *)g_hash_table_lookup (state->saved_attr_stacks, id);
-  }
-
-  if (!attr_link) {
-    GST_WARNING ("Undefined style '%s'", id);
-    return;
+    if (!g_hash_table_lookup_extended (state->saved_attr_stacks, id, NULL,
+          (gpointer *)&attr_link)) {
+      GST_WARNING ("Undefined style '%s'", id);
+      return;
+    }
   }
 
   GST_DEBUG ("Applying style '%s'", id);
