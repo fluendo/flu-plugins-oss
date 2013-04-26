@@ -1,6 +1,12 @@
 2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c:
+	  - Use SAX2 interface instead of SAX, to simplify later processing of
+	    namespaces.
+
+2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c:
 	  - Whitespace in comments.
 
 2013-02-13  Release Maker <nomail@fluendo.com>
