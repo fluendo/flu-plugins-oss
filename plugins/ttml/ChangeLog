@@ -1,6 +1,21 @@
 2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstate.c:
+	* src/gstttmlattribute.c:
+	* src/gstttmlattribute.h:
+	* src/gstttmlparse.c:
+	* src/gstttmlutils.c:
+	* src/gstttmlutils.h:
+	  - Obey only nodes and attributes in the TTML or XML namespaces and ignore
+	    the rest. This has no effect at all in the test files we have, but
+	    makes the Foreign001.xml test pass for the correct reason now (the node
+	    is discarded due to its namespace, not its lack of timing information).
+	  - This introduces lots of extra strcmp's only to ignore bogus nodes in
+	    malformed TTML files, but...
+
+2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstate.c:
 	  - Remove bogus warning when applying empty styles.
 
 2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
