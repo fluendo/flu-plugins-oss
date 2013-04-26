@@ -10,6 +10,21 @@
 #include "gstttmlutils.h"
 #include "gstttmlenums.h"
 
+/* Find out if a namespace belongs to the TTML specification */
+gboolean
+gst_ttml_utils_namespace_is_ttml (const gchar *ns)
+{
+  /* If it uses the default namespace (no prefix), assume it is valid.
+   * In this way we avoid lots of strcmp's */
+  if (!ns)
+    return TRUE;
+
+  /* Compare with the known valid namespaces for TTML */
+  return g_str_has_prefix (ns, "http://www.w3.org/ns/ttml") ||
+      g_str_has_prefix (ns, "http://www.w3.org/2006/10/ttaf1") ||
+      g_str_has_prefix (ns, "http://www.w3.org/XML/1998/namespace");
+}
+
 /* Check if the given node or attribute name matches a type, disregarding
  * possible namespaces */
 gboolean
@@ -17,11 +32,6 @@ gst_ttml_utils_element_is_type (const gchar *name, const gchar *type)
 {
   if (!g_ascii_strcasecmp (name, type))
     return TRUE;
-  if (strlen (name) > strlen (type)) {
-    const gchar *suffix = name + strlen (name) - strlen (type);
-    if (suffix[-1] == ':' && !g_ascii_strcasecmp (suffix, type))
-      return TRUE;
-  }
   return FALSE;
 }
 
@@ -52,8 +62,12 @@ gst_ttml_utils_attr_value_is (const gchar *str1, const gchar *str2)
 
 /* Convert a node type name into a node type enum */
 GstTTMLNodeType
-gst_ttml_utils_node_type_parse (const gchar *name)
+gst_ttml_utils_node_type_parse (const gchar *ns, const gchar *name)
 {
+  if (!gst_ttml_utils_namespace_is_ttml (ns)) {
+    GST_WARNING ("Ignoring non-TTML namespace in node type %s:%s", ns, name);
+    return GST_TTML_NODE_TYPE_UNKNOWN;
+  }
   if (gst_ttml_utils_element_is_type (name, "p")) {
     return GST_TTML_NODE_TYPE_P;
   } else if (gst_ttml_utils_element_is_type (name, "span")) {

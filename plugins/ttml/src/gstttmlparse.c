@@ -239,9 +239,10 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
   gboolean is_container_seq = parse->state.sequential_time_container;
   gboolean dur_attr_found = FALSE;
 
-  GST_LOG_OBJECT (parse, "New element: %s", name);
+  GST_LOG_OBJECT (parse, "New element: %s prefix:%s URI:%s", name,
+    prefix?prefix:"NULL", URI?URI:"NULL");
 
-  node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
+  node_type = gst_ttml_utils_node_type_parse (!prefix?NULL:(const gchar *)URI, (const gchar *)name);
   GST_DEBUG ("Parsed name '%s' into node type %s",
       name, gst_ttml_utils_node_type_name (node_type));
 
@@ -281,7 +282,8 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
     gchar *value = (gchar *)alloca(value_len + 1);
     memcpy (value, xml_attr[3], value_len);
     value[value_len] = '\0';
-    ttml_attr = gst_ttml_attribute_parse (&parse->state, xml_attr[0],
+    ttml_attr = gst_ttml_attribute_parse (&parse->state,
+        !xml_attr[1]?NULL:xml_attr[2], xml_attr[0],
         value);
     if (ttml_attr) {
       if (ttml_attr->type == GST_TTML_ATTR_DUR)
@@ -324,7 +326,8 @@ gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
   GstTTMLNodeType current_node_type;
 
   GST_LOG_OBJECT (parse, "End element: %s", name);
-  current_node_type = gst_ttml_utils_node_type_parse ((const gchar *)name);
+  current_node_type = gst_ttml_utils_node_type_parse (
+      !prefix?NULL:(const gchar *)URI, (const gchar *)name);
 
   /* Special actions for some node types */
   switch (current_node_type) {

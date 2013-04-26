@@ -128,12 +128,18 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr)
  * Returns NULL if the attribute was unknown, and uses g_new to allocate
  * the new attribute. */
 GstTTMLAttribute *
-gst_ttml_attribute_parse (const GstTTMLState *state, const char *name,
-    const char *value)
+gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
+    const char *name, const char *value)
 {
   GstTTMLAttribute *attr;
   int n;
   char *previous_locale = setlocale (LC_NUMERIC, NULL);
+
+  if (!gst_ttml_utils_namespace_is_ttml (ns)) {
+    GST_WARNING ("Ignoring non-TTML namespace in attribute %s:%s=%s", ns, name,
+        value);
+    return NULL;
+  }
 
   setlocale (LC_NUMERIC, "C");
   GST_LOG ("Parsing attribute %s=%s", name, value);
