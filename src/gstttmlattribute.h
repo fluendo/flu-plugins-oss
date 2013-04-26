@@ -43,7 +43,7 @@ struct _GstTTMLAttributeEvent {
 };
 
 GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
-    const char *name, const char *value);
+    const char *ns, const char *name, const char *value);
 
 void gst_ttml_attribute_free (GstTTMLAttribute *attr);
 
