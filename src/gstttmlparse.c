@@ -227,7 +227,9 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
 
 /* Process a node start. Just push all its attributes onto the stack. */
 static void
-gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
+gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
+    const xmlChar *prefix, const xmlChar *URI, int nb_namespaces,
+    const xmlChar **namespaces, int nb_attributes, int nb_defaulted,
     const xmlChar **xml_attrs)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
@@ -272,16 +274,22 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
     gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   }
   /* Push onto the stack all attributes defined by this element */
-  while (xml_attr && xml_attr[0]) {
+  while (nb_attributes--) {
+    /* Create a local copy of the attr value, since SAX2 does not
+     * NULL-terminate the string */
+    gsize value_len = xml_attr[4] - xml_attr[3];
+    gchar *value = (gchar *)alloca(value_len + 1);
+    memcpy (value, xml_attr[3], value_len);
+    value[value_len] = '\0';
     ttml_attr = gst_ttml_attribute_parse (&parse->state, xml_attr[0],
-        xml_attr[1]);
+        value);
     if (ttml_attr) {
       if (ttml_attr->type == GST_TTML_ATTR_DUR)
         dur_attr_found = TRUE;
       gst_ttml_state_push_attribute (&parse->state, ttml_attr);
     }
 
-    xml_attr = &xml_attr[2];
+    xml_attr = &xml_attr[5];
   }
   /* Manually push a 0 DUR attribute if the node did not define it in
    * sequential mode. In this case this node must be ignored and this seemed
@@ -305,7 +313,8 @@ gst_ttmlparse_sax_element_start (void *ctx, const xmlChar *name,
 
 /* Process a node end. Just pop previous state from the stack. */
 static void
-gst_ttmlparse_sax_element_end (void *ctx, const xmlChar * name)
+gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
+    const xmlChar *prefix, const xmlChar *URI)
 {
   GstTTMLParse *parse = GST_TTMLPARSE (ctx);
   GstTTMLAttribute *prev_attr;
@@ -470,8 +479,8 @@ static xmlSAXHandler gst_ttmlparse_sax_handler = {
   /* .setDocumentLocator = */ NULL,
   /* .startDocument = */ gst_ttmlparse_sax_document_start,
   /* .endDocument = */ gst_ttmlparse_sax_document_end,
-  /* .startElement = */ gst_ttmlparse_sax_element_start,
-  /* .endElement = */ gst_ttmlparse_sax_element_end,
+  /* .startElement = */ NULL,
+  /* .endElement = */ NULL,
   /* .reference = */ NULL,
   /* .characters = */ gst_ttmlparse_sax_characters,
   /* .ignorableWhitespace = */ NULL,
@@ -480,6 +489,14 @@ static xmlSAXHandler gst_ttmlparse_sax_handler = {
   /* .warning = */ gst_ttmlparse_sax_warning,
   /* .error = */ gst_ttmlparse_sax_error,
   /* .fatalError = */ gst_ttmlparse_sax_error,
+  /* .getParameterEntity = */ NULL,
+  /* .cdataBlock = */ NULL,
+  /* .externalSubset = */ NULL,
+  /* .initialized = */ XML_SAX2_MAGIC,
+  /* ._private = */ NULL,
+  /* .startElementNs = */ gst_ttmlparse_sax2_element_start_ns,
+  /* .endElementNs = */ gst_ttmlparse_sax2_element_end_ns,
+  /* .xmlStructuredError = */ NULL
 };
 
 /* Free any parsing-related information held by the element */
