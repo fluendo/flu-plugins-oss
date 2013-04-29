@@ -1,3 +1,5 @@
+=== release 0.10.6 ===
+
 2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer):

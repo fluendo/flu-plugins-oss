@@ -111,7 +111,7 @@
 #define PACKAGE_NAME "GStreamer Fluendo TTML Element"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "GStreamer Fluendo TTML Element 0.10.5"
+#define PACKAGE_STRING "GStreamer Fluendo TTML Element 0.10.6"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "gst-fluendo-ttml"
@@ -120,7 +120,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.10.5"
+#define PACKAGE_VERSION "0.10.6"
 
 /* directory where plugins are located */
 #define PLUGINDIR "/usr/local/lib/gstreamer-0.10"
@@ -162,7 +162,7 @@
 /* #undef USE_ARM_VFP */
 
 /* Version number of package */
-#define VERSION "0.10.5"
+#define VERSION "0.10.6"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */
