@@ -1,5 +1,10 @@
 2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/ttml-play.sh:
+	  - Make test script more comfortable by removing background animation.
+
+2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango):
 	  - Enable usage of a comma-separated list of fonts in the font_family tag.
 	    This involved a few workarounds for Pango Markup 'quirks'...
