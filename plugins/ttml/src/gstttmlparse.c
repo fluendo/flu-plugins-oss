@@ -80,6 +80,12 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
       return;
     }
 
+    if (span.length == 1 && span.chars[0] == '\n') {
+      /* Pango does not like buffers made entirely of invisible chars.
+       * This requires a more robust fix... */
+      span.chars[0] = ' ';
+    }
+
     buffer = gst_buffer_new_and_alloc (span.length);
     memcpy (GST_BUFFER_DATA (buffer), span.chars, span.length);
     g_free (span.chars);

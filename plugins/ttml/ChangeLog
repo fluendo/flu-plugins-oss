@@ -1,5 +1,11 @@
 2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer):
+	  - Add yet another Pango Markup workaround for buffers with no printable
+	    chars.
+
+2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* testsuite/ttml-play.sh:
 	  - Make test script more comfortable by removing background animation.
 
