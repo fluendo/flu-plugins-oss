@@ -1,5 +1,11 @@
 2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango):
+	  - Enable usage of a comma-separated list of fonts in the font_family tag.
+	    This involved a few workarounds for Pango Markup 'quirks'...
+
+2013-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_sax2_element_start_ns):
 	  - Fix warning on Linux.
 
