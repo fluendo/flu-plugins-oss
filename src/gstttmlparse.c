@@ -240,7 +240,7 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
   gboolean dur_attr_found = FALSE;
 
   GST_LOG_OBJECT (parse, "New element: %s prefix:%s URI:%s", name,
-    prefix?prefix:"NULL", URI?URI:"NULL");
+    prefix?(char *)prefix:"NULL", URI?(char *)URI:"NULL");
 
   node_type = gst_ttml_utils_node_type_parse (!prefix?NULL:(const gchar *)URI, (const gchar *)name);
   GST_DEBUG ("Parsed name '%s' into node type %s",
