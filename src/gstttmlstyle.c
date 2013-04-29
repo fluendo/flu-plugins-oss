@@ -174,6 +174,9 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
 {
   gchar *attrs = g_strdup ("");
   GList *link = style->attributes;
+  gchar *font_family = NULL;
+  gchar *font_size = NULL;
+  gboolean font_size_is_relative = FALSE;
 
   /* Only add attributes which are different from the default Pango values.
    * Transparency is lost in the Pango Markup.
@@ -196,18 +199,17 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
 
       case GST_TTML_ATTR_FONT_FAMILY:
         if (attr->value.string)
-          attrs = gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" font_family=\"%s\"", attr->value.string));
+          font_family = g_strdup (attr->value.string);
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
-        if (attr->value.font_size.unit == GST_TTML_FONT_SIZE_PIXELS)
-          attrs = gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" font=\"%gpx\"", attr->value.font_size.f));
-        else if (attr->value.font_size.f != 1.f)
-          attrs = gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" font_size=\"%s\"",
-              attr->value.font_size.f > 1 ? "larger" : "smaller"));
+        if (attr->value.font_size.unit == GST_TTML_FONT_SIZE_PIXELS) {
+          font_size = g_strdup_printf (" %gpx", attr->value.font_size.f);
+          font_size_is_relative = FALSE;
+        } else if (attr->value.font_size.f != 1.f) {
+          font_size = g_strdup (attr->value.font_size.f>1 ? "large" : "small");
+          font_size_is_relative = TRUE;
+        }
         break;
 
       case GST_TTML_ATTR_FONT_STYLE:
@@ -240,6 +242,37 @@ gst_ttml_style_gen_pango (const GstTTMLStyle *style,
         break;
     }
     link = link->next;
+  }
+
+  if (font_family != NULL || font_size != NULL) {
+    /* All 'font' attributes are aggregated and prepended here in a single
+     * tag. They need to appear at the beginning, because the 'font' tag
+     * resets to default values all attributes not supplied. */
+    gchar *font_desc = g_strdup ("");
+    gchar *font_attrs = g_strdup ("");
+
+    if (font_family != NULL)
+      font_desc = gst_ttml_style_str_concat (font_desc, font_family);
+    if (font_size != NULL && !font_size_is_relative)
+      font_desc = gst_ttml_style_str_concat (font_desc, font_size);
+
+    if (font_desc[0] != '\0') {
+      font_attrs = g_strdup_printf (" font=\"%s\"", font_desc);
+      g_free (font_desc);
+    }
+
+    if (!font_size || font_size_is_relative) {
+      if (!font_size)
+        /* The 'font' tag sets the size to 0 if you do not provide it. To avoid
+         * this, we set the size again to the default value, which can only be
+         * done through the 'font_size' tag, not 'font'. This is awful. */
+        font_size = g_strdup ("medium");
+      font_attrs = gst_ttml_style_str_concat (font_attrs,
+          g_strdup_printf (" font_size='%s'", font_size));
+      g_free (font_size);
+    }
+
+    attrs = gst_ttml_style_str_concat (font_attrs, attrs);
   }
 
   if (strlen (attrs) > 0) {
