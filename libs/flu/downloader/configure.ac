@@ -31,11 +31,24 @@ dnl
 REQUIREMENTS_PC="libcurl glib-2.0 gthread-2.0"
 PKG_CHECK_MODULES([REQUIREMENTS], [${REQUIREMENTS_PC}])
 
-FLUDOWNLOADER_CFLAGS="${REQUIREMENTS_CFLAGS} -Wall -Werror"
+FLUDOWNLOADER_CFLAGS="${REQUIREMENTS_CFLAGS} -Wall -Werror -DGLIB_DISABLE_DEPRECATION_WARNINGS"
 FLUDOWNLOADER_LIBS="${REQUIREMENTS_LIBS}"
 AC_SUBST(REQUIREMENTS_PC)
 AC_SUBST(FLUDOWNLOADER_CFLAGS)
 AC_SUBST(FLUDOWNLOADER_LIBS)
+AC_SUBST(FLUDOWNLOADER_LDFLAGS)
+
+AC_ARG_ENABLE(examples,
+  AC_HELP_STRING([--disable-examples], [disable building examples]),
+    [
+      case "${enableval}" in
+        yes) BUILD_EXAMPLES=yes ;;
+        no)  BUILD_EXAMPLES=no ;;
+        *)   AC_MSG_ERROR(bad value ${enableval} for --disable-examples) ;;
+      esac
+    ],
+    [BUILD_EXAMPLES=yes]) dnl Default value
+AM_CONDITIONAL(BUILD_EXAMPLES,      test "x$BUILD_EXAMPLES" = "xyes")
 
 AC_CONFIG_FILES([
   Makefile

@@ -1,3 +1,9 @@
+2013-05-09  Josep Torra  <josep@fluendo.com>
+
+	* Makefile.am:
+	* configure.ac:
+	Fixes build in linux.
+
 2013-03-19  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
