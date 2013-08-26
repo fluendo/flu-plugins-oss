@@ -32,6 +32,7 @@ typedef struct _GstTTMLParse {
 
   /* Properties */
   gboolean assume_ordered_spans;
+  gboolean force_buffer_clear;
 
   /* Timeline management */
   GList *timeline;

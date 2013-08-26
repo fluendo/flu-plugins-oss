@@ -34,6 +34,7 @@ enum
 {
   PROP_0,
   PROP_ASSUME_ORDERED_SPANS,
+  PROP_FORCE_BUFFER_CLEAR
 };
 
 static GstStaticPadTemplate ttmlparse_src_template =
@@ -67,6 +68,8 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
 
   /* Check if there is any active span at all */
   if (!parse->active_spans) {
+    if (!parse->force_buffer_clear) return;
+
     /* Generate an artifical empty buffer to clean the text renderer */
     buffer = gst_buffer_new_and_alloc (1);
     GST_BUFFER_DATA (buffer) [0] = ' ';
@@ -775,6 +778,9 @@ gst_ttmlparse_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_ASSUME_ORDERED_SPANS:
       g_value_set_boolean (value, parse->assume_ordered_spans);
       break;
+    case PROP_FORCE_BUFFER_CLEAR:
+      g_value_set_boolean (value, parse->force_buffer_clear);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -790,6 +796,9 @@ gst_ttmlparse_set_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_ASSUME_ORDERED_SPANS:
       parse->assume_ordered_spans = g_value_get_boolean (value);
+      break;
+    case PROP_FORCE_BUFFER_CLEAR:
+      parse->force_buffer_clear = g_value_get_boolean (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -842,6 +851,11 @@ gst_ttmlparse_class_init (GstTTMLParseClass * klass)
       g_param_spec_boolean ("assume_ordered_spans", "Assume ordered spans",
           "Generate buffers as soon as possible, by assuming that text "
           "spans will arrive in order", FALSE, G_PARAM_READWRITE));
+  g_object_class_install_property (gobject_class, PROP_FORCE_BUFFER_CLEAR,
+      g_param_spec_boolean ("force_buffer_clear", "Force buffer clear",
+          "Output an empty buffer after each text buffer to force its "
+          "removal. Only needed for text renderers which do not honor "
+          "buffer durations.", FALSE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =
@@ -874,6 +888,9 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   parse->base_time = GST_CLOCK_TIME_NONE;
   parse->current_gst_status = GST_FLOW_OK;
   parse->timeline = NULL;
+
+  parse->assume_ordered_spans = FALSE;
+  parse->force_buffer_clear = FALSE;
 
   parse->state.attribute_stack = NULL;
   gst_ttml_state_reset (&parse->state);
