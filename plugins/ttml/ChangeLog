@@ -1,5 +1,11 @@
 2013-08-26  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_time_expression):
+	 - Parse time expressions that include a frame number as HH:MM:SS:FF
+
+2013-08-26  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
 	(gst_ttmlparse_get_property), (gst_ttmlparse_set_property),
 	(gst_ttmlparse_class_init), (gst_ttmlparse_init):

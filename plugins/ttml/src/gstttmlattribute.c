@@ -50,13 +50,16 @@ static GstClockTime
 gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
     const gchar *expr)
 {
-  gdouble h, m, s, count;
+  gdouble h, m, s, f, count;
   char metric[3] = "\0\0";
   GstClockTime res = GST_CLOCK_TIME_NONE;
   char *previous_locale = setlocale (LC_NUMERIC, NULL);
 
   setlocale (LC_NUMERIC, "C");
-  if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
+  if (sscanf (expr, "%lf:%lf:%lf:%lf", &h, &m, &s, &f) == 4) {
+    res = (GstClockTime)((h * 3600 + m * 60 + s + f * state->frame_rate_den /
+        (state->frame_rate * state->frame_rate_num)) * GST_SECOND);
+  } else if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
     res = (GstClockTime)((h * 3600 + m * 60 + s) * GST_SECOND);
   } else if (sscanf (expr, "%lf%2[hmstf]", &count, metric) == 2) {
     double scale = 0;
