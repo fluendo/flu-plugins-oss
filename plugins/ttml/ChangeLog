@@ -1,3 +1,16 @@
+2013-08-26  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_get_property), (gst_ttmlparse_set_property),
+	(gst_ttmlparse_class_init), (gst_ttmlparse_init):
+	* src/gstttmlparse.h:
+	 - Add a property to control whether an empty buffer is required after
+	   each text buffer to force its removal. This is only required for
+	   text renderers which do not honor buffer duration, like "textrender".
+	   Previously the behavior was "TRUE" (generate the empty buffer) and it
+	   has now been changed to "FALSE" to simplify applications which render
+	   their own subtitle overelays.
+
 2013-04-29  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
