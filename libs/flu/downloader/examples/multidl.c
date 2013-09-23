@@ -10,7 +10,7 @@ data_cb (void *buffer, size_t size, gpointer user_data,
     FluDownloaderTask *task)
 {
   g_printf ("Received %" G_GSIZE_FORMAT " bytes from #%p"
-      " (Total size = %zd)\n", size, user_data,
+      " (Total size = %" G_GSIZE_FORMAT ")\n", size, user_data,
       fludownloader_task_get_length (task));
 //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
   return TRUE;
@@ -21,7 +21,8 @@ done_cb (FluDownloaderTaskOutcome outcome, int http_status_code,
     size_t downloaded_size, gpointer user_data,
     FluDownloaderTask *task)
 {
-  g_printf ("Transfer #%p done %s. HTTP Code = %d. %zd downloaded bytes (%s).\n",
+  g_printf ("Transfer #%p done %s. HTTP Code = %d. %" G_GSIZE_FORMAT
+      " downloaded bytes (%s).\n",
       user_data,
       outcome == FLUDOWNLOADER_TASK_OK ? "OK" : "WITH ERRORS", http_status_code,
       downloaded_size, fludownloader_task_get_url (task));

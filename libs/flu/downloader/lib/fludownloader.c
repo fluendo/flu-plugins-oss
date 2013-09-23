@@ -141,7 +141,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
     /* This is another header line */
     size_t size;
     if (task->response_ok &&
-        sscanf (line, "Content-Length:%zd", &size) == 1) {
+        sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
       /* Context length parsed ok */
       task->total_size = size;
     }
