@@ -1,5 +1,11 @@
 2013-23-09  Andoni Morales  <amorales@fluendo.com>
 
+	* configure.ac:
+	* Makefile.am:
+	Fix DLL generation with magic libtool's -no-undefined option
+
+2013-23-09  Andoni Morales  <amorales@fluendo.com>
+
 	* examples/multidl.c:
 	* lib/fludownloader.c:
 	Use portable macros for formats

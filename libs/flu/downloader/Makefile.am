@@ -14,7 +14,7 @@ libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
 
 libfludownloader_la_LIBADD = $(FLUDOWNLOADER_LIBS)
 
-libfludownloader_la_LDFLAGS =
+libfludownloader_la_LDFLAGS = $(WIN32_LDFLAGS)
 
 if BUILD_EXAMPLES
 noinst_PROGRAMS = multidl

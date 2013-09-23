@@ -27,6 +27,14 @@ if test "x$HAVE_PKGCONFIG" = "xno"; then
   AC_MSG_ERROR(you need to have pkgconfig installed !)
 fi
 
+case "$host" in
+  *mingw*)
+    WIN32_LDFLAGS="-no-undefined"
+    ;;
+esac
+
+AC_SUBST(WIN32_LDFLAGS)
+
 dnl 
 REQUIREMENTS_PC="libcurl glib-2.0 gthread-2.0"
 PKG_CHECK_MODULES([REQUIREMENTS], [${REQUIREMENTS_PC}])
