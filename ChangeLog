@@ -1,3 +1,8 @@
+2013-10-04  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c:
+	  - Do not expose text/plain as caps, as it is not true.
+
 2013-08-26  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:
@@ -48,6 +53,7 @@
 2013-04-26  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstate.c:
+>>>>>>> .r68253
 	* src/gstttmlattribute.c:
 	* src/gstttmlattribute.h:
 	* src/gstttmlparse.c:

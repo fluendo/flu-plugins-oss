@@ -41,7 +41,7 @@ static GstStaticPadTemplate ttmlparse_src_template =
     GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
-    GST_STATIC_CAPS ("text/plain; text/x-pango-markup"));
+    GST_STATIC_CAPS ("text/x-pango-markup"));
 
 static GstStaticPadTemplate ttmlparse_sink_template =
 GST_STATIC_PAD_TEMPLATE ("sink",
