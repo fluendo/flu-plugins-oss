@@ -1,0 +1,39 @@
+Name:		libfludownloader
+Version:	@VERSION@
+Release:	1.flu
+Summary:	Fluendo HTTP downloader library
+
+Group:		Applications/Multimedia
+License:	Commercial
+URL:		http://www.fluendo.com/
+Source:		libfludownloader-%{version}.tar.bz2
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:  pkgconfig
+BuildRequires:  curl-devel
+
+%description
+Fluendo HTTP downloader library which supports HTTP pipelining using CURL.
+
+%prep
+%setup -q -n libfludownloader-%{version}
+
+%build
+%configure
+make
+
+%install
+rm -rf $RPM_BUILD_ROOT
+%makeinstall
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+%files
+%defattr(-,root,root)
+%doc README NEWS
+%{_libdir}/*.so
+
+%changelog
+* Thu Oct 24 2013 Julien Moutte <julien@fluendo.com>
+- Initial spec file for libfludownloader.

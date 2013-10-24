@@ -30,6 +30,6 @@ pcfiles = $(top_builddir)/fludownloader.pc
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = $(pcfiles)
 
-EXTRA_DIST =
+EXTRA_DIST = libfludownloader.spec
 
 include common/release.mak
