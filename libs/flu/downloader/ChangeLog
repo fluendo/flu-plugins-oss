@@ -1,5 +1,9 @@
 2013-10-24  Julien Moutte <julien@fluendo.com>
 
+	* libfludownloader.spec.in: Fix spec file :)
+
+2013-10-24  Julien Moutte <julien@fluendo.com>
+
 	* INSTALL: Updated.
 	* Makefile.am: Distribute spec file.
 	* configure.ac: Generate spec file.

@@ -1,26 +1,41 @@
 Name:		libfludownloader
 Version:	@VERSION@
-Release:	1.flu
+Release:	2.flu
 Summary:	Fluendo HTTP downloader library
 
-Group:		Applications/Multimedia
+Group:		System/Libraries
 License:	Commercial
 URL:		http://www.fluendo.com/
 Source:		libfludownloader-%{version}.tar.bz2
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  pkgconfig
-BuildRequires:  curl-devel
+BuildRequires:  pkgconfig curl-devel glib2-devel
 
 %description
 Fluendo HTTP downloader library which supports HTTP pipelining using CURL.
+
+%package devel
+Summary:        Fluendo HTTP downloader library headers
+Group:		Development/Libraries
+Requires:       libfludownloader = %{version}-%{release}
+
+%description devel
+This package contains all of the headers for libfludownloader. You will only need this package if you are doing development.
+
+%package static
+Summary:        Fluendo HTTP downloader library static libs
+Group:		Development/Libraries
+Requires:       libfludownloader-devel = %{version}-%{release}
+
+%description static
+This package contains all of the static libraries for libfludownloader. You will only need this package if you are doing development.
 
 %prep
 %setup -q -n libfludownloader-%{version}
 
 %build
 %configure
-make
+make CFLAGS="-fno-strict-aliasing"
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -32,7 +47,18 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root)
 %doc README NEWS
+%{_libdir}/*.so.*
+
+%files devel
+%defattr(-,root,root)
+%{_includedir}/*
 %{_libdir}/*.so
+%{_libdir}/*.la
+%{_libdir}/pkgconfig/*.pc
+
+%files static
+%defattr(-,root,root)
+%{_libdir}/*.a
 
 %changelog
 * Thu Oct 24 2013 Julien Moutte <julien@fluendo.com>
