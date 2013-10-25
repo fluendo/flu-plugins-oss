@@ -1,3 +1,7 @@
+2013-10-25  Julien Moutte <julien@fluendo.com>
+
+	* libfludownloader.spec.in: don't include libtool la file.
+
 2013-10-25  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
