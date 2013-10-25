@@ -20,15 +20,15 @@ Group:		Development/Libraries
 Requires:       libfludownloader = %{version}-%{release}
 
 %description devel
-This package contains all of the headers for libfludownloader. You will only need this package if you are doing development.
+This package contains all of the headers and dynamic libraries for libfludownloader. You will only need this package if you are doing development.
 
 %package static
 Summary:        Fluendo HTTP downloader library static libs
 Group:		Development/Libraries
-Requires:       libfludownloader-devel = %{version}-%{release}
+Requires:       libfludownloader = %{version}-%{release}
 
 %description static
-This package contains all of the static libraries for libfludownloader. You will only need this package if you are doing development.
+This package contains all of the headers and static libraries for libfludownloader. You will only need this package if you are doing development.
 
 %prep
 %setup -q -n libfludownloader-%{version}
@@ -58,7 +58,10 @@ rm -rf $RPM_BUILD_ROOT
 
 %files static
 %defattr(-,root,root)
+%{_includedir}/*
 %{_libdir}/*.a
+%{_libdir}/*.la
+%{_libdir}/pkgconfig/*.pc
 
 %changelog
 * Thu Oct 24 2013 Julien Moutte <julien@fluendo.com>

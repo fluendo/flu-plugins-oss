@@ -10,7 +10,7 @@ include_HEADERS = $(top_srcdir)/lib/fludownloader.h
 
 libfludownloader_la_SOURCES = $(top_srcdir)/lib/fludownloader.c $(top_srcdir)/lib/fludownloader.h
 
-libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
+libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS) -fPIC -DPIC
 
 libfludownloader_la_LIBADD = $(FLUDOWNLOADER_LIBS)
 

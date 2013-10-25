@@ -1,3 +1,10 @@
+2013-10-25  Julien Moutte <julien@fluendo.com>
+
+	* INSTALL: Updated.
+	* Makefile.am: Generate relocatable code to link with plugins.
+	* libfludownloader.spec.in: Properly generate a static package that
+	will contain only the static library and headers.
+
 2013-10-24  Julien Moutte <julien@fluendo.com>
 
 	* libfludownloader.spec.in: Fix spec file :)
