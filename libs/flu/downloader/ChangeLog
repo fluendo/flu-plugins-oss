@@ -1,5 +1,13 @@
 2013-10-25  Julien Moutte <julien@fluendo.com>
 
+	* Makefile.am: Build two flavors of the library (static and dynamic)
+	* configure.ac: Generate all pc files.
+	* fludownloader_static.pc.in: Add a pkgconfig file for static linking.
+	* libfludownloader.spec.in: Adapt spec file to build the static rpm
+	with the static libraries and proper pkgconfig.
+
+2013-10-25  Julien Moutte <julien@fluendo.com>
+
 	* libfludownloader.spec.in: don't include libtool la file.
 
 2013-10-25  Release Maker <nomail@fluendo.com>

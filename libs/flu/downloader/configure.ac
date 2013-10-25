@@ -61,6 +61,7 @@ AM_CONDITIONAL(BUILD_EXAMPLES,      test "x$BUILD_EXAMPLES" = "xyes")
 AC_CONFIG_FILES([
   Makefile
   fludownloader.pc
+  fludownloader_static.pc
   libfludownloader.spec
 ])
 

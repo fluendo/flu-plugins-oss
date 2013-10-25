@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: fludownloader
+Version: @VERSION@
+Description: Fluendo Downloader Library for static linking
+Requires: @REQUIREMENTS_PC@
+Libs: -L${libdir} -lfludownloader_static
+Cflags: -I${includedir} @REQUIREMENTS_CFLAGS@
+

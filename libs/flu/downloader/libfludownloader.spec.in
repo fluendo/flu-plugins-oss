@@ -1,6 +1,6 @@
 Name:		libfludownloader
 Version:	@VERSION@
-Release:	2.flu
+Release:	1.flu
 Summary:	Fluendo HTTP downloader library
 
 Group:		System/Libraries
@@ -52,16 +52,20 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(-,root,root)
 %{_includedir}/*
-%{_libdir}/*.so
-%{_libdir}/*.la
-%{_libdir}/pkgconfig/*.pc
+%{_libdir}/libfludownloader.so
+%{_libdir}/libfludownloader.la
+%{_libdir}/pkgconfig/fludownloader.pc
 
 %files static
 %defattr(-,root,root)
 %{_includedir}/*
-%{_libdir}/*.a
-%{_libdir}/pkgconfig/*.pc
+%{_libdir}/libfludownloader_static.a
+%{_libdir}/libfludownloader_static.la
+%{_libdir}/pkgconfig/fludownloader_static.pc
 
 %changelog
+* Fri Oct 25 2013 Julien Moutte <julien@fluendo.com>
+- Create a static development package.
+
 * Thu Oct 24 2013 Julien Moutte <julien@fluendo.com>
 - Initial spec file for libfludownloader.
