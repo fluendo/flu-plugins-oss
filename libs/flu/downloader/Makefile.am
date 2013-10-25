@@ -11,11 +11,11 @@ include_HEADERS = $(top_srcdir)/lib/fludownloader.h
 libfludownloader_la_SOURCES = $(top_srcdir)/lib/fludownloader.c $(top_srcdir)/lib/fludownloader.h
 libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
 libfludownloader_la_LIBADD = $(FLUDOWNLOADER_LIBS)
-libfludownloader_la_LDFLAGS = $(WIN32_LDFLAGS)
+libfludownloader_la_LDFLAGS = $(WIN32_LDFLAGS) -shared
 
 libfludownloader_static_la_SOURCES = $(libfludownloader_la_SOURCES)
 libfludownloader_static_la_CFLAGS = $(libfludownloader_la_CFLAGS) -fPIC -DPIC
-libfludownloader_static_la_LDFLAGS = $(libfludownloader_la_LDFLAGS) -static
+libfludownloader_static_la_LDFLAGS = $(WIN32_LDFLAGS) -static
 libfludownloader_static_la_LIBADD = $(libfludownloader_la_LIBADD)
 
 if BUILD_EXAMPLES
