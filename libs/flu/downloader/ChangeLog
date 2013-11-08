@@ -1,3 +1,9 @@
+2013-11-08  Andoni Morales <amorales@fluendo.com>
+
+	* configure.ac:
+	* Makefile.am:
+	Fix link error in Windows (error: -fPIC ingnored)
+
 2013-10-25  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.

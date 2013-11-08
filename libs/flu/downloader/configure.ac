@@ -27,12 +27,15 @@ if test "x$HAVE_PKGCONFIG" = "xno"; then
   AC_MSG_ERROR(you need to have pkgconfig installed !)
 fi
 
+os_type=""
 case "$host" in
   *mingw*)
+    os_type="windows"
     WIN32_LDFLAGS="-no-undefined"
     ;;
 esac
 
+AM_CONDITIONAL(HAVE_WINDOWS, [test "x$os_type" = "xwindows"])
 AC_SUBST(WIN32_LDFLAGS)
 
 dnl 
