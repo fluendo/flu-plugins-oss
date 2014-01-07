@@ -211,18 +211,21 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_SIZE;
     attr->value.font_size.f = 1.f;
-    sscanf (value, "%f%n", &attr->value.font_size.f, &n);
-    if (gst_ttml_utils_attr_value_is (value + n, "px")) {
-      attr->value.font_size.unit = GST_TTML_FONT_SIZE_PIXELS;
-    } else if (gst_ttml_utils_attr_value_is (value + n, "em")) {
-      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-    } else if (gst_ttml_utils_attr_value_is (value + n, "c")) {
-      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-    } else if (gst_ttml_utils_attr_value_is (value + n, "%")) {
-      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-      attr->value.font_size.f /= 100.0;
-    } else {
-      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+    attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+    n = 0;
+    if (sscanf (value, "%f%n", &attr->value.font_size.f, &n)) {
+      if (gst_ttml_utils_attr_value_is (value + n, "px")) {
+        attr->value.font_size.unit = GST_TTML_FONT_SIZE_PIXELS;
+      } else if (gst_ttml_utils_attr_value_is (value + n, "em")) {
+        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+      } else if (gst_ttml_utils_attr_value_is (value + n, "c")) {
+        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+      } else if (gst_ttml_utils_attr_value_is (value + n, "%")) {
+        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+        attr->value.font_size.f /= 100.0;
+      } else {
+        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+      }
     }
     GST_LOG ("Parsed '%s' font size into %g (%s)", value,
       attr->value.font_size.f,

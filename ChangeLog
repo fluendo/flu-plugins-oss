@@ -1,3 +1,8 @@
+2014-01-07  Andoni Morales  <amorales@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	Fix potential segfault parsing font size attribute
+
 2013-10-31  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
