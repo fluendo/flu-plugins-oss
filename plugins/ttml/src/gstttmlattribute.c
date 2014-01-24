@@ -53,7 +53,7 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
   gdouble h, m, s, f, count;
   char metric[3] = "\0\0";
   GstClockTime res = GST_CLOCK_TIME_NONE;
-  char *previous_locale = setlocale (LC_NUMERIC, NULL);
+  char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
 
   setlocale (LC_NUMERIC, "C");
   if (sscanf (expr, "%lf:%lf:%lf:%lf", &h, &m, &s, &f) == 4) {
@@ -92,6 +92,7 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
     GST_WARNING ("Unrecognized time expression: %s", expr);
   }
   setlocale (LC_NUMERIC, previous_locale);
+  g_free (previous_locale);
   GST_LOG ("Parsed %s into %" GST_TIME_FORMAT, expr, GST_TIME_ARGS (res));
   return res;
 }
@@ -136,11 +137,12 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
 {
   GstTTMLAttribute *attr;
   int n;
-  char *previous_locale = setlocale (LC_NUMERIC, NULL);
+  char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
 
   if (!gst_ttml_utils_namespace_is_ttml (ns)) {
     GST_WARNING ("Ignoring non-TTML namespace in attribute %s:%s=%s", ns, name,
         value);
+    g_free (previous_locale);
     return NULL;
   }
 
@@ -280,6 +282,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
   }
   setlocale (LC_NUMERIC, previous_locale);
+  g_free (previous_locale);
 
   if (attr) {
     attr->timeline = NULL;
