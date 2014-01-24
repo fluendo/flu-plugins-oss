@@ -1,3 +1,13 @@
+2014-01-24  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_time_expression),
+	(gst_ttml_attribute_parse):
+	Fix memory corruption caused by setlocale. The pointer it returns
+	is not valid forever so its contents must be cached.
+	This is undocumented and was causing problems detected on Windows XP
+	by Dr. Memory.
+
 2014-01-07  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
