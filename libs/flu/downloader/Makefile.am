@@ -22,13 +22,19 @@ libfludownloader_static_la_LDFLAGS = $(WIN32_LDFLAGS) -static
 libfludownloader_static_la_LIBADD = $(libfludownloader_la_LIBADD)
 
 if BUILD_EXAMPLES
-noinst_PROGRAMS = multidl
+noinst_PROGRAMS = multidl curl_pipelining_test
 
 multidl_SOURCES = $(top_srcdir)/examples/multidl.c
 
 multidl_CFLAGS = -I$(top_srcdir)/lib -I$(top_srcdir) $(FLUDOWNLOADER_CFLAGS)
 
 multidl_LDADD = $(FLUDOWNLOADER_LIBS) $(top_builddir)/libfludownloader.la
+
+curl_pipelining_test_SOURCES = $(top_srcdir)/examples/curl_pipelining_test.c
+
+curl_pipelining_test_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
+
+curl_pipelining_test_LDADD = $(FLUDOWNLOADER_LIBS)
 endif
 
 pcfiles = \

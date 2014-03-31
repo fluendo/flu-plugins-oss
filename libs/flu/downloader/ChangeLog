@@ -1,3 +1,11 @@
+2014-03-31  Xavi Artigas  <xartigas@fluendo.com>
+
+	* Makefile.am:
+	* examples/curl_pipelining_test.c: (write_function),
+	(header_function), (add_task), (process_messages), (main):
+	Add native curl example (no fludownloader used) to check for
+	behavior changes since libCurl 7.30 that are breaking fludownloader.
+
 2013-11-08  Andoni Morales <amorales@fluendo.com>
 
 	* configure.ac:
