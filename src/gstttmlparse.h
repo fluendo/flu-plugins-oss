@@ -7,6 +7,7 @@
 #define __GST_TTMLPARSE_H__
 
 #include <gst/gst.h>
+#include <libxml/parser.h>
 #include "gst-compat.h"
 #include "gst-demo.h"
 #include "gstttmlstate.h"
