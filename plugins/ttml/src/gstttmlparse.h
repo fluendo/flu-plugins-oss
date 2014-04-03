@@ -7,6 +7,8 @@
 #define __GST_TTMLPARSE_H__
 
 #include <gst/gst.h>
+#include "gst-compat.h"
+#include "gst-demo.h"
 #include "gstttmlstate.h"
 
 G_BEGIN_DECLS
@@ -40,6 +42,9 @@ typedef struct _GstTTMLParse {
 
   /* Active span list */
   GList *active_spans;
+
+  /* For building demo plugins */
+  GstFluDemoStatistics stats;
 } GstTTMLParse;
 
 /* The GStreamer ttmlparse element's class */
