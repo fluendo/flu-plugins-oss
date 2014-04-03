@@ -1,5 +1,11 @@
 2014-04-03  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.h:
+	Add libxml2 header required for gst-1.0 (was already included by
+	GStreamer in 0.10).
+
+2014-04-03  Xavi Artigas  <xartigas@fluendo.com>
+
 	* win32/vs10/libgstfluttml_sdk.vcxproj:
 	Add build dependency with libxml2 for gst-1.0
 
