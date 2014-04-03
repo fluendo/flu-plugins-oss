@@ -1,3 +1,14 @@
+2014-04-03  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/fluttml.c:
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_change_state), (gst_ttmlparse_init):
+	* src/gstttmlparse.h:
+	Add support for building the plugin in DEMO mode.
+	CAUTION: Since subtitle streams are SPARSE, the accumulated duration
+	of all subtitles has no direct relationship with the total clip
+	duration (in case the ttml is embedded in a container).
+
 2014-04-01  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.

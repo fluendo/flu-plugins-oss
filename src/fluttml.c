@@ -8,6 +8,7 @@
 
 #include <gst/gst.h>
 #include "gst-compat.h"
+#include "gst-demo.h"
 #include "gst-fluendo.h"
 
 #include "gstttmlparse.h"

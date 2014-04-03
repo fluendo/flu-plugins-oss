@@ -122,7 +122,8 @@ gst_ttmlparse_gen_buffer (GstClockTime begin, GstClockTime end,
     GST_MEMDUMP_OBJECT (parse, "Content:",
         GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer));
 
-    parse->current_gst_status = gst_pad_push (parse->srcpad, buffer);
+    parse->current_gst_status = gstflu_demo_push_buffer (&parse->stats,
+        parse->sinkpad, parse->srcpad, buffer);
   } else {
     GST_DEBUG_OBJECT (parse, "Buffer is out of segment (pts %"
         GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
@@ -758,6 +759,7 @@ gst_ttmlparse_change_state (GstElement * element, GstStateChange transition)
     case GST_STATE_CHANGE_PAUSED_TO_READY:
       GST_DEBUG_OBJECT (parse, "going from PAUSED to READY");
       gst_ttmlparse_cleanup (parse);
+      gstflu_demo_reset_statistics (&parse->stats);
       break;
     case GST_STATE_CHANGE_READY_TO_NULL:
       break;
@@ -896,6 +898,7 @@ gst_ttmlparse_init (GstTTMLParse * parse, GstTTMLParseClass * g_class)
   gst_ttml_state_reset (&parse->state);
 
   gst_ttmlparse_cleanup (parse);
+  gstflu_demo_reset_statistics (&parse->stats);
 }
 
 GType
