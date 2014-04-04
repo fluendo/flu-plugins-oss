@@ -1,3 +1,9 @@
+2014-04-04  Xavi Artigas  <xartigas@fluendo.com>
+
+	* configure.ac:
+	* src/Makefile.am:
+	A bit of preparation for porting to 1.0 on Linux.
+
 2014-04-03  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.h:

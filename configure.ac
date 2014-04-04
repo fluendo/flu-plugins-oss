@@ -80,6 +80,7 @@ GST_MAJORMINOR=0.10
 dnl On old gstreamer pkg-config files there's no plugin dir set
 GSTPB_PLUGINS_DIR=${libdir}/gstreamer-${GST_MAJORMINOR}
 
+AG_GST_DETECT_VERSION([1.0.0], [0.10.3])
 AG_GST_CHECK_GST($GST_MAJORMINOR, [$GST_REQ])
 AG_GST_CHECK_GST_BASE($GST_MAJORMINOR, [$GST_REQ])
 AG_GST_CHECK_GST_CONTROLLER($GST_MAJORMINOR, [$GST_REQ], yes)
@@ -120,4 +121,5 @@ $PACKAGE-$VERSION
 
         prefix:                           ${prefix}
         compiler:                         ${CC}
-              "
+        Building for GStreamer-${GST_MAJORMINOR}
+"
