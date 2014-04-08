@@ -12,6 +12,7 @@
 #include "gstttmlattribute.h"
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
+#include <stdio.h>
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug

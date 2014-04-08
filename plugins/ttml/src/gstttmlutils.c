@@ -103,3 +103,22 @@ gst_ttml_utils_node_type_name (GstTTMLNodeType type)
   }
   return "Unknown!";
 }
+
+/* Dump a GstBuffer to the debug log */
+void gst_ttml_utils_memdump_buffer (GObject *object,
+    const gchar *msg, GstBuffer *buffer)
+{
+  GstMapInfo info;
+
+  if (gst_debug_get_default_threshold() < GST_LEVEL_MEMDUMP) {
+    return;
+  }
+
+  if (!gst_buffer_map (buffer, &info, GST_MAP_READ)) {
+    return;
+  }
+  
+  GST_MEMDUMP_OBJECT (object, msg, info.data, info.size);
+
+  gst_buffer_unmap (buffer, &info);
+}
