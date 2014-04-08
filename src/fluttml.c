@@ -15,6 +15,7 @@
 #include "gstttmltype.h"
 
 GST_DEBUG_CATEGORY (ttmlparse_debug);
+#define GST_CAT_DEFAULT ttmlparse_debug
 
 static gboolean
 plugin_init (GstPlugin * plugin)
