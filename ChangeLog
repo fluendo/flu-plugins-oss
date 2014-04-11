@@ -1,6 +1,11 @@
 2014-04-11  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_handle_event):
+	Fix GstEvent leaks detected with valgrind and G_SLICE=always-malloc
+
+2014-04-11  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_handle_event):
 	Fix caps nego in 1.0 when incoming buffers HAVE caps.
 
 2014-04-08  Xavi Artigas  <xartigas@fluendo.com>

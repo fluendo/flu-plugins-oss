@@ -781,12 +781,14 @@ gst_ttmlparse_handle_event (GstPad * pad, GstEvent * event)
 
       parse->newsegment_needed = FALSE;
       ret = gst_pad_push_event (parse->srcpad, event);
+      event = NULL;
       break;
     }
     case GST_EVENT_FLUSH_STOP:
       GST_DEBUG_OBJECT (parse, "Flushing TTML parser");
       gst_ttmlparse_cleanup (parse);
       ret = gst_pad_push_event (parse->srcpad, event);
+      event = NULL;
       break;
 #if GST_CHECK_VERSION (1,0,0)
     case GST_EVENT_CAPS:
@@ -795,16 +797,21 @@ gst_ttmlparse_handle_event (GstPad * pad, GstEvent * event)
       GstEvent *src_event = gst_event_new_caps (src_caps);
       GST_DEBUG_OBJECT (parse->srcpad, "setting src caps to %" GST_PTR_FORMAT, src_caps);
       gst_caps_unref (src_caps);
-      gst_pad_push_event (parse->srcpad, src_event);
+      ret = gst_pad_push_event (parse->srcpad, src_event);
       break;
     }
 #endif
     default:
       ret = gst_pad_push_event (parse->srcpad, event);
+      event = NULL;
       break;
   }
 
 beach:
+  if (event) {
+    /* If we haven't pushed the event downstream, then unref it */
+    gst_event_unref (event);
+  }
   gst_object_unref (parse);
 
   return ret;
