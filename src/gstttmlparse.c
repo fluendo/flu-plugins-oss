@@ -613,8 +613,9 @@ gst_ttmlparse_handle_buffer (GstPad * pad, GstBuffer * buffer)
   src_caps = gst_pad_get_negotiated_caps (parse->srcpad);
 #endif
   if (G_UNLIKELY (!src_caps)) {
-    /* Set the src pad's caps now. It can happen (when linking with a filesrc,
-     * for example) that the 0.10 set_caps function is never called. */
+    /* Last chance to set the src pad's caps. It can happen (when linking with
+     * a filesrc, for example) that the 0.10 set_caps function is never called.
+     */
     src_caps = gst_caps_from_string (GST_TTMLPARSE_SRC_CAPS);
     GST_DEBUG_OBJECT (parse->srcpad, "setting caps %" GST_PTR_FORMAT, src_caps);
     gst_pad_set_caps (parse->srcpad, src_caps);
@@ -787,6 +788,17 @@ gst_ttmlparse_handle_event (GstPad * pad, GstEvent * event)
       gst_ttmlparse_cleanup (parse);
       ret = gst_pad_push_event (parse->srcpad, event);
       break;
+#if GST_CHECK_VERSION (1,0,0)
+    case GST_EVENT_CAPS:
+    {
+      GstCaps *src_caps = gst_caps_from_string (GST_TTMLPARSE_SRC_CAPS);
+      GstEvent *src_event = gst_event_new_caps (src_caps);
+      GST_DEBUG_OBJECT (parse->srcpad, "setting src caps to %" GST_PTR_FORMAT, src_caps);
+      gst_caps_unref (src_caps);
+      gst_pad_push_event (parse->srcpad, src_event);
+      break;
+    }
+#endif
     default:
       ret = gst_pad_push_event (parse->srcpad, event);
       break;
