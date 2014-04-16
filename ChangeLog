@@ -1,3 +1,8 @@
+2014-04-16  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlspan.c: (gst_ttml_span_compose):
+	Minor warning fixed.
+
 2014-04-11  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlparse.c: (gst_ttmlparse_handle_event):

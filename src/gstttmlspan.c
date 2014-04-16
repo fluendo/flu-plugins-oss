@@ -36,7 +36,7 @@ gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
   head_len = strlen (head);
   tail_len = strlen (tail);
 
-  output_span->chars =
+  output_span->chars = (gchar *)
       g_realloc (output_span->chars, output_span->length +
           head_len + span->length + tail_len);
   ptr = output_span->chars + output_span->length;
