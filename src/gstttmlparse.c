@@ -290,6 +290,29 @@ gst_ttmlparse_add_characters (GstTTMLParse *parse, const gchar *content,
   parse->last_event_timestamp = event->timestamp;
 }
 
+/* Helper method to turn SAX2's gchar * attribute array into a GstTTMLAttribute
+ * and push it into the stack */
+static void
+gst_ttmlparse_push_attr (GstTTMLParse *parse, const gchar **xml_attr,
+    gboolean *dur_attr_found)
+{
+  /* Create a local copy of the attr value, since SAX2 does not
+   * NULL-terminate the string */
+  gsize value_len = xml_attr[4] - xml_attr[3];
+  gchar *value = (gchar *)alloca(value_len + 1);
+  GstTTMLAttribute *ttml_attr;
+  memcpy (value, xml_attr[3], value_len);
+  value[value_len] = '\0';
+  ttml_attr = gst_ttml_attribute_parse (&parse->state,
+      !xml_attr[1]?NULL:xml_attr[2], xml_attr[0],
+      value);
+  if (ttml_attr) {
+    if (ttml_attr->type == GST_TTML_ATTR_DUR)
+      *dur_attr_found = TRUE;
+    gst_ttml_state_push_attribute (&parse->state, ttml_attr);
+  }
+}
+
 /* Process a node start. Just push all its attributes onto the stack. */
 static void
 gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
@@ -303,6 +326,7 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
   GstTTMLNodeType node_type;
   gboolean is_container_seq = parse->state.sequential_time_container;
   gboolean dur_attr_found = FALSE;
+  int i = nb_attributes;
 
   GST_LOG_OBJECT (parse, "New element: %s prefix:%s URI:%s", name,
     prefix?(char *)prefix:"NULL", URI?(char *)URI:"NULL");
@@ -339,25 +363,27 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
     ttml_attr = gst_ttml_attribute_new_time (GST_TTML_ATTR_BEGIN, 0);
     gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   }
-  /* Push onto the stack all attributes defined by this element */
-  while (nb_attributes--) {
-    /* Create a local copy of the attr value, since SAX2 does not
-     * NULL-terminate the string */
-    gsize value_len = xml_attr[4] - xml_attr[3];
-    gchar *value = (gchar *)alloca(value_len + 1);
-    memcpy (value, xml_attr[3], value_len);
-    value[value_len] = '\0';
-    ttml_attr = gst_ttml_attribute_parse (&parse->state,
-        !xml_attr[1]?NULL:xml_attr[2], xml_attr[0],
-        value);
-    if (ttml_attr) {
-      if (ttml_attr->type == GST_TTML_ATTR_DUR)
-        dur_attr_found = TRUE;
-      gst_ttml_state_push_attribute (&parse->state, ttml_attr);
+  /* Push onto the stack the "style" attribute, if found.
+   * It goes first, because the attributes defined by this style must be
+   * overriden by the values defined in this node, regardless of their
+   * parsing order. */
+  while (i--) {
+    if (strcmp (xml_attr[0], "style") == 0) {
+      gst_ttmlparse_push_attr (parse, xml_attr, &dur_attr_found);
     }
-
     xml_attr = &xml_attr[5];
   }
+  /* Push onto the stack the rest of the attributes defined by this element */
+  xml_attr = (const gchar **) xml_attrs;
+  i = nb_attributes;
+  while (i--) {
+    if (strcmp (xml_attr[0], "style") != 0) {
+      gst_ttmlparse_push_attr (parse, xml_attr, &dur_attr_found);
+    }
+    xml_attr = &xml_attr[5];
+  }
+
+
   /* Manually push a 0 DUR attribute if the node did not define it in
    * sequential mode. In this case this node must be ignored and this seemed
    * like the simplest way. */
