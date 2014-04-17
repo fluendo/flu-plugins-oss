@@ -1,3 +1,13 @@
+2014-04-17  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlparse.c: (gst_ttmlparse_push_attr),
+	(gst_ttmlparse_sax2_element_start_ns):
+	Make local node attributes override style attributes regardless of
+	their parsing order. Previously, whichever attribute was parsed last
+	prevailed, which is wrong. We never encountered an example where
+	a local attribute had to overwrite a style attribute, but this will be
+	more common once we implement regions.
+
 2014-04-16  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlspan.c: (gst_ttml_span_compose):
