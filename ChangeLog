@@ -1,5 +1,10 @@
 2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_sax2_element_end_ns):
+	Add a CRLF at the end of every P node, as the spec says.
+
+2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_sax2_element_start_ns):
 	Whitespace.
 
