@@ -1,5 +1,11 @@
 2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstate.c: (gst_ttml_state_save_attr_stack),
+	(gst_ttml_state_restore_attr_stack):
+	Debug and comments.
+
+2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_free), (gst_ttml_attribute_copy),
 	(gst_ttml_attribute_type_name):
