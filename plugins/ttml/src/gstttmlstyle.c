@@ -169,7 +169,7 @@ gst_ttml_style_get_text_decoration_name (GstTTMLTextDecoration decoration)
 
 /* Generate Pango Markup for the style */
 void
-gst_ttml_style_gen_pango (const GstTTMLStyle *style,
+gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
     gchar **head, gchar **tail)
 {
   gchar *attrs = g_strdup ("");

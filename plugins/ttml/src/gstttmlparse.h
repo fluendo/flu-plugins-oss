@@ -32,6 +32,7 @@ typedef struct _GstTTMLParse {
   xmlParserCtxtPtr xml_parser;
   GstTTMLState state;
   gboolean in_styling_node;
+  gboolean in_layout_node;
 
   /* Properties */
   gboolean assume_ordered_spans;

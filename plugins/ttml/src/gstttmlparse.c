@@ -205,7 +205,7 @@ gst_ttmlparse_parse_event (GstTTMLEvent *event, GstTTMLParse *parse)
           gst_ttml_span_list_remove (parse->active_spans,
               event->data.span_end.id);
       break;
-    case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
+    case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
       gst_ttml_span_list_update_attr (parse->active_spans,
           event->data.attr_update.id, event->data.attr_update.attr);
       break;
@@ -340,6 +340,8 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
     case GST_TTML_NODE_TYPE_STYLING:
       parse->in_styling_node = TRUE;
       break;
+    case GST_TTML_NODE_TYPE_LAYOUT:
+      parse->in_layout_node = TRUE;
     default:
       break;
   }
@@ -363,12 +365,13 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
     ttml_attr = gst_ttml_attribute_new_time (GST_TTML_ATTR_BEGIN, 0);
     gst_ttml_state_push_attribute (&parse->state, ttml_attr);
   }
-  /* Push onto the stack the "style" attribute, if found.
-   * It goes first, because the attributes defined by this style must be
+  /* Push onto the stack the "style" and "region" attributes, if found.
+   * They go first, because the attributes defined by these styles must be
    * overriden by the values defined in this node, regardless of their
    * parsing order. */
   while (i--) {
-    if (strcmp (xml_attr[0], "style") == 0) {
+    if (strcmp (xml_attr[0], "style") == 0 ||
+        strcmp (xml_attr[0], "region") == 0) {
       gst_ttmlparse_push_attr (parse, xml_attr, &dur_attr_found);
     }
     xml_attr = &xml_attr[5];
@@ -377,7 +380,8 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
   xml_attr = (const gchar **) xml_attrs;
   i = nb_attributes;
   while (i--) {
-    if (strcmp (xml_attr[0], "style") != 0) {
+    if (strcmp (xml_attr[0], "style") != 0 &&
+        strcmp (xml_attr[0], "region") != 0) {
       gst_ttmlparse_push_attr (parse, xml_attr, &dur_attr_found);
     }
     xml_attr = &xml_attr[5];
@@ -431,7 +435,8 @@ gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
       /* We are closing a style definition. Store the current style IF
        * we are inside a <styling> node. */
       if (parse->in_styling_node)
-        gst_ttml_state_save_attr_stack (&parse->state, parse->state.id);
+        gst_ttml_state_save_attr_stack (&parse->state,
+            &parse->state.saved_styling_attr_stacks, parse->state.id);
       break;
     case GST_TTML_NODE_TYPE_P:
       {
@@ -440,6 +445,19 @@ gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
         gchar br = '\n';
         gst_ttmlparse_add_characters (parse, &br, 1, TRUE);
       }
+      break;
+    case GST_TTML_NODE_TYPE_LAYOUT:
+      if (!parse->in_layout_node) {
+        GST_WARNING_OBJECT (parse, "Unmatched closing layout node");
+      }
+      parse->in_layout_node = FALSE;
+      break;
+    case GST_TTML_NODE_TYPE_REGION:
+      /* We are closing a region definition. Store the current style IF
+       * we are inside a <layout> node. */
+      if (parse->in_layout_node)
+        gst_ttml_state_save_attr_stack (&parse->state,
+            &parse->state.saved_region_attr_stacks, parse->state.id);
       break;
     default:
       break;
@@ -454,8 +472,11 @@ gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
        * couple of entries in that attribute's timeline in the parent style */
       GstTTMLAttribute *attr;
       attr = gst_ttml_style_get_attr (&parse->state.style, type);
-      gst_ttml_attribute_add_event (attr, current_begin, prev_attr);
-      gst_ttml_attribute_add_event (attr, current_end - 1, attr);
+      /* Just make sure this was actually an attribute */
+      if (attr) {
+        gst_ttml_attribute_add_event (attr, current_begin, prev_attr);
+        gst_ttml_attribute_add_event (attr, current_end - 1, attr);
+      }
     }
     if (prev_attr)
       gst_ttml_attribute_free (prev_attr);
@@ -551,6 +572,7 @@ gst_ttmlparse_sax_document_start (void *ctx)
   GST_LOG_OBJECT (GST_TTMLPARSE (ctx), "Document start");
 
   parse->in_styling_node = FALSE;
+  parse->in_layout_node = FALSE;
   gst_ttml_state_reset (&parse->state);
 }
 

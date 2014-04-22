@@ -24,7 +24,7 @@ gst_ttml_event_free (GstTTMLEvent *event)
       if (event->data.span_begin.span)
         gst_ttml_span_free (event->data.span_begin.span);
       break;
-    case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
+    case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
       if (event->data.attr_update.attr)
         gst_ttml_attribute_free (event->data.attr_update.attr);
       break;
@@ -78,7 +78,7 @@ gst_ttml_event_new_attr_update (guint id,
 {
   GstTTMLEvent *event = g_new0 (GstTTMLEvent, 1);
   event->timestamp = timestamp;
-  event->type = GST_TTML_EVENT_TYPE_ATTR_UPDATE;
+  event->type = GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE;
   event->data.attr_update.id = id;
   event->data.attr_update.attr = gst_ttml_attribute_copy (attr, FALSE);
   return event;
@@ -150,7 +150,7 @@ gst_ttml_event_type_name (GstTTMLEventType type)
       return "SPAN_BEGIN";
     case GST_TTML_EVENT_TYPE_SPAN_END:
       return "SPAN_END";
-    case GST_TTML_EVENT_TYPE_ATTR_UPDATE:
+    case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
       return "ATTRIBUTE_UPDATE";
     default:
       break;

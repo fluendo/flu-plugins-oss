@@ -32,7 +32,7 @@ gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
   if (attr && attr->value.b == FALSE)
     return;
 
-  gst_ttml_style_gen_pango (&span->style, &head, &tail);
+  gst_ttml_style_gen_pango_markup (&span->style, &head, &tail);
   head_len = strlen (head);
   tail_len = strlen (tail);
 
