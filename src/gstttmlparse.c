@@ -383,7 +383,6 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
     xml_attr = &xml_attr[5];
   }
 
-
   /* Manually push a 0 DUR attribute if the node did not define it in
    * sequential mode. In this case this node must be ignored and this seemed
    * like the simplest way. */
