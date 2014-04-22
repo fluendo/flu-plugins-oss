@@ -316,7 +316,7 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
 
   id_copy = g_strdup (id);
 
-  GST_DEBUG ("Storing style '%s'", id);
+  GST_DEBUG ("Storing style or region '%s'", id);
 
   g_hash_table_insert (*table, id_copy, attr_stack_copy);
 }
@@ -332,7 +332,7 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
   /* When a Style or Region attribute is found, the previous style or region
    * is pushed onto the stack.
    * However "style" and "region" are not members of the state, so a NULL attr
-   * is actually pushed. Here we filter out this kind of styles. */
+   * is actually pushed. Here we filter out this kind of attributes. */
   if (!id)
     return;
 
@@ -345,7 +345,7 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
     return;
   }
 
-  GST_DEBUG ("Applying style '%s'", id);
+  GST_DEBUG ("Applying style or region '%s'", id);
 
   while (attr_link) {
     GstTTMLAttribute *attr = (GstTTMLAttribute *) attr_link->data;
