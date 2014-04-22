@@ -15,6 +15,8 @@ G_BEGIN_DECLS
 
 /* Current state of all attributes */
 struct _GstTTMLState {
+  /* Non-styling attributes. These are too complicated to handle in a general
+   * attribute list. */
   GstTTMLNodeType node_type;
   gchar *id;
   guint last_span_id;
@@ -29,11 +31,21 @@ struct _GstTTMLState {
   gboolean whitespace_preserve;
   gboolean sequential_time_container;
 
+  /* This is the current style. It contains ALL possible attributes, even if
+   * they are all set to the default values. */
   GstTTMLStyle style;
 
+  /* This contains the previous values of attributes which have been modified.
+   */
   GList *attribute_stack;
 
-  GHashTable *saved_attr_stacks;
+  /* These are named styles used for referential styling.
+   * Each entry in the HashTable is an attribute stack. */
+  GHashTable *saved_styling_attr_stacks;
+
+  /* These are named styles used for regions.
+   * Each entry in the HashTable is an attribute stack. */
+  GHashTable *saved_region_attr_stacks;
 };
 
 void gst_ttml_state_free (GstTTMLState *state);
@@ -46,9 +58,11 @@ void gst_ttml_state_push_attribute (GstTTMLState *state,
 GstTTMLAttributeType gst_ttml_state_pop_attribute (GstTTMLState *state,
     GstTTMLAttribute **prev_attr_ptr);
 
-void gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id);
+void gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
+    const gchar *id);
 
-void gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id);
+void gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
+    const gchar *id);
 
 G_END_DECLS
 

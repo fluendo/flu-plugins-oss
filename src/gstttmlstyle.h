@@ -37,7 +37,7 @@ const gchar *gst_ttml_style_get_font_weight_name (GstTTMLFontWeight weight);
 const gchar *gst_ttml_style_get_text_decoration_name (
     GstTTMLTextDecoration decoration);
 
-void gst_ttml_style_gen_pango (const GstTTMLStyle *style,
+void gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
     gchar **head, gchar **tail);
 
 GList *gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle *style,

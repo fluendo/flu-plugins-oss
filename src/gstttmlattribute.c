@@ -278,6 +278,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     attr->type = GST_TTML_ATTR_STYLE;
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' style", value);
+  } else if (gst_ttml_utils_element_is_type (name, "region")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_REGION;
+    attr->value.string = g_strstrip (g_strdup (value));
+    GST_LOG ("Parsed '%s' region", value);
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -301,6 +306,7 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
     case GST_TTML_ATTR_ID:
     case GST_TTML_ATTR_STYLE:
     case GST_TTML_ATTR_FONT_FAMILY:
+    case GST_TTML_ATTR_REGION:
       g_free (attr->value.string);
       break;
     default:
@@ -332,6 +338,7 @@ gst_ttml_attribute_copy (const GstTTMLAttribute *src,
     case GST_TTML_ATTR_ID:
     case GST_TTML_ATTR_STYLE:
     case GST_TTML_ATTR_FONT_FAMILY:
+    case GST_TTML_ATTR_REGION:
       dest->value.string = g_strdup (src->value.string);
       break;
     default:
@@ -493,6 +500,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_STYLE);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_WEIGHT);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_DECORATION);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_REGION);
     default:
       break;
   }

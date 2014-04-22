@@ -63,9 +63,14 @@ gst_ttml_state_reset (GstTTMLState *state)
     state->attribute_stack = NULL;
   }
 
-  if (state->saved_attr_stacks) {
-    g_hash_table_unref (state->saved_attr_stacks);
-    state->saved_attr_stacks = NULL;
+  if (state->saved_styling_attr_stacks) {
+    g_hash_table_unref (state->saved_styling_attr_stacks);
+    state->saved_styling_attr_stacks = NULL;
+  }
+
+  if (state->saved_region_attr_stacks) {
+    g_hash_table_unref (state->saved_region_attr_stacks);
+    state->saved_region_attr_stacks = NULL;
   }
 }
 
@@ -115,7 +120,12 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       state->sequential_time_container = attr->value.b;
       break;
     case GST_TTML_ATTR_STYLE:
-      gst_ttml_state_restore_attr_stack (state, attr->value.string);
+      gst_ttml_state_restore_attr_stack (state,
+          state->saved_styling_attr_stacks, attr->value.string);
+      break;
+    case GST_TTML_ATTR_REGION:
+      gst_ttml_state_restore_attr_stack (state,
+          state->saved_region_attr_stacks, attr->value.string);
       break;
     default:
       /* All Styling attributes are handled here */
@@ -205,8 +215,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
           state->sequential_time_container);
       break;
     case GST_TTML_ATTR_STYLE:
-      /* Nothing to do here: The style attribute is expanded into multiple
-       * other attributes when set. */
+    case GST_TTML_ATTR_REGION:
+      /* Nothing to do here: The style and region attributes are expanded
+       * into multiple other attributes when set. */
       attr = gst_ttml_attribute_new_string (type, NULL);
       break;
     default:
@@ -271,16 +282,18 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
 
 /* Create a copy of the current attribute stack and store it in a hash table
  * with the specified ID string.
- * Create the hash table if necessary. Used for referential styling. */
+ * Create the hash table if necessary. Used for referential and region styling.
+ */
 void
-gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
+gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
+    const gchar *id)
 {
   GList *attr_link = state->attribute_stack;
   GList *attr_stack_copy = NULL;
   gchar *id_copy;
 
-  if (!state->saved_attr_stacks) {
-    state->saved_attr_stacks =
+  if (!*table) {
+    *table =
         g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
         (GDestroyNotify)gst_ttml_state_free_attr_stack);
   }
@@ -305,30 +318,30 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, const gchar *id)
 
   GST_DEBUG ("Storing style '%s'", id);
 
-  g_hash_table_insert (state->saved_attr_stacks, id_copy, attr_stack_copy);
+  g_hash_table_insert (*table, id_copy, attr_stack_copy);
 }
 
 /* Retrieve the attribute stack with the given id from the hash table and
- * apply it. Used for referential styling. */
+ * apply it. Used for referential and region styling. */
 void
-gst_ttml_state_restore_attr_stack (GstTTMLState *state, const gchar *id)
+gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
+    const gchar *id)
 {
   GList *attr_link = NULL;
 
-  /* When a Style attribute is found, the previous style is pushed onto the
-   * stack. However "style" is not a member of the state, so a NULL attr
-   * is actually pushed. Here we filter out this kind of styles.
-   */
+  /* When a Style or Region attribute is found, the previous style or region
+   * is pushed onto the stack.
+   * However "style" and "region" are not members of the state, so a NULL attr
+   * is actually pushed. Here we filter out this kind of styles. */
   if (!id)
     return;
 
-  if (state->saved_attr_stacks) {
-    g_hash_table_lookup_extended (state->saved_attr_stacks, id, NULL,
-        (gpointer *)&attr_link);
+  if (table) {
+    g_hash_table_lookup_extended (table, id, NULL, (gpointer *)&attr_link);
   }
 
   if (!attr_link) {
-    GST_WARNING ("Undefined style '%s'", id);
+    GST_WARNING ("Undefined style or region '%s'", id);
     return;
   }
 

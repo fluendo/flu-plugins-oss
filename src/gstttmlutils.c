@@ -80,6 +80,10 @@ gst_ttml_utils_node_type_parse (const gchar *ns, const gchar *name)
     return GST_TTML_NODE_TYPE_STYLING;
   } else if (gst_ttml_utils_element_is_type (name, "style")) {
     return GST_TTML_NODE_TYPE_STYLE;
+  } else if (gst_ttml_utils_element_is_type (name, "layout")) {
+    return GST_TTML_NODE_TYPE_LAYOUT;
+  } else if (gst_ttml_utils_element_is_type (name, "region")) {
+    return GST_TTML_NODE_TYPE_REGION;
   }
   return GST_TTML_NODE_TYPE_UNKNOWN;
 }
@@ -98,6 +102,8 @@ gst_ttml_utils_node_type_name (GstTTMLNodeType type)
     CASE_NODE_NAME (GST_TTML_NODE_TYPE_SET);
     CASE_NODE_NAME (GST_TTML_NODE_TYPE_STYLING);
     CASE_NODE_NAME (GST_TTML_NODE_TYPE_STYLE);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_LAYOUT);
+    CASE_NODE_NAME (GST_TTML_NODE_TYPE_REGION);
     default:
       break;
   }
