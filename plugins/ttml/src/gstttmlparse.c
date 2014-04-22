@@ -433,6 +433,14 @@ gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
       if (parse->in_styling_node)
         gst_ttml_state_save_attr_stack (&parse->state, parse->state.id);
       break;
+    case GST_TTML_NODE_TYPE_P:
+      {
+        /* P nodes represent paragraphs: they all should end with a line break
+         * (TTML spec 7.1.5) */
+        gchar br = '\n';
+        gst_ttmlparse_add_characters (parse, &br, 1, TRUE);
+      }
+      break;
     default:
       break;
   }
