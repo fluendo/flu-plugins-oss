@@ -1,5 +1,11 @@
 2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstate.c: (gst_ttml_state_restore_attr_stack):
+	Consistent warning messages when a reference to an undefined style is
+	found.
+
+2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_sax2_element_end_ns):
 	Add a CRLF at the end of every P node, as the spec says.
 
