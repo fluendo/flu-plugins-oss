@@ -56,11 +56,11 @@ typedef enum _GstTTMLEventType {
   GST_TTML_EVENT_TYPE_REGION_ATTR_UPDATE
 } GstTTMLEventType;
 
-/* Font Size units */
+/* Length units */
 typedef enum _GstTTMLFontSizeUnit {
-  GST_TTML_FONT_SIZE_PIXELS,
-  GST_TTML_FONT_SIZE_RELATIVE
-} GstTTMLFontSizeUnit;
+  GST_TTML_LENGTH_UNIT_PIXELS,
+  GST_TTML_LENGTH_UNIT_RELATIVE
+} GstTTMLLengthUnit;
 
 /* Font Styles */
 typedef enum _GstTTMLFontStyle {

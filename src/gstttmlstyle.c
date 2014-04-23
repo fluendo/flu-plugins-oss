@@ -88,14 +88,14 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
-/* Retrieve a font size unit name (for debugging) */
+/* Retrieve a length's unit name (for debugging) */
 const gchar *
-gst_ttml_style_get_font_size_unit_name (GstTTMLFontSizeUnit unit)
+gst_ttml_style_get_length_unit_name (GstTTMLLengthUnit unit)
 {
   switch (unit) {
-    case GST_TTML_FONT_SIZE_PIXELS:
+    case GST_TTML_LENGTH_UNIT_PIXELS:
       return "pixels";
-    case GST_TTML_FONT_SIZE_RELATIVE:
+    case GST_TTML_LENGTH_UNIT_RELATIVE:
       return "relative";
     default:
       break;
@@ -203,11 +203,11 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
-        if (attr->value.font_size.unit == GST_TTML_FONT_SIZE_PIXELS) {
-          font_size = g_strdup_printf (" %gpx", attr->value.font_size.f);
+        if (attr->value.length.unit == GST_TTML_LENGTH_UNIT_PIXELS) {
+          font_size = g_strdup_printf (" %gpx", attr->value.length.f);
           font_size_is_relative = FALSE;
-        } else if (attr->value.font_size.f != 1.f) {
-          font_size = g_strdup (attr->value.font_size.f>1 ? "large" : "small");
+        } else if (attr->value.length.f != 1.f) {
+          font_size = g_strdup (attr->value.length.f>1 ? "large" : "small");
           font_size_is_relative = TRUE;
         }
         break;

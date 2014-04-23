@@ -28,7 +28,7 @@ GstTTMLAttribute *gst_ttml_style_get_attr (GstTTMLStyle *style,
 GstTTMLAttribute *gst_ttml_style_set_attr (GstTTMLStyle *style,
     const GstTTMLAttribute *attr);
 
-const gchar *gst_ttml_style_get_font_size_unit_name (GstTTMLFontSizeUnit unit);
+const gchar *gst_ttml_style_get_length_unit_name (GstTTMLLengthUnit unit);
 
 const gchar *gst_ttml_style_get_font_style_name (GstTTMLFontStyle style);
 
