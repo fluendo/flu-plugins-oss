@@ -130,7 +130,8 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr)
   return 0xFFFFFFFF;
 }
 
-/* Parse <length> expressions as per the TTML specification:
+/* Parse <length> expressions as per the TTML specification.
+ * Returns TRUE on error.
 <length>
   : scalar
   | percentage
@@ -145,24 +146,30 @@ units
  */
 static gboolean
 gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
-    GstTTMLLengthUnit *unit)
+    GstTTMLLengthUnit *unit, const gchar **end)
 {
   int n;
   gboolean error = FALSE;
 
   *value = 1.f;
   *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+  *end = expr;
   n = 0;
   if (sscanf (expr, "%f%n", value, &n)) {
-    if (gst_ttml_utils_attr_value_is (expr + n, "px")) {
+    *end += n;
+    if (!g_ascii_strncasecmp (expr + n, "px", 2)) {
       *unit = GST_TTML_LENGTH_UNIT_PIXELS;
-    } else if (gst_ttml_utils_attr_value_is (expr + n, "em")) {
+      *end += 2;
+    } else if (!g_ascii_strncasecmp (expr + n, "em", 2)) {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-    } else if (gst_ttml_utils_attr_value_is (expr + n, "c")) {
+      *end += 2;
+    } else if (!g_ascii_strncasecmp (expr + n, "c", 1)) {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-    } else if (gst_ttml_utils_attr_value_is (expr + n, "%")) {
+      *end += 1;
+    } else if (!g_ascii_strncasecmp (expr + n, "%", 1)) {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       *value /= 100.0;
+      *end += 1;
     } else {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       error = TRUE;
@@ -175,6 +182,24 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
     GST_WARNING ("Could not understand length expression '%s'", expr);
   }
   return error;
+}
+
+static void
+gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
+    GstTTMLAttribute *attr)
+{
+  gchar *next;
+
+  /* Mark the second length as initially empty */
+  attr->value.length[1].f = 0.f;
+
+  if (!gst_ttml_attribute_parse_length_expression (expr,
+        &attr->value.length[0].f, &attr->value.length[0].unit, &next) &&
+      *next != '\0') {
+    /* A first length has been succesfully read, and there is more input */
+    gst_ttml_attribute_parse_length_expression (next,
+        &attr->value.length[1].f, &attr->value.length[1].unit, &next);
+  }
 }
 
 /* Read a name-value pair of strings and produce a new GstTTMLattribute.
@@ -260,11 +285,18 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
   } else if (gst_ttml_utils_element_is_type (name, "fontSize")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_SIZE;
-    gst_ttml_attribute_parse_length_expression (value, &attr->value.length.f,
-        &attr->value.length.unit);
-    GST_LOG ("Parsed '%s' font size into %g (%s)", value,
-      attr->value.length.f,
-      gst_ttml_style_get_length_unit_name (attr->value.length.unit));
+    gst_ttml_attribute_parse_length_pair_expression (value, attr);
+    if (attr->value.length[1].f == 0.f) {
+      GST_LOG ("Parsed '%s' font size into %g (%s)", value,
+          attr->value.length[0].f,
+          gst_ttml_style_get_length_unit_name (attr->value.length[0].unit));
+    } else {
+      GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
+          attr->value.length[0].f,
+          gst_ttml_style_get_length_unit_name (attr->value.length[0].unit),
+          attr->value.length[1].f,
+          gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
+    }
   } else if (gst_ttml_utils_element_is_type (name, "fontStyle")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_STYLE;
@@ -488,8 +520,10 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.string = NULL;
       break;
     case GST_TTML_ATTR_FONT_SIZE:
-      attr->value.length.f = 1.f;
-      attr->value.length.unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.length[0].f = 1.f;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.length[1].f = 0.f;
+      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     case GST_TTML_ATTR_FONT_STYLE:
       attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;

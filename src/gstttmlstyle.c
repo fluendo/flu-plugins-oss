@@ -203,11 +203,11 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
-        if (attr->value.length.unit == GST_TTML_LENGTH_UNIT_PIXELS) {
-          font_size = g_strdup_printf (" %gpx", attr->value.length.f);
+        if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
+          font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);
           font_size_is_relative = FALSE;
-        } else if (attr->value.length.f != 1.f) {
-          font_size = g_strdup (attr->value.length.f>1 ? "large" : "small");
+        } else if (attr->value.length[0].f != 1.f) {
+          font_size = g_strdup (attr->value.length[0].f>1 ? "large" : "small");
           font_size_is_relative = TRUE;
         }
         break;

@@ -30,7 +30,7 @@ struct _GstTTMLAttribute {
     struct _GstTTMLLength {
       GstTTMLLengthUnit unit;
       gfloat f;
-    } length;
+    } length[2];
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
   } value;
