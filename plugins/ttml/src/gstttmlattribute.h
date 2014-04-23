@@ -27,10 +27,10 @@ struct _GstTTMLAttribute {
     gchar *string;
     guint32 color;
     GstTTMLFontStyle font_style;
-    struct _GstTTMLFontSize {
-      GstTTMLFontSizeUnit unit;
+    struct _GstTTMLLength {
+      GstTTMLLengthUnit unit;
       gfloat f;
-    } font_size;
+    } length;
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
   } value;

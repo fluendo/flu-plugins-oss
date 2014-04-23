@@ -98,7 +98,7 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
   return res;
 }
 
-/* Parse all color expressions as specified in the TTML specification:
+/* Parse all color expressions as per the TTML specification:
   : "#" rrggbb
   | "#" rrggbbaa
   | "rgb" "(" r-value "," g-value "," b-value ")"
@@ -126,7 +126,55 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr)
     }
   }
 
+  GST_WARNING ("Could not understand color expression '%s'", expr);
   return 0xFFFFFFFF;
+}
+
+/* Parse <length> expressions as per the TTML specification:
+<length>
+  : scalar
+  | percentage
+scalar
+  : number units
+percentage
+  : number "%"
+units
+  : "px"
+  | "em"
+  | "c" 
+ */
+static gboolean
+gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
+    GstTTMLLengthUnit *unit)
+{
+  int n;
+  gboolean error = FALSE;
+
+  *value = 1.f;
+  *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+  n = 0;
+  if (sscanf (expr, "%f%n", value, &n)) {
+    if (gst_ttml_utils_attr_value_is (expr + n, "px")) {
+      *unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    } else if (gst_ttml_utils_attr_value_is (expr + n, "em")) {
+      *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    } else if (gst_ttml_utils_attr_value_is (expr + n, "c")) {
+      *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    } else if (gst_ttml_utils_attr_value_is (expr + n, "%")) {
+      *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      *value /= 100.0;
+    } else {
+      *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      error = TRUE;
+    }
+  } else {
+    error = TRUE;
+  }
+
+  if (error) {
+    GST_WARNING ("Could not understand length expression '%s'", expr);
+  }
+  return error;
 }
 
 /* Read a name-value pair of strings and produce a new GstTTMLattribute.
@@ -137,7 +185,6 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     const char *name, const char *value)
 {
   GstTTMLAttribute *attr;
-  int n;
   char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
 
   if (!gst_ttml_utils_namespace_is_ttml (ns)) {
@@ -213,26 +260,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
   } else if (gst_ttml_utils_element_is_type (name, "fontSize")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_SIZE;
-    attr->value.font_size.f = 1.f;
-    attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-    n = 0;
-    if (sscanf (value, "%f%n", &attr->value.font_size.f, &n)) {
-      if (gst_ttml_utils_attr_value_is (value + n, "px")) {
-        attr->value.font_size.unit = GST_TTML_FONT_SIZE_PIXELS;
-      } else if (gst_ttml_utils_attr_value_is (value + n, "em")) {
-        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-      } else if (gst_ttml_utils_attr_value_is (value + n, "c")) {
-        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-      } else if (gst_ttml_utils_attr_value_is (value + n, "%")) {
-        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-        attr->value.font_size.f /= 100.0;
-      } else {
-        attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
-      }
-    }
+    gst_ttml_attribute_parse_length_expression (value, &attr->value.length.f,
+        &attr->value.length.unit);
     GST_LOG ("Parsed '%s' font size into %g (%s)", value,
-      attr->value.font_size.f,
-      gst_ttml_style_get_font_size_unit_name (attr->value.font_size.unit));
+      attr->value.length.f,
+      gst_ttml_style_get_length_unit_name (attr->value.length.unit));
   } else if (gst_ttml_utils_element_is_type (name, "fontStyle")) {
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_STYLE;
@@ -456,8 +488,8 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.string = NULL;
       break;
     case GST_TTML_ATTR_FONT_SIZE:
-      attr->value.font_size.f = 1.f;
-      attr->value.font_size.unit = GST_TTML_FONT_SIZE_RELATIVE;
+      attr->value.length.f = 1.f;
+      attr->value.length.unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     case GST_TTML_ATTR_FONT_STYLE:
       attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;

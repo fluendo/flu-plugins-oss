@@ -1,3 +1,19 @@
+2014-04-23  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlstyle.c: (gst_ttml_style_get_length_unit_name),
+	(gst_ttml_style_gen_pango_markup):
+	* src/gstttmlstyle.h:
+	Turn the FontSize attribute into a more generic length, which will
+	come in handy for region parsing. Length parsing was (and still is)
+	incomplete.
+
 2014-04-22  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstate.c: (gst_ttml_state_save_attr_stack),
