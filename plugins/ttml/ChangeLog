@@ -1,6 +1,18 @@
 2014-04-23  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_parse_length_pair_expression),
+	(gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlattribute.h:
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	Support attributes made of two length values. fontSize='20px 20px'
+	is now correctly parsed, even though the second value is ignored.
+
+2014-04-23  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_color_expression),
 	(gst_ttml_attribute_parse_length_expression),
 	(gst_ttml_attribute_parse),
