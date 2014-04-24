@@ -1,3 +1,8 @@
+2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstate.c: (gst_ttml_state_save_attr_stack):
+	Add debug warning to clarify why some tests are currently failing.
+
 2014-04-23  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:
