@@ -1,5 +1,16 @@
 2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_parse_length_pair_expression),
+	(gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default),
+	(gst_ttml_attribute_type_name):
+	* src/gstttmlenums.h:
+	Parse "origin" and "extent" attributes.
+
+2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
 	Fix a couple of 1-byte leaks that have always been here.
 
