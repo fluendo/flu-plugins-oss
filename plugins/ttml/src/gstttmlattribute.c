@@ -179,19 +179,22 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
   }
 
   if (error) {
-    GST_WARNING ("Could not understand length expression '%s'", expr);
+    GST_WARNING ("Could not understand length expression '%s', using 1 (relative)", expr);
   }
   return error;
 }
 
+/* Reads a <length> expression, possibly followed by a second <length>.
+ * If the second length is not present, it will be filled with -1.
+ */
 static void
 gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
     GstTTMLAttribute *attr)
 {
   const gchar *next;
 
-  /* Mark the second length as initially empty */
-  attr->value.length[1].f = 0.f;
+  /* Mark the second length as initially unused */
+  attr->value.length[1].f = -1.f;
 
   if (!gst_ttml_attribute_parse_length_expression (expr,
         &attr->value.length[0].f, &attr->value.length[0].unit, &next) &&
@@ -286,7 +289,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     attr = g_new (GstTTMLAttribute, 1);
     attr->type = GST_TTML_ATTR_FONT_SIZE;
     gst_ttml_attribute_parse_length_pair_expression (value, attr);
-    if (attr->value.length[1].f == 0.f) {
+    if (attr->value.length[1].f == -1.f) {
       GST_LOG ("Parsed '%s' font size into %g (%s)", value,
           attr->value.length[0].f,
           gst_ttml_style_get_length_unit_name (attr->value.length[0].unit));
@@ -347,6 +350,46 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     attr->type = GST_TTML_ATTR_REGION;
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' region", value);
+  } else if (gst_ttml_utils_element_is_type (name, "origin")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_ORIGIN;
+    if (gst_ttml_utils_element_is_type (value, "auto")) {
+      /* 0 length means: use the container's origin */
+      attr->value.length[0].f = 0.f;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      GST_LOG ("Parsed '%s' origin into AUTO", value);
+    } else {
+      gst_ttml_attribute_parse_length_pair_expression (value, attr);
+      if (attr->value.length[1].f == -1.f) {
+        GST_WARNING ("Could not understand '%s' origin", value);
+      } else {
+        GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
+            attr->value.length[0].f,
+            gst_ttml_style_get_length_unit_name (attr->value.length[0].unit),
+            attr->value.length[1].f,
+            gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
+      }
+    }
+  } else if (gst_ttml_utils_element_is_type (name, "extent")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_EXTENT;
+    if (gst_ttml_utils_element_is_type (value, "auto")) {
+      /* 0 length means: use the container's size */
+      attr->value.length[0].f = 0.f;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      GST_LOG ("Parsed '%s' extent into AUTO", value);
+    } else {
+      gst_ttml_attribute_parse_length_pair_expression (value, attr);
+      if (attr->value.length[1].f == -1.f) {
+        GST_WARNING ("Could not understand '%s' extent", value);
+      } else {
+        GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
+            attr->value.length[0].f,
+            gst_ttml_style_get_length_unit_name (attr->value.length[0].unit),
+            attr->value.length[1].f,
+            gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
+      }
+    }
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -522,7 +565,7 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
     case GST_TTML_ATTR_FONT_SIZE:
       attr->value.length[0].f = 1.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      attr->value.length[1].f = 0.f;
+      attr->value.length[1].f = -1.f; /* Second component initially unused */
       attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     case GST_TTML_ATTR_FONT_STYLE:
@@ -532,6 +575,13 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_TEXT_DECORATION:
       attr->value.text_decoration = GST_TTML_TEXT_DECORATION_NONE;
+      break;
+    case GST_TTML_ATTR_ORIGIN:
+    case GST_TTML_ATTR_EXTENT:
+      /* 0,0 Means AUTO: use container's origin or extent */
+      attr->value.length[0].f = attr->value.length[1].f = 0.f;
+      attr->value.length[0].unit = attr->value.length[1].unit =
+          GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
@@ -567,6 +617,8 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_WEIGHT);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_DECORATION);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_REGION);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_ORIGIN);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_EXTENT);
     default:
       break;
   }
