@@ -1,5 +1,11 @@
 2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_pair_expression):
+	Fix const warning.
+
+2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlparse.c: (gst_ttmlparse_sax2_element_start_ns),
 	(gst_ttmlparse_sax2_element_end_ns):
 	Do not consider style nodes inside region nodes as valid nodes.
