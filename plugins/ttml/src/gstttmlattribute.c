@@ -188,7 +188,7 @@ static void
 gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
     GstTTMLAttribute *attr)
 {
-  gchar *next;
+  const gchar *next;
 
   /* Mark the second length as initially empty */
   attr->value.length[1].f = 0.f;
