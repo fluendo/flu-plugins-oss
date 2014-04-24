@@ -346,25 +346,36 @@ gst_ttmlparse_sax2_element_start_ns (void *ctx, const xmlChar *name,
       break;
   }
 
-  /* Push onto the stack the node type, which will serve as delimiter when
-   * popping attributes. */
-  ttml_attr = gst_ttml_attribute_new_node (node_type);
-  gst_ttml_state_push_attribute (&parse->state, ttml_attr);
-  /* If this node did not specify the time_container attribute, set it
-   * manually to "parallel", as this is not inherited. */
-  ttml_attr =
-      gst_ttml_attribute_new_boolean (GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER,
-      FALSE);
-  gst_ttml_state_push_attribute (&parse->state, ttml_attr);
-  /* Manually push a 0 BEGIN attribute when in sequential mode.
-   * If the node defines it, its value will overwrite this one.
-   * This seemed the simplest way to take container_begin into account when
-   * the node does not define a BEGIN time, since it is taken into account in
-   * the _merge_attribute method. */
-  if (is_container_seq) {
-    ttml_attr = gst_ttml_attribute_new_time (GST_TTML_ATTR_BEGIN, 0);
+  /* Style nodes inside region nodes use nested styling. This means that they
+   * are not defining a new style, buy applying their attributes directly to
+   * the parent region node. The easiest way to implement this is not to push
+   * the Node delimiter, so the style node attributes are appended to the
+   * Region node's, as if the style node didn't exist.
+   */
+  if (node_type != GST_TTML_NODE_TYPE_STYLE || !parse->in_layout_node) {
+    /* Push onto the stack the node type, which will serve as delimiter when
+     * popping attributes. */
+    ttml_attr = gst_ttml_attribute_new_node (node_type);
     gst_ttml_state_push_attribute (&parse->state, ttml_attr);
+    /* If this node did not specify the time_container attribute, set it
+     * manually to "parallel", as this is not inherited. */
+    ttml_attr =
+        gst_ttml_attribute_new_boolean (GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER,
+        FALSE);
+    gst_ttml_state_push_attribute (&parse->state, ttml_attr);
+    /* Manually push a 0 BEGIN attribute when in sequential mode.
+     * If the node defines it, its value will overwrite this one.
+     * This seemed the simplest way to take container_begin into account when
+     * the node does not define a BEGIN time, since it is taken into account in
+     * the _merge_attribute method. */
+    if (is_container_seq) {
+      ttml_attr = gst_ttml_attribute_new_time (GST_TTML_ATTR_BEGIN, 0);
+      gst_ttml_state_push_attribute (&parse->state, ttml_attr);
+    }
+  } else {
+    GST_DEBUG ("  Style node inside region, attributes belong to parent node");
   }
+
   /* Push onto the stack the "style" and "region" attributes, if found.
    * They go first, because the attributes defined by these styles must be
    * overriden by the values defined in this node, regardless of their
@@ -422,6 +433,14 @@ gst_ttmlparse_sax2_element_end_ns (void *ctx, const xmlChar *name,
   GST_LOG_OBJECT (parse, "End element: %s", name);
   current_node_type = gst_ttml_utils_node_type_parse (
       !prefix?NULL:(const gchar *)URI, (const gchar *)name);
+
+  if (current_node_type == GST_TTML_NODE_TYPE_STYLE && parse->in_layout_node) {
+    /* We are closing a style node inside a layout. Its attributes are to be
+     * merged with the parent region node as if this style node did not exist.
+     * Therefore, we do nothing here. */
+    GST_DEBUG ("  Style node inside region, no attributes are popped");
+    return;
+  }
 
   /* Special actions for some node types */
   switch (current_node_type) {

@@ -1,5 +1,15 @@
 2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlparse.c: (gst_ttmlparse_sax2_element_start_ns),
+	(gst_ttmlparse_sax2_element_end_ns):
+	Do not consider style nodes inside region nodes as valid nodes.
+	In this way, their attributes are merged with the parent region
+	node, which effectively implements nested styling, the last styling
+	mechanism left to implement. This is ugly, but according to the spec
+	nested styling only happens for style nodes inside region nodes.
+
+2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstate.c: (gst_ttml_state_save_attr_stack):
 	Add debug warning to clarify why some tests are currently failing.
 
