@@ -290,7 +290,6 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
 {
   GList *attr_link = state->attribute_stack;
   GList *attr_stack_copy = NULL;
-  gchar *id_copy;
 
   if (!*table) {
     *table =
@@ -314,11 +313,14 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
     attr_link = attr_link->next;
   }
 
-  id_copy = g_strdup (id);
+  if (attr_stack_copy) {
+    gchar *id_copy = g_strdup (id);
 
-  GST_DEBUG ("Storing style or region '%s'", id);
-
-  g_hash_table_insert (*table, id_copy, attr_stack_copy);
+    GST_DEBUG ("Storing style or region '%s'", id);
+    g_hash_table_insert (*table, id_copy, attr_stack_copy);
+  } else {
+    GST_WARNING ("Trying to store empty style or region definition '%s'", id);
+  }
 }
 
 /* Retrieve the attribute stack with the given id from the hash table and
