@@ -249,7 +249,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
      * tag. They need to appear at the beginning, because the 'font' tag
      * resets to default values all attributes not supplied. */
     gchar *font_desc = g_strdup ("");
-    gchar *font_attrs = g_strdup ("");
+    gchar *font_attrs = NULL;
 
     if (font_family != NULL)
       font_desc = gst_ttml_style_str_concat (font_desc, font_family);
@@ -258,8 +258,10 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
 
     if (font_desc[0] != '\0') {
       font_attrs = g_strdup_printf (" font=\"%s\"", font_desc);
-      g_free (font_desc);
+    } else {
+      font_attrs = g_strdup ("");
     }
+    g_free (font_desc);
 
     if (!font_size || font_size_is_relative) {
       if (!font_size)

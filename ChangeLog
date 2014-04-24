@@ -1,5 +1,10 @@
 2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	Fix a couple of 1-byte leaks that have always been here.
+
+2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_length_pair_expression):
 	Fix const warning.
