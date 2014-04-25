@@ -838,10 +838,12 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
 #if GST_CHECK_VERSION (1,0,0)
     case GST_EVENT_CAPS:
     {
-      GstCaps *src_caps = gst_caps_from_string (GST_TTMLBASE_SRC_CAPS);
+     /* Use caps from the pad template (created by derived class). */
+      GstPadTemplate *src_pad_template = gst_element_class_get_pad_template (
+          GST_ELEMENT_GET_CLASS (base), "src");
+      GstCaps *src_caps = gst_pad_template_get_caps (src_pad_template);
       GstEvent *src_event = gst_event_new_caps (src_caps);
       GST_DEBUG_OBJECT (base->srcpad, "setting src caps to %" GST_PTR_FORMAT, src_caps);
-      gst_caps_unref (src_caps);
       ret = gst_pad_push_event (base->srcpad, src_event);
       break;
     }
