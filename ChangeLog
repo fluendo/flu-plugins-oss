@@ -1,5 +1,10 @@
 2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/Makefile.am:
+	Updated Makefile for new file.
+
+2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/fluttml.c: (plugin_init):
 	* src/gstttmlattribute.c:
 	* src/gstttmlbase.c: (gst_event_new_new_segment),

@@ -5,6 +5,7 @@ plugin_LTLIBRARIES = libgstfluttml.la
 
 libgstfluttml_la_SOURCES = \
 fluttml.c \
+gstttmlbase.c \
 gstttmlparse.c \
 gstttmltype.c \
 gstttmlattribute.c \
@@ -39,6 +40,7 @@ libgstfluttml_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) $(CPU_TUNE_LDFLAGS) \
 libgstfluttml_la_DEPENDENCIES =
 
 noinst_HEADERS = \
+gstttmlbase.h \
 gstttmlparse.h \
 gstttmltype.h \
 gstttmlattribute.h \
