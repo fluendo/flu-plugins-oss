@@ -12,8 +12,8 @@
 #include "gstttmlattribute.h"
 #include "gstttmlevent.h"
 
-GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
-#define GST_CAT_DEFAULT ttmlparse_debug
+GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
+#define GST_CAT_DEFAULT ttmlbase_debug
 
 /* Set the state to default TTML values */
 void

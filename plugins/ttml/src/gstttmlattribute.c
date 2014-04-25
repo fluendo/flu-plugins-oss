@@ -14,8 +14,8 @@
 #include "gstttmlutils.h"
 #include <stdio.h>
 
-GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
-#define GST_CAT_DEFAULT ttmlparse_debug
+GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
+#define GST_CAT_DEFAULT ttmlbase_debug
 
 #define MAKE_COLOR(r,g,b,a) ((r)<<24 | (g)<<16 | (b)<<8 | (a))
 

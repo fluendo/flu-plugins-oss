@@ -37,6 +37,7 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\fluttml.c" />
     <ClCompile Include="..\..\src\gstttmlattribute.c" />
+    <ClCompile Include="..\..\src\gstttmlbase.c" />
     <ClCompile Include="..\..\src\gstttmlevent.c" />
     <ClCompile Include="..\..\src\gstttmlparse.c" />
     <ClCompile Include="..\..\src\gstttmlspan.c" />
@@ -47,6 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\gstttmlattribute.h" />
+    <ClInclude Include="..\..\src\gstttmlbase.h" />
     <ClInclude Include="..\..\src\gstttmlenums.h" />
     <ClInclude Include="..\..\src\gstttmlevent.h" />
     <ClInclude Include="..\..\src\gstttmlforward.h" />

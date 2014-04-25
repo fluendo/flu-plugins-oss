@@ -1,3 +1,38 @@
+2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/fluttml.c: (plugin_init):
+	* src/gstttmlattribute.c:
+	* src/gstttmlbase.c: (gst_event_new_new_segment),
+	(gst_event_parse_new_segment), (gst_segment_set_newsegment),
+	(gst_ttmlbase_gen_buffer), (gst_ttmlbase_parse_event),
+	(gst_ttmlbase_add_characters), (gst_ttmlbase_push_attr),
+	(gst_ttmlbase_sax2_element_start_ns),
+	(gst_ttmlbase_sax2_element_end_ns), (gst_ttmlbase_sax_characters),
+	(gst_ttmlbase_sax_warning), (gst_ttmlbase_sax_error),
+	(gst_ttmlbase_sax_comment), (gst_ttmlbase_sax_get_entity),
+	(gst_ttmlbase_sax_document_start), (gst_ttmlbase_sax_document_end),
+	(gst_ttmlbase_reset), (gst_ttmlbase_handle_buffer),
+	(gst_ttmlbase_cleanup), (gst_ttmlbase_handle_event),
+	(gst_ttmlbase_chain), (gst_ttmlbase_sink_event),
+	(gst_ttmlbase_change_state), (gst_ttmlbase_get_property),
+	(gst_ttmlbase_set_property), (gst_ttmlbase_dispose),
+	(gst_ttmlbase_class_init), (gst_ttmlbase_init),
+	(gst_ttmlbase_get_type):
+	* src/gstttmlbase.h:
+	* src/gstttmlevent.c:
+	* src/gstttmlparse.c: (gst_ttmlparse_gen_buffer),
+	(gst_ttmlparse_class_init), (gst_ttmlparse_init):
+	* src/gstttmlparse.h:
+	* src/gstttmlspan.c:
+	* src/gstttmlstate.c:
+	* src/gstttmlstyle.c:
+	* win32/vs10/libgstfluttml_sdk.vcxproj:
+	* win32/vs10/libgstfluttml_sdk.vcxproj.filters:
+	Turn most of the current ttmlparse into a base class with a single virtual
+	method. The ttmlparse element is now a derived element implementing that
+	method.
+	Lots of search & replaces, no change in functionality.
+
 2014-04-24  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:

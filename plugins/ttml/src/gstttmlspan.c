@@ -12,8 +12,8 @@
 #include "gstttmlstyle.h"
 #include "gstttmlattribute.h"
 
-GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
-#define GST_CAT_DEFAULT ttmlparse_debug
+GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
+#define GST_CAT_DEFAULT ttmlbase_debug
 
 /* Generate one output span combining all currently active spans and their
  * attributes. */

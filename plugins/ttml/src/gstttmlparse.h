@@ -10,48 +10,19 @@
 #include <libxml/parser.h>
 #include "gst-compat.h"
 #include "gst-demo.h"
+#include "gstttmlbase.h"
 #include "gstttmlstate.h"
 
 G_BEGIN_DECLS
   
 /* The GStreamer ttmlparse element */
 typedef struct _GstTTMLParse {
-  GstElement element;
-
-  /* Sink pad */
-  GstPad *sinkpad;
-  /* Sourc pad */
-  GstPad *srcpad;
-
-  GstSegment *segment;
-  gboolean newsegment_needed;
-  GstClockTime base_time;
-  GstFlowReturn current_gst_status;
-
-  /* XML parsing */
-  xmlParserCtxtPtr xml_parser;
-  GstTTMLState state;
-  gboolean in_styling_node;
-  gboolean in_layout_node;
-
-  /* Properties */
-  gboolean assume_ordered_spans;
-  gboolean force_buffer_clear;
-
-  /* Timeline management */
-  GList *timeline;
-  GstClockTime last_event_timestamp;
-
-  /* Active span list */
-  GList *active_spans;
-
-  /* For building demo plugins */
-  GstFluDemoStatistics stats;
+  GstTTMLBase base;
 } GstTTMLParse;
 
 /* The GStreamer ttmlparse element's class */
 typedef struct _GstTTMLParseClass {
-  GstElementClass parent_class;
+  GstTTMLBaseClass parent_class;
 } GstTTMLParseClass;
 
 #define GST_TYPE_TTMLPARSE            (gst_ttmlparse_get_type())
