@@ -7,6 +7,7 @@ libgstfluttml_la_SOURCES = \
 fluttml.c \
 gstttmlbase.c \
 gstttmlparse.c \
+gstttmlrender.c \
 gstttmltype.c \
 gstttmlattribute.c \
 gstttmlstate.c \
@@ -42,6 +43,7 @@ libgstfluttml_la_DEPENDENCIES =
 noinst_HEADERS = \
 gstttmlbase.h \
 gstttmlparse.h \
+gstttmlrender.h \
 gstttmltype.h \
 gstttmlattribute.h \
 gstttmlstate.h \

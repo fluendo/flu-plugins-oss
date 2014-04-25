@@ -1,5 +1,14 @@
 2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/Makefile.am:
+	* src/fluttml.c: (plugin_init):
+	* src/gstttmlrender.c: (gst_ttmlrender_gen_buffer),
+	(gst_ttmlrender_class_init), (gst_ttmlrender_init):
+	* src/gstttmlrender.h:
+	Skeleton for ttmlrender element.
+
+2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_handle_event),
 	(gst_ttmlbase_get_type):
 	Fix build for 1.0

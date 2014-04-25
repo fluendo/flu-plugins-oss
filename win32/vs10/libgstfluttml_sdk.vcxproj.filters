@@ -39,6 +39,9 @@
     <ClCompile Include="..\..\src\gstttmlbase.c">
       <Filter>Source files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\gstttmlrender.c">
+      <Filter>Source files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\gstttmlparse.h">
@@ -72,6 +75,9 @@
       <Filter>Header files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\gstttmlbase.h">
+      <Filter>Header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\gstttmlrender.h">
       <Filter>Header files</Filter>
     </ClInclude>
   </ItemGroup>
