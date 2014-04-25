@@ -11,8 +11,8 @@
 #include "gstttmlevent.h"
 #include "gstttmlstate.h"
 
-GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
-#define GST_CAT_DEFAULT ttmlparse_debug
+GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
+#define GST_CAT_DEFAULT ttmlbase_debug
 
 /* Free an event. Some of them might have internal allocated memory, so
  * always use this function and do not g_free events directly. */
