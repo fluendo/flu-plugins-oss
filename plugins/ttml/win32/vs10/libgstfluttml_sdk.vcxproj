@@ -40,6 +40,7 @@
     <ClCompile Include="..\..\src\gstttmlbase.c" />
     <ClCompile Include="..\..\src\gstttmlevent.c" />
     <ClCompile Include="..\..\src\gstttmlparse.c" />
+    <ClCompile Include="..\..\src\gstttmlrender.c" />
     <ClCompile Include="..\..\src\gstttmlspan.c" />
     <ClCompile Include="..\..\src\gstttmlstate.c" />
     <ClCompile Include="..\..\src\gstttmlstyle.c" />
@@ -53,6 +54,7 @@
     <ClInclude Include="..\..\src\gstttmlevent.h" />
     <ClInclude Include="..\..\src\gstttmlforward.h" />
     <ClInclude Include="..\..\src\gstttmlparse.h" />
+    <ClInclude Include="..\..\src\gstttmlrender.h" />
     <ClInclude Include="..\..\src\gstttmlspan.h" />
     <ClInclude Include="..\..\src\gstttmlstate.h" />
     <ClInclude Include="..\..\src\gstttmlstyle.h" />
