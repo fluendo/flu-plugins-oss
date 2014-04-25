@@ -1,5 +1,11 @@
 2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_handle_event),
+	(gst_ttmlbase_get_type):
+	Fix build for 1.0
+
+2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/Makefile.am:
 	Updated Makefile for new file.
 
