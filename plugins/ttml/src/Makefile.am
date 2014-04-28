@@ -28,12 +28,14 @@ libgstfluttml_la_CFLAGS = \
 -I$(top_srcdir)/gst/ttml \
  $(GST_CFLAGS) \
  $(GST_BASE_CFLAGS) \
- $(LIBXML_CFLAGS)
+ $(LIBXML_CFLAGS) \
+ $(PANGO_CFLAGS)
 
 libgstfluttml_la_LIBADD = \
 $(GST_LIBS) \
 $(GST_BASE_LIBS) \
-$(LIBXML_LIBS)
+$(LIBXML_LIBS) \
+$(PANGO_LIBS)
 
 libgstfluttml_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) $(CPU_TUNE_LDFLAGS) \
   -no-undefined

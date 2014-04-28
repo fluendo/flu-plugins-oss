@@ -1,3 +1,9 @@
+2014-04-28  Xavi Artigas  <xartigas@fluendo.com>
+
+	* configure.ac:
+	* src/Makefile.am:
+	Prepare for Pango support.
+
 2014-04-25  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/Makefile.am:
