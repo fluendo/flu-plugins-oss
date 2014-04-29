@@ -1,5 +1,14 @@
 2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_downstream_negotiation),
+	(gst_ttmlbase_init):
+	* src/gstttmlbase.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_setcaps),
+	(gst_ttmlrender_class_init), (gst_ttmlrender_init):
+	Better setcaps detection that allows working with gst 0.10 and 1.0
+
+2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_fixate_caps):
 	Remove unnecessary caps truncation (our template has only one struct)
 	This removes an ultra-pedantic gcc warning about unused result...

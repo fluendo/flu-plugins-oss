@@ -643,6 +643,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
 {
   GstCaps *src_caps, *template_caps;
   GstPadTemplate *src_pad_template;
+  GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
 
 #if GST_CHECK_VERSION (1,0,0)
   src_caps = gst_pad_get_current_caps (base->srcpad);
@@ -680,8 +681,6 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
   }
 
   if (!gst_caps_is_fixed (src_caps)) {
-    GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
-
     /* If there are still values left to fixate, allow the derived class to
      * choose its preferred values. It should have overriden the fixate_caps
      * method. */
@@ -696,6 +695,13 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
 
   GST_DEBUG_OBJECT (base, "setting caps %s" , gst_caps_to_string (src_caps));
   gst_pad_set_caps (base->srcpad, src_caps);
+
+  /* Inform derived class of its final src caps.
+   * This direct call avoids the hassle of having to deal with the different
+   * setcaps mechanism for GStreamer 0.10 and 1.0 */
+  if (klass->src_setcaps) {
+    klass->src_setcaps (base, src_caps);
+  }
 
   gst_caps_unref (src_caps);
 
@@ -1088,8 +1094,6 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   src_pad_template = gst_element_class_get_pad_template (
       GST_ELEMENT_CLASS (klass), "src");
   base->srcpad = gst_pad_new_from_template (src_pad_template, "src");
-
-  gst_pad_use_fixed_caps (base->srcpad);
 
   gst_element_add_pad (GST_ELEMENT (base), base->sinkpad);
   gst_element_add_pad (GST_ELEMENT (base), base->srcpad);
