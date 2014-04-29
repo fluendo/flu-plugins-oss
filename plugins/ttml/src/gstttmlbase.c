@@ -634,6 +634,74 @@ gst_ttmlbase_reset (GstTTMLBase * base)
   gst_ttml_state_reset (&base->state);
 }
 
+/* Set downstream caps, if not done already.
+ * Intersect our template caps with the peer caps and fixate
+ * if required. A pad template named "src" should have been
+ * installed by the derived class. */
+static gboolean
+gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
+{
+  GstCaps *src_caps, *template_caps;
+  GstPadTemplate *src_pad_template;
+
+#if GST_CHECK_VERSION (1,0,0)
+  src_caps = gst_pad_get_current_caps (base->srcpad);
+#else
+  src_caps = gst_pad_get_negotiated_caps (base->srcpad);
+#endif
+  if (G_LIKELY (src_caps != NULL)) {
+    gst_caps_unref (src_caps);
+    return TRUE;
+  }
+
+  src_pad_template = gst_element_class_get_pad_template (
+      GST_ELEMENT_GET_CLASS (base), "src");
+  template_caps = gst_pad_template_get_caps (src_pad_template);
+  gst_caps_ref (template_caps);
+
+#if GST_CHECK_VERSION (1,0,0)
+  src_caps = gst_pad_peer_query_caps (base->srcpad, template_caps);
+#else
+  {
+    GstCaps *peer_caps = gst_pad_peer_get_caps (base->srcpad);
+    if (!peer_caps) {
+      return FALSE;
+    }
+    src_caps = gst_caps_intersect (peer_caps, template_caps);
+    gst_caps_unref (peer_caps);
+  }
+#endif
+
+  gst_caps_unref (template_caps);
+
+  if (!src_caps) {
+    GST_WARNING_OBJECT (base, "Could not find compatible caps for src pad");
+    return FALSE;
+  }
+
+  if (!gst_caps_is_fixed (src_caps)) {
+    GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
+
+    /* If there are still values left to fixate, allow the derived class to
+     * choose its preferred values. It should have overriden the fixate_caps
+     * method. */
+    if (klass->fixate_caps) {
+      klass->fixate_caps (base, src_caps);
+    } else {
+      GST_WARNING_OBJECT (base, "Caps are unfixed and derived class did not "
+          "provide a fixate_caps method");
+      return FALSE;
+    }
+  }
+
+  GST_DEBUG_OBJECT (base, "setting caps %s" , gst_caps_to_string (src_caps));
+  gst_pad_set_caps (base->srcpad, src_caps);
+
+  gst_caps_unref (src_caps);
+
+  return TRUE;
+}
+
 static GstFlowReturn
 gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 {
@@ -641,31 +709,18 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
   const char *buffer_data;
   int buffer_len;
   GstMapInfo map;
-  GstCaps *src_caps;
 
   base = GST_TTMLBASE (gst_pad_get_parent (pad));
   base->current_gst_status = GST_FLOW_OK;
 
-  /* Set caps on src pad */
-#if GST_CHECK_VERSION (1,0,0)
-  src_caps = gst_pad_get_current_caps (base->srcpad);
-#else
-  src_caps = gst_pad_get_negotiated_caps (base->srcpad);
-#endif
-  if (G_UNLIKELY (!src_caps)) {
-    /* Last chance to set the src pad's caps. It can happen (when linking with
-     * a filesrc, for example) that the 0.10 set_caps function is never called.
-     * Use caps from the pad template (created by derived class).
-     */
-    GstPadTemplate *src_pad_template = gst_element_class_get_pad_template (
-        GST_ELEMENT_GET_CLASS (base), "src");
-
-    src_caps = gst_pad_template_get_caps (src_pad_template);
-    gst_caps_ref (src_caps);
-    GST_DEBUG_OBJECT (base->srcpad, "setting caps %" GST_PTR_FORMAT, src_caps);
-    gst_pad_set_caps (base->srcpad, src_caps);
+  /* Last chance to set the src pad's caps. It can happen (when linking with
+   * a filesrc, for example) that the 0.10 set_caps function is never called.
+   * Same thing happens with the 1.0 GST_EVENT_CAPS.
+   */
+  if (!gst_ttmlbase_downstream_negotiation (base)) {
+    base->current_gst_status = GST_FLOW_NOT_NEGOTIATED;
+    goto negotiation_error;
   }
-  gst_caps_unref (src_caps);
 
   GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT,
       (guint)gst_buffer_get_size (buffer), GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)));
@@ -757,6 +812,7 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 
 beach:
   gst_buffer_unmap (buffer, &map);
+negotiation_error:
   gst_buffer_unref (buffer);
 
   gst_object_unref (base);
@@ -838,13 +894,7 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
 #if GST_CHECK_VERSION (1,0,0)
     case GST_EVENT_CAPS:
     {
-     /* Use caps from the pad template (created by derived class). */
-      GstPadTemplate *src_pad_template = gst_element_class_get_pad_template (
-          GST_ELEMENT_GET_CLASS (base), "src");
-      GstCaps *src_caps = gst_pad_template_get_caps (src_pad_template);
-      GstEvent *src_event = gst_event_new_caps (src_caps);
-      GST_DEBUG_OBJECT (base->srcpad, "setting src caps to %" GST_PTR_FORMAT, src_caps);
-      ret = gst_pad_push_event (base->srcpad, src_event);
+      gst_ttmlbase_downstream_negotiation (base);
       break;
     }
 #endif
