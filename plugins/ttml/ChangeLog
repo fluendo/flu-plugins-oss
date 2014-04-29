@@ -1,5 +1,10 @@
 2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_dispose):
+	Minor fix in debug output.
+
+2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_base_init),
 	(gst_ttmlbase_class_init), (gst_ttmlbase_get_type):
 	Register sink pad template in base_init instead of class_init so it
