@@ -70,26 +70,21 @@ gst_ttmlrender_fixate_caps (GstTTMLBase *base, GstCaps * caps)
   GST_DEBUG_OBJECT (render, "Fixated to    %" GST_PTR_FORMAT, caps);
 }
 
-static gboolean
-gst_ttmlrender_setcaps (GstPad * pad, GstCaps * caps)
+static void
+gst_ttmlrender_setcaps (GstTTMLBase *base, GstCaps *caps)
 {
-  GstTTMLRender *render = GST_TTMLRENDER (gst_pad_get_parent (pad));
+  GstTTMLRender *render = GST_TTMLRENDER (base);
   GstStructure *structure;
-  gboolean ret = FALSE;
   gint width = 0, height = 0;
 
   structure = gst_caps_get_structure (caps, 0);
   gst_structure_get_int (structure, "width", &width);
   gst_structure_get_int (structure, "height", &height);
 
-  GST_DEBUG_OBJECT (render, "Got caps %" GST_PTR_FORMAT, caps);
+  GST_DEBUG_OBJECT (render, "Got frame size %dx%d", width, height);
 
   render->width = width;
   render->height = height;
-  ret = TRUE;
-
-  gst_object_unref (render);
-  return ret;
 }
 
 static void
@@ -112,15 +107,10 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
 
   base_klass->gen_buffer = GST_DEBUG_FUNCPTR (gst_ttmlrender_gen_buffer);
   base_klass->fixate_caps = GST_DEBUG_FUNCPTR (gst_ttmlrender_fixate_caps);
+  base_klass->src_setcaps = GST_DEBUG_FUNCPTR (gst_ttmlrender_setcaps);
 }
 
 static void
 gst_ttmlrender_init (GstTTMLRender * render)
 {
-#if !GST_CHECK_VERSION (1,0,0)
-  GstTTMLBase *base = GST_TTMLBASE (render);
-
-  gst_pad_set_setcaps_function (base->srcpad,
-      GST_DEBUG_FUNCPTR (gst_ttmlrender_setcaps));
-#endif
 }

@@ -63,6 +63,9 @@ typedef struct _GstTTMLBaseClass {
    * Used to set a default video size, if downstream does not request one,
    * for example. */
   void (*fixate_caps)(GstTTMLBase *base, GstCaps *caps);
+
+  /* Inform the derived class of the final negotiated caps on its srcpad */
+  void (*src_setcaps)(GstTTMLBase *base, GstCaps *caps);
 } GstTTMLBaseClass;
 
 #define GST_TYPE_TTMLBASE            (gst_ttmlbase_get_type())
