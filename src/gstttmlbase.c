@@ -1008,7 +1008,7 @@ gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
   g_object_class_install_property (gobject_class, PROP_ASSUME_ORDERED_SPANS,
       g_param_spec_boolean ("assume_ordered_spans", "Assume ordered spans",
           "Generate buffers as soon as possible, by assuming that text "
-          "spans will arrive in order", FALSE, G_PARAM_READWRITE));
+          "spans will arrive in chronological order", FALSE, G_PARAM_READWRITE));
   g_object_class_install_property (gobject_class, PROP_FORCE_BUFFER_CLEAR,
       g_param_spec_boolean ("force_buffer_clear", "Force buffer clear",
           "Output an empty buffer after each text buffer to force its "
