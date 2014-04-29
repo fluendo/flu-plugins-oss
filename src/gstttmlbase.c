@@ -1034,7 +1034,7 @@ gst_ttmlbase_dispose (GObject * object)
 {
   GstTTMLBase *base = GST_TTMLBASE (object);
 
-  GST_DEBUG_OBJECT (base, "disposing TTML parser");
+  GST_DEBUG_OBJECT (base, "disposing TTML base");
 
   if (base->segment) {
     gst_segment_free (base->segment);
