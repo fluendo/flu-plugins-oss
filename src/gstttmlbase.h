@@ -58,6 +58,11 @@ typedef struct _GstTTMLBaseClass {
    * the src pad template).
    */
   GstBuffer *(*gen_buffer)(GstTTMLBase *base);
+  
+  /* Derived classes can set any unfixed value to whatever they please.
+   * Used to set a default video size, if downstream does not request one,
+   * for example. */
+  void (*fixate_caps)(GstTTMLBase *base, GstCaps *caps);
 } GstTTMLBaseClass;
 
 #define GST_TYPE_TTMLBASE            (gst_ttmlbase_get_type())

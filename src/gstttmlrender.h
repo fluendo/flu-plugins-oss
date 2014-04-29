@@ -18,6 +18,8 @@ G_BEGIN_DECLS
 /* The GStreamer ttmlrender element */
 typedef struct _GstTTMLRender {
   GstTTMLBase base;
+  gint width;
+  gint height;
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */
