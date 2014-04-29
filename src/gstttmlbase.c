@@ -1045,14 +1045,23 @@ gst_ttmlbase_dispose (GObject * object)
 }
 
 static void
+gst_ttmlbase_base_init (GstTTMLBaseClass * klass)
+{
+  GstElementClass *gstelement_class = GST_ELEMENT_CLASS (klass);
+
+  /* Add sink pad template. Src pad template is to be added by derived class.
+   * This is done in base_init instead of class_init because of issues with
+   * GStreamer 0.10: The template is not shown with gst-inspect.
+   */
+  gst_element_class_add_pad_template (gstelement_class,
+      gst_static_pad_template_get (&ttmlbase_sink_template));
+}
+
+static void
 gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
 {
   GstElementClass *gstelement_class = GST_ELEMENT_CLASS (klass);
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-
-  /* Add sink pad template. Src pad template is to be added by derived class */
-  gst_element_class_add_pad_template (gstelement_class,
-      gst_static_pad_template_get (&ttmlbase_sink_template));
 
   parent_class = GST_ELEMENT_CLASS (g_type_class_peek_parent (klass));
 
@@ -1124,7 +1133,7 @@ gst_ttmlbase_get_type (void)
   if (g_once_init_enter ((gsize *) & type)) {
     static const GTypeInfo info = {
       sizeof (GstTTMLBaseClass),
-      NULL,
+      (GBaseInitFunc)gst_ttmlbase_base_init,
       NULL,
       (GClassInitFunc) gst_ttmlbase_class_init,
       NULL,

@@ -1,5 +1,13 @@
 2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_base_init),
+	(gst_ttmlbase_class_init), (gst_ttmlbase_get_type):
+	Register sink pad template in base_init instead of class_init so it
+	appears in the templates list of gst-inspect. A minor nuance, but
+	who knows if it could have caused problems in the future...
+
+2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_downstream_negotiation),
 	(gst_ttmlbase_init):
 	* src/gstttmlbase.h:
