@@ -65,7 +65,6 @@ gst_ttmlrender_fixate_caps (GstTTMLBase *base, GstCaps * caps)
   /* Our peer allows us to choose image size (we have fixed all other values
    * in the template caps) */
   GST_DEBUG_OBJECT (render, "Fixating caps %" GST_PTR_FORMAT, caps);
-  gst_caps_truncate (caps);
   gst_structure_fixate_field_nearest_int (s, "width", DEFAULT_RENDER_WIDTH);
   gst_structure_fixate_field_nearest_int (s, "height",DEFAULT_RENDER_HEIGHT);
   GST_DEBUG_OBJECT (render, "Fixated to    %" GST_PTR_FORMAT, caps);

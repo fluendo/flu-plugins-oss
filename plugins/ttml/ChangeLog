@@ -1,5 +1,11 @@
 2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_fixate_caps):
+	Remove unnecessary caps truncation (our template has only one struct)
+	This removes an ultra-pedantic gcc warning about unused result...
+
+2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_downstream_negotiation),
 	(gst_ttmlbase_handle_buffer), (gst_ttmlbase_handle_event):
 	* src/gstttmlbase.h:
