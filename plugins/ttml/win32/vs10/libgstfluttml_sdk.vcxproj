@@ -94,6 +94,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-0.10.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-base-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-base-0.10.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pangocairo.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\msvc\x86.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\msvc\x86.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
   </ImportGroup>
@@ -101,6 +102,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-0.10.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-0.10.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
   </ImportGroup>
@@ -108,6 +110,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-1.0.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-base-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-base-1.0.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pangocairo.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\msvc\x86.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\msvc\x86.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\libxml-2.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\libxml-2.0.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
@@ -116,6 +119,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-1.0.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-1.0.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\libxml-2.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\libxml-2.0.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />

@@ -8,6 +8,7 @@
 
 #include <gst/gst.h>
 #include <libxml/parser.h>
+#include <pango/pangocairo.h>
 #include "gst-compat.h"
 #include "gst-demo.h"
 #include "gstttmlbase.h"
@@ -18,6 +19,14 @@ G_BEGIN_DECLS
 /* The GStreamer ttmlrender element */
 typedef struct _GstTTMLRender {
   GstTTMLBase base;
+  PangoContext *pango_context;
+  cairo_surface_t *surface;
+  cairo_t *cairo;
+
+  /* Each entry is a GstTTMLRegion, sorted by ZIndex.
+   * This is a temporal structure used to render each frame */
+  GList *regions;
+
   gint width;
   gint height;
 } GstTTMLRender;

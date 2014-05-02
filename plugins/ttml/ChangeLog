@@ -1,3 +1,16 @@
+2014-05-02  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_region_compare_zindex),
+	(gst_ttmlrender_region_compare_id), (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_build_layouts), (gst_ttmlrender_show_region),
+	(gst_ttmlrender_free_region), (gst_ttmlrender_gen_buffer),
+	(gst_ttmlrender_dispose), (gst_ttmlrender_class_init),
+	(gst_ttmlrender_init):
+	* src/gstttmlrender.h:
+	* win32/vs10/libgstfluttml_sdk.vcxproj:
+	WORK IN PROGRESS: Build list of PangoLayouts corresponding to each region.
+	Start using Cairo to produce (empty) buffers.
+
 2014-04-29  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlbase.c: (gst_ttmlbase_dispose):
