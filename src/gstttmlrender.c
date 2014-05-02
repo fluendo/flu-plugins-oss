@@ -184,6 +184,7 @@ gst_ttmlrender_free_region (GstTTMLRegion *region)
   g_free (region->current_par_content);
   g_list_free_full (region->layouts, g_object_unref);
   g_free (region->id);
+  g_free (region);
 }
 
 static GstBuffer *
@@ -217,6 +218,7 @@ gst_ttmlrender_gen_buffer (GstTTMLBase *base)
   /* We are done processing the regions, destroy the temp structures */
   g_list_free_full (render->regions,
       (GDestroyNotify)gst_ttmlrender_free_region);
+  render->regions = NULL;
 
 beach:
   gst_buffer_unmap (buffer, &map_info);
@@ -306,7 +308,6 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
 static void
 gst_ttmlrender_init (GstTTMLRender * render)
 {
-  GstTTMLBase *base = GST_TTMLBASE (render);
   render->pango_context =
       pango_font_map_create_context (pango_cairo_font_map_get_default ());
 }
