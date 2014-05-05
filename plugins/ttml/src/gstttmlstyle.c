@@ -167,6 +167,27 @@ gst_ttml_style_get_text_decoration_name (GstTTMLTextDecoration decoration)
   return "Unknown";
 }
 
+/* Retrieve a text align name (for debugging) */
+const gchar *
+gst_ttml_style_get_text_align_name (GstTTMLTextAlign textAlign)
+{
+  switch (textAlign) {
+    case GST_TTML_TEXT_ALIGN_LEFT:
+      return "left";
+    case GST_TTML_TEXT_ALIGN_CENTER:
+      return "center";
+    case GST_TTML_TEXT_ALIGN_RIGHT:
+      return "right";
+    case GST_TTML_TEXT_ALIGN_START:
+      return "start";
+    case GST_TTML_TEXT_ALIGN_END:
+      return "end";
+    default:
+      break;
+  }
+  return "Unknown";
+}
+
 /* Generate Pango Markup for the style */
 void
 gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,

@@ -392,6 +392,26 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
             gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
       }
     }
+  } else if (gst_ttml_utils_element_is_type (name, "textAlign")) {
+    attr = g_new (GstTTMLAttribute, 1);
+    attr->type = GST_TTML_ATTR_TEXT_ALIGN;
+    if (gst_ttml_utils_attr_value_is (value, "left"))
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_LEFT;
+    else if (gst_ttml_utils_attr_value_is (value, "center"))
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_CENTER;
+    else if (gst_ttml_utils_attr_value_is (value, "right"))
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_RIGHT;
+    else if (gst_ttml_utils_attr_value_is (value, "start"))
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
+    else if (gst_ttml_utils_attr_value_is (value, "end"))
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_END;
+    else {
+      GST_WARNING ("Could not understand '%s' text align", value);
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
+    }
+    GST_LOG ("Parsed '%s' text align into %d (%s)", value,
+        attr->value.text_align,
+        gst_ttml_style_get_text_align_name (attr->value.text_align));
   } else {
     attr = NULL;
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -590,6 +610,9 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       /* The default value for REGION is "anonymous", marked with NULL */
       attr->value.string = NULL;
       break;
+    case GST_TTML_ATTR_TEXT_ALIGN:
+      attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
+      break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
       break;
@@ -627,6 +650,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_ORIGIN);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_EXTENT);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_ALIGN);
     default:
       break;
   }

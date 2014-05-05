@@ -78,13 +78,39 @@ gst_ttmlrender_region_compare_id (GstTTMLRegion *region, gchar *id)
 }
 
 /* Builds a Pango Layout for the current paragraph inside the Region,
- * and resets the current paragraph. */
+ * and resets the current paragraph.
+ * Uses the last fragment's attributes as SPAN attributes, as they will be
+ * shared across all fragments inside the same span.
+ */
 static void
-gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
+gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region,
+    GstTTMLStyle *span_style)
 {
+  GstTTMLAttribute *attr;
+  PangoAlignment pango_align = PANGO_ALIGN_LEFT;
+
   PangoLayout *layout = pango_layout_new (render->pango_context);
   pango_layout_set_width (layout, region->extentx * PANGO_SCALE);
   pango_layout_set_height (layout, region->extenty * PANGO_SCALE);
+
+  attr = gst_ttml_style_get_attr (span_style, GST_TTML_ATTR_TEXT_ALIGN);
+  if (attr) {
+    /* FIXME: Handle correctly START and END alignments */
+    switch (attr->value.text_align) {
+    case GST_TTML_TEXT_ALIGN_LEFT:
+    case GST_TTML_TEXT_ALIGN_START:
+      pango_align = PANGO_ALIGN_LEFT;
+      break;
+    case GST_TTML_TEXT_ALIGN_RIGHT:
+    case GST_TTML_TEXT_ALIGN_END:
+      pango_align = PANGO_ALIGN_RIGHT;
+      break;
+    case GST_TTML_TEXT_ALIGN_CENTER:
+      pango_align = PANGO_ALIGN_CENTER;
+      break;
+    }
+  }
+  pango_layout_set_alignment (layout, pango_align);
 
   pango_layout_set_markup (layout, region->current_par_content, -1);
 
@@ -200,7 +226,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
     if (line_break) {
       chars_left--;
       frag_start++;
-      gst_ttmlrender_store_layout (render, region);
+      gst_ttmlrender_store_layout (render, region, &span->style);
     }
 
   } while (line_break && chars_left > 0);
