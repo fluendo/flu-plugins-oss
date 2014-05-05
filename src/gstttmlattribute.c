@@ -556,6 +556,7 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.color = 0xFFFFFFFF;
       break;
     case GST_TTML_ATTR_BACKGROUND_COLOR:
+    case GST_TTML_ATTR_BACKGROUND_REGION_COLOR:
       attr->value.color = 0x00000000;
       break;
     case GST_TTML_ATTR_DISPLAY:
@@ -625,6 +626,7 @@ gst_ttml_attribute_type_name (GstTTMLAttributeType type)
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_REGION);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_ORIGIN);
     CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_EXTENT);
+    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
     default:
       break;
   }

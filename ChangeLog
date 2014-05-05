@@ -1,5 +1,15 @@
 2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_new_styling_default),
+	(gst_ttml_attribute_type_name):
+	* src/gstttmlbase.c: (gst_ttmlbase_push_attr):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
+	New internal attribute for REGION background color, separated from the
+	normal text background color.
+
+2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_new_styling_default):
 	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_end_ns):
 	* src/gstttmlenums.h:
