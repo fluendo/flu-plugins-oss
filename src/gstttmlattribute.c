@@ -585,6 +585,10 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.length[0].unit = attr->value.length[1].unit =
           GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
+    case GST_TTML_ATTR_REGION:
+      /* The default value for REGION is "anonymous", marked with NULL */
+      attr->value.string = NULL;
+      break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
       break;
