@@ -109,10 +109,10 @@ static guint32
 gst_ttml_attribute_parse_color_expression (const gchar *expr)
 {
   guint r, g, b, a;
-  if (sscanf (expr, "#%02x%02x%02x", &r, &g, &b) == 3) {
-    return MAKE_COLOR (r, g, b, 0xFF);
-  } else if (sscanf (expr, "#%02x%02x%02x%02x", &r, &g, &b, &a) == 4) {
+  if (sscanf (expr, "#%02x%02x%02x%02x", &r, &g, &b, &a) == 4) {
     return MAKE_COLOR (r, g, b, a);
+  } else if (sscanf (expr, "#%02x%02x%02x", &r, &g, &b) == 3) {
+    return MAKE_COLOR (r, g, b, 0xFF);
   } else if (sscanf (expr, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
     return MAKE_COLOR (r, g, b, 0xFF);
   } else if (sscanf (expr, "rgba(%d,%d,%d,%d)", &r, &g, &b, &a) == 4) {
@@ -357,6 +357,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       /* 0 length means: use the container's origin */
       attr->value.length[0].f = 0.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.length[1].f = 0.f;
+      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       GST_LOG ("Parsed '%s' origin into AUTO", value);
     } else {
       gst_ttml_attribute_parse_length_pair_expression (value, attr);
