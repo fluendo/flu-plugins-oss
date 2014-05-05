@@ -1,3 +1,11 @@
+2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_parse):
+	Fix parsing of #rrggbbaa color expressions (We did not have alpha before).
+	Fix parsing of "auto" origin expressions (We did not have regions before).
+
 2014-05-02  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c: (gst_ttmlrender_free_region),
