@@ -275,6 +275,12 @@ gst_ttmlbase_push_attr (GstTTMLBase *base, const gchar **xml_attr,
   if (ttml_attr) {
     if (ttml_attr->type == GST_TTML_ATTR_DUR)
       *dur_attr_found = TRUE;
+    if (ttml_attr->type == GST_TTML_ATTR_BACKGROUND_COLOR &&
+        base->in_layout_node) {
+      /* Special case: a backgroundColor attribute specified inside a region
+       * node actually means REGION background, not SPAN background. */
+      ttml_attr->type = GST_TTML_ATTR_BACKGROUND_REGION_COLOR;
+    }
     gst_ttml_state_push_attribute (&base->state, ttml_attr);
   }
 }

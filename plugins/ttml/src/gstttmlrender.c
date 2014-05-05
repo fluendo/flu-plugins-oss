@@ -121,7 +121,7 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   region->extenty = attr && attr->value.length[1].f > 0 ?
       attr->value.length[1].f : render->height;
 
-  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_COLOR);
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;
 
   return region;
