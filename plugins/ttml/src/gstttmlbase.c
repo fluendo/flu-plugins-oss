@@ -450,6 +450,8 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar *name,
 
   /* Remove from the attribute stack any attribute pushed by this element */
   do {
+    /* FIXME: Popping a region attribute will push other attributes, which will
+     * need to be popped. Not a problem, unless inside a SET node */
     type = gst_ttml_state_pop_attribute (&base->state, &prev_attr);
     if (current_node_type == GST_TTML_NODE_TYPE_SET &&
         type > GST_TTML_ATTR_STYLE) {

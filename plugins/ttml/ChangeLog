@@ -1,5 +1,20 @@
 2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_new_styling_default):
+	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_end_ns):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_new_region), (gst_ttmlrender_build_layouts),
+	(gst_ttmlrender_show_regions), (gst_ttmlrender_free_region),
+	(gst_ttmlrender_gen_buffer):
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute),
+	(gst_ttml_state_get_attribute):
+	First working subtitles rendered with Pango & Cairo.
+	All styles previously available through Pango markup are working.
+	Region origin & extent are are working.
+
+2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_color_expression),
 	(gst_ttml_attribute_parse):
