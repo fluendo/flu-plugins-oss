@@ -1,5 +1,18 @@
 2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default),
+	(gst_ttml_attribute_type_name):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_build_layouts):
+	* src/gstttmlstyle.c: (gst_ttml_style_get_text_align_name):
+	* src/gstttmlstyle.h:
+	Support for textAlign attribute.
+
+2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_new_styling_default),
 	(gst_ttml_attribute_type_name):
 	* src/gstttmlbase.c: (gst_ttmlbase_push_attr):

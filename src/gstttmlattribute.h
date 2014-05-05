@@ -33,6 +33,7 @@ struct _GstTTMLAttribute {
     } length[2];
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
+    GstTTMLTextAlign text_align;
   } value;
   GList *timeline;
 };
