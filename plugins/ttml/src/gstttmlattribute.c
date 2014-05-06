@@ -390,6 +390,16 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
         attr->value.text_align,
         gst_ttml_utils_enum_name (attr->value.text_align, TextAlign));
     break;
+  case GST_TTML_ATTR_DISPLAY_ALIGN:
+    attr->value.display_align = gst_ttml_utils_enum_parse (value, DisplayAlign);
+    if (attr->value.display_align == GST_TTML_DISPLAY_ALIGN_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' display align", value);
+      attr->value.display_align = GST_TTML_DISPLAY_ALIGN_BEFORE;
+    }
+    GST_LOG ("Parsed '%s' display align into %d (%s)", value,
+        attr->value.display_align,
+        gst_ttml_utils_enum_name (attr->value.display_align, DisplayAlign));
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -592,48 +602,14 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
     case GST_TTML_ATTR_TEXT_ALIGN:
       attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
       break;
+    case GST_TTML_ATTR_DISPLAY_ALIGN:
+      attr->value.display_align = GST_TTML_DISPLAY_ALIGN_BEFORE;
+      break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
       break;
   }
   return attr;
-}
-
-#define CASE_ATTRIBUTE_NAME(x) case x: return #x; break
-
-/* Turns an attribute type into a string useful for debugging purposes. */
-const gchar *
-gst_ttml_attribute_type_name (GstTTMLAttributeType type)
-{
-  switch (type) {
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_NODE_TYPE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_ID);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BEGIN);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_END);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_DUR);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TICK_RATE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FRAME_RATE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FRAME_RATE_MULTIPLIER);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_WHITESPACE_PRESERVE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_STYLE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_COLOR);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BACKGROUND_COLOR);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_DISPLAY);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_FAMILY);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_SIZE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_STYLE);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_FONT_WEIGHT);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_DECORATION);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_REGION);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_ORIGIN);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_EXTENT);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
-    CASE_ATTRIBUTE_NAME (GST_TTML_ATTR_TEXT_ALIGN);
-    default:
-      break;
-  }
-  return "Unknown!";
 }
 
 /* Comparison function for attribute types */
@@ -664,6 +640,6 @@ gst_ttml_attribute_add_event (GstTTMLAttribute *dst_attr,
   dst_attr->timeline = g_list_insert_sorted (dst_attr->timeline, event,
       (GCompareFunc)gst_ttml_attribute_event_compare);
   GST_DEBUG ("Added attribute event to %s at %" GST_TIME_FORMAT,
-      gst_ttml_attribute_type_name (src_attr->type),
+      gst_ttml_utils_enum_name (src_attr->type, AttributeType),
       GST_TIME_ARGS (timestamp));
 }

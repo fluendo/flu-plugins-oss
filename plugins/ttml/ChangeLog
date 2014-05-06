@@ -1,5 +1,22 @@
 2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default),
+	(gst_ttml_attribute_add_event):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region),
+	(gst_ttmlrender_show_regions):
+	* src/gstttmlspan.c: (gst_ttml_span_list_update_attr):
+	* src/gstttmlstate.c: (gst_ttml_state_push_attribute),
+	(gst_ttml_state_pop_attribute):
+	* src/gstttmlutils.c:
+	* src/gstttmlutils.h:
+	Support for displayAlign attribute.
+	Remove helper function obsoleted by new generic enum parsing methods.
+
+2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_store_layout):
 	More gcc pedantry.
 

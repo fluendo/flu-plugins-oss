@@ -11,6 +11,7 @@
 #include "gstttmlspan.h"
 #include "gstttmlstyle.h"
 #include "gstttmlattribute.h"
+#include "gstttmlutils.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
@@ -167,7 +168,7 @@ gst_ttml_span_list_update_attr (GList *active_spans, guint id,
   GstTTMLAttribute *prev_attr;
 
   GST_DEBUG ("Updating span with id %d, attr %s", id,
-      gst_ttml_attribute_type_name (attr->type));
+      gst_ttml_utils_enum_name (attr->type, AttributeType));
   link = g_list_find_custom (active_spans, &id,
       (GCompareFunc)gst_ttml_span_compare_id);
   if (!link) {
