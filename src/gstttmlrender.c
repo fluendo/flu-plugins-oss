@@ -35,6 +35,7 @@ typedef struct _GstTTMLRegion {
   gint originx, originy;
   gint extentx, extenty;
   guint32 background_color;
+  GstTTMLDisplayAlign display_align;
 
   /* List of PangoLayouts, already filled with text and attributes */
   GList *layouts;
@@ -151,6 +152,10 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;
 
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_DISPLAY_ALIGN);
+  region->display_align = attr ? attr->value.display_align :
+      GST_TTML_DISPLAY_ALIGN_BEFORE;
+
   return region;
 }
 
@@ -259,6 +264,29 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
   cairo_set_source_rgb (render->cairo, 1,1,1);
   cairo_translate (render->cairo, region->originx, region->originy);
+
+  if (region->display_align != GST_TTML_DISPLAY_ALIGN_BEFORE) {
+    /* Calculate height of text */
+    double height = 0.0, posy = 0.0;
+    link = region->layouts;
+    while (link) {
+      PangoLayout *layout = (PangoLayout *)link->data;
+      PangoRectangle ink_rect, logical_rect;
+
+      pango_layout_get_extents (layout, &ink_rect, &logical_rect);
+      height += logical_rect.height / (double)PANGO_SCALE;
+
+      link = g_list_next (link);
+    }
+
+    posy = region->extenty - height;
+    if (region->display_align == GST_TTML_DISPLAY_ALIGN_CENTER) {
+      posy /= 2.0;
+    }
+
+    cairo_translate (render->cairo, 0, posy);
+  }
+
 
   /* Show all layouts */
   link = region->layouts;

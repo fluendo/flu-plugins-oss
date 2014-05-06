@@ -252,7 +252,7 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
   gst_ttml_attribute_free (new_attr);
 
   GST_LOG ("Pushed attribute 0x%p (type %s)", old_attr,
-      gst_ttml_attribute_type_name (old_attr->type));
+      gst_ttml_utils_enum_name (old_attr->type, AttributeType));
 }
 
 /* Pops an attribute from the stack and puts in the state, overwritting the
@@ -273,7 +273,7 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
       state->attribute_stack);
 
   GST_LOG ("Popped attribute 0x%p (type %s)", attr,
-      gst_ttml_attribute_type_name (type));
+      gst_ttml_utils_enum_name (type, AttributeType));
 
   prev_attr = gst_ttml_state_set_attribute (state, attr);
   if (prev_attr_ptr)

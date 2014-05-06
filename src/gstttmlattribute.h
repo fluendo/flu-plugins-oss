@@ -34,6 +34,7 @@ struct _GstTTMLAttribute {
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
     GstTTMLTextAlign text_align;
+    GstTTMLDisplayAlign display_align;
   } value;
   GList *timeline;
 };
@@ -72,8 +73,6 @@ GstTTMLAttribute *gst_ttml_attribute_new_fraction (GstTTMLAttributeType type,
 
 GstTTMLAttribute *gst_ttml_attribute_new_styling_default (
     GstTTMLAttributeType type);
-
-const gchar *gst_ttml_attribute_type_name (GstTTMLAttributeType type);
 
 gint gst_ttml_attribute_compare_type_func (GstTTMLAttribute *attr,
     GstTTMLAttributeType type);
