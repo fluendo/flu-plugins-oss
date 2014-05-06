@@ -11,6 +11,7 @@
 #include "gstttmlstyle.h"
 #include "gstttmlattribute.h"
 #include "gstttmlevent.h"
+#include "gstttmlutils.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
@@ -88,106 +89,6 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
-/* Retrieve a length's unit name (for debugging) */
-const gchar *
-gst_ttml_style_get_length_unit_name (GstTTMLLengthUnit unit)
-{
-  switch (unit) {
-    case GST_TTML_LENGTH_UNIT_PIXELS:
-      return "pixels";
-    case GST_TTML_LENGTH_UNIT_RELATIVE:
-      return "relative";
-    default:
-      break;
-  }
-  return "Unknown";
-}
-
-/* Retrieve a font style name (for debugging) */
-const gchar *
-gst_ttml_style_get_font_style_name (GstTTMLFontStyle style)
-{
-  switch (style) {
-    case GST_TTML_FONT_STYLE_NORMAL:
-      return "normal";
-    case GST_TTML_FONT_STYLE_ITALIC:
-      return "italic";
-    case GST_TTML_FONT_STYLE_OBLIQUE:
-      return "oblique";
-    default:
-      break;
-  }
-  return "Unknown";
-}
-
-/* Retrieve a font weight name (for debugging) */
-const gchar *
-gst_ttml_style_get_font_weight_name (GstTTMLFontWeight weight)
-{
-  switch (weight) {
-    case GST_TTML_FONT_WEIGHT_NORMAL:
-      return "normal";
-    case GST_TTML_FONT_WEIGHT_BOLD:
-      return "bold";
-    default:
-      break;
-  }
-  return "Unknown";
-}
-
-/* Retrieve a text decoration name (for debugging) */
-const gchar *
-gst_ttml_style_get_text_decoration_name (GstTTMLTextDecoration decoration)
-{
-  if (decoration == GST_TTML_TEXT_DECORATION_NONE)
-    return "none";
-  switch ((int)decoration) {
-    case GST_TTML_TEXT_DECORATION_UNDERLINE:
-      return "underline";
-    case GST_TTML_TEXT_DECORATION_STRIKETHROUGH:
-      return "strikethrough";
-    case GST_TTML_TEXT_DECORATION_UNDERLINE |
-        GST_TTML_TEXT_DECORATION_STRIKETHROUGH:
-      return "underline + strikethrough";
-    case GST_TTML_TEXT_DECORATION_OVERLINE:
-      return "overline";
-    case GST_TTML_TEXT_DECORATION_UNDERLINE |
-        GST_TTML_TEXT_DECORATION_OVERLINE:
-      return "underline + overline";
-    case GST_TTML_TEXT_DECORATION_STRIKETHROUGH |
-        GST_TTML_TEXT_DECORATION_OVERLINE:
-      return "strikethrough + overline";
-    case GST_TTML_TEXT_DECORATION_UNDERLINE |
-        GST_TTML_TEXT_DECORATION_STRIKETHROUGH |
-        GST_TTML_TEXT_DECORATION_OVERLINE:
-      return "underline + strikethrough + overline";
-    default:
-      break;
-  }
-  return "Unknown";
-}
-
-/* Retrieve a text align name (for debugging) */
-const gchar *
-gst_ttml_style_get_text_align_name (GstTTMLTextAlign textAlign)
-{
-  switch (textAlign) {
-    case GST_TTML_TEXT_ALIGN_LEFT:
-      return "left";
-    case GST_TTML_TEXT_ALIGN_CENTER:
-      return "center";
-    case GST_TTML_TEXT_ALIGN_RIGHT:
-      return "right";
-    case GST_TTML_TEXT_ALIGN_START:
-      return "start";
-    case GST_TTML_TEXT_ALIGN_END:
-      return "end";
-    default:
-      break;
-  }
-  return "Unknown";
-}
-
 /* Generate Pango Markup for the style */
 void
 gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
@@ -237,16 +138,16 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         if (attr->value.font_style != GST_TTML_FONT_STYLE_NORMAL)
           attrs = gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" font_style=\"%s\"",
-                  gst_ttml_style_get_font_style_name (
-                      attr->value.font_style)));
+                  gst_ttml_utils_enum_name (
+                      attr->value.font_style, FontStyle)));
         break;
 
       case GST_TTML_ATTR_FONT_WEIGHT:
         if (attr->value.font_weight != GST_TTML_FONT_WEIGHT_NORMAL)
           attrs = gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" font_weight=\"%s\"",
-                  gst_ttml_style_get_font_weight_name (
-                      attr->value.font_weight)));
+                  gst_ttml_utils_enum_name (
+                      attr->value.font_weight, FontWeight)));
         break;
 
       case GST_TTML_ATTR_TEXT_DECORATION:

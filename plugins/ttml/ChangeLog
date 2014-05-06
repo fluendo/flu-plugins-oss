@@ -1,3 +1,22 @@
+2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_start_ns),
+	(gst_ttmlbase_sax_characters):
+	* src/gstttmlenums.h:
+	* src/gstttmlforward.h:
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	* src/gstttmlstyle.h:
+	* src/gstttmlutils.c: (gst_ttml_utils_enum_parse_func),
+	(gst_ttml_utils_enum_name_func), (gst_ttml_utils_flags_parse_func),
+	(gst_ttml_utils_flags_name_func), (gst_ttml_utils_node_type_parse):
+	* src/gstttmlutils.h:
+	Implement generic enum parsing and writing functions. This removes
+	a lot of specific parsing and writing methods and simplifies life.
+	No change in functionality.
+	Added descriptions for missing nodes (tt, head, body and div). These
+	types are ignored right now, so only the debug output is affected.
+
 2014-05-05  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),

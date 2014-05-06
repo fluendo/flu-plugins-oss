@@ -305,8 +305,7 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
 
   node_type = gst_ttml_utils_node_type_parse (!prefix?NULL:(const gchar *)URI, (const gchar *)name);
   GST_DEBUG ("Parsed name '%s' into node type %s",
-      name, gst_ttml_utils_node_type_name (node_type));
-
+      name, gst_ttml_utils_enum_name (node_type, NodeType));
   /* Special actions for some node types */
   switch (node_type) {
     case GST_TTML_NODE_TYPE_STYLING:
@@ -499,7 +498,7 @@ gst_ttmlbase_sax_characters (void *ctx, const xmlChar *ch, int len)
   const gchar *content = (const gchar *) ch;
 
   GST_DEBUG_OBJECT (base, "Found %d chars inside node type %s",
-      len, gst_ttml_utils_node_type_name (base->state.node_type));
+      len, gst_ttml_utils_enum_name (base->state.node_type, NodeType));
   GST_MEMDUMP ("Content:", (guint8 *)ch, len);
 
   switch (base->state.node_type) {

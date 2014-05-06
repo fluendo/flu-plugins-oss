@@ -28,17 +28,6 @@ GstTTMLAttribute *gst_ttml_style_get_attr (GstTTMLStyle *style,
 GstTTMLAttribute *gst_ttml_style_set_attr (GstTTMLStyle *style,
     const GstTTMLAttribute *attr);
 
-const gchar *gst_ttml_style_get_length_unit_name (GstTTMLLengthUnit unit);
-
-const gchar *gst_ttml_style_get_font_style_name (GstTTMLFontStyle style);
-
-const gchar *gst_ttml_style_get_font_weight_name (GstTTMLFontWeight weight);
-
-const gchar *gst_ttml_style_get_text_decoration_name (
-    GstTTMLTextDecoration decoration);
-
-const gchar *gst_ttml_style_get_text_align_name (GstTTMLTextAlign textAlign);
-
 void gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
     gchar **head, gchar **tail);
 
