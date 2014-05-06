@@ -400,6 +400,10 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
         attr->value.display_align,
         gst_ttml_utils_enum_name (attr->value.display_align, DisplayAlign));
     break;
+  case GST_TTML_ATTR_OVERFLOW:
+    attr->value.b = gst_ttml_utils_attr_value_is (value, "visible");
+    GST_LOG ("Parsed '%s' overflow into overflow_visible=%d", value, attr->value.b);
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -604,6 +608,9 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_DISPLAY_ALIGN:
       attr->value.display_align = GST_TTML_DISPLAY_ALIGN_BEFORE;
+      break;
+    case GST_TTML_ATTR_OVERFLOW:
+      attr->value.b = FALSE;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");

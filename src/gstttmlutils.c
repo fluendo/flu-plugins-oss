@@ -62,6 +62,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "regionColor", GST_TTML_ATTR_BACKGROUND_REGION_COLOR }, /* non-existant */
   { "textAlign", GST_TTML_ATTR_TEXT_ALIGN },
   { "displayAlign", GST_TTML_ATTR_DISPLAY_ALIGN },
+  { "overflow", GST_TTML_ATTR_OVERFLOW },
   { NULL, GST_TTML_ATTR_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
