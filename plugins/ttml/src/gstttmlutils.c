@@ -15,7 +15,7 @@ struct _GstTTMLToken {
   int val;
 };
 
-const GstTTMLToken GstTTMLUtilsTokensNodeType[] = {
+const GstTTMLToken GstTTMLUtilsTokensNodeTypeInternal[] = {
   { "tt", GST_TTML_NODE_TYPE_TT },
   { "head", GST_TTML_NODE_TYPE_HEAD },
   { "body", GST_TTML_NODE_TYPE_BODY },
@@ -30,11 +30,13 @@ const GstTTMLToken GstTTMLUtilsTokensNodeType[] = {
   { "region", GST_TTML_NODE_TYPE_REGION },
   { NULL, GST_TTML_NODE_TYPE_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensNodeType =
+    GstTTMLUtilsTokensNodeTypeInternal;
 
 /* Attributes marked as non-existant are for our internal use, they have no
  * direct TTML equivalent, but they have a name nonetheless, for debugging
  * purposes. */
-const GstTTMLToken GstTTMLUtilsTokensAttributeType[] = {
+const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "nodeType", GST_TTML_ATTR_NODE_TYPE }, /* non-existant */
   { "id", GST_TTML_ATTR_ID },
   { "begin", GST_TTML_ATTR_BEGIN },
@@ -61,36 +63,46 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeType[] = {
   { "textAlign", GST_TTML_ATTR_TEXT_ALIGN },
   { NULL, GST_TTML_ATTR_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
+    GstTTMLUtilsTokensAttributeTypeInternal;
 
 
-const GstTTMLToken GstTTMLUtilsTokensLengthUnit[] = {
+const GstTTMLToken GstTTMLUtilsTokensLengthUnitInternal[] = {
   { "pixels", GST_TTML_LENGTH_UNIT_PIXELS },
   { "relative", GST_TTML_LENGTH_UNIT_RELATIVE },
   { NULL, GST_TTML_LENGTH_UNIT_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensLengthUnit =
+    GstTTMLUtilsTokensLengthUnitInternal;
 
-const GstTTMLToken GstTTMLUtilsTokensFontStyle[] = {
+const GstTTMLToken GstTTMLUtilsTokensFontStyleInternal[] = {
   { "normal", GST_TTML_FONT_STYLE_NORMAL } ,
   { "italic", GST_TTML_FONT_STYLE_ITALIC } ,
   { "oblique", GST_TTML_FONT_STYLE_OBLIQUE },
   { NULL, GST_TTML_FONT_STYLE_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensFontStyle =
+    GstTTMLUtilsTokensFontStyleInternal;
 
-const GstTTMLToken GstTTMLUtilsTokensFontWeight[] = {
+const GstTTMLToken GstTTMLUtilsTokensFontWeightInternal[] = {
   { "normal", GST_TTML_FONT_WEIGHT_NORMAL },
   { "bold", GST_TTML_FONT_WEIGHT_BOLD },
   { NULL, GST_TTML_FONT_WEIGHT_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensFontWeight =
+    GstTTMLUtilsTokensFontWeightInternal;
 
-const GstTTMLToken GstTTMLUtilsTokensTextDecoration[] = {
+const GstTTMLToken GstTTMLUtilsTokensTextDecorationInternal[] = {
   { "none", GST_TTML_TEXT_DECORATION_NONE },
   { "underline", GST_TTML_TEXT_DECORATION_UNDERLINE },
   { "strikethrough", GST_TTML_TEXT_DECORATION_STRIKETHROUGH },
   { "overline", GST_TTML_TEXT_DECORATION_OVERLINE },
   { NULL, GST_TTML_TEXT_DECORATION_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensTextDecoration =
+    GstTTMLUtilsTokensTextDecorationInternal;
 
-const GstTTMLToken GstTTMLUtilsTokensTextAlign[] = {
+const GstTTMLToken GstTTMLUtilsTokensTextAlignInternal[] = {
   { "left", GST_TTML_TEXT_ALIGN_LEFT },
   { "center", GST_TTML_TEXT_ALIGN_CENTER },
   { "right", GST_TTML_TEXT_ALIGN_RIGHT },
@@ -98,6 +110,8 @@ const GstTTMLToken GstTTMLUtilsTokensTextAlign[] = {
   { "end", GST_TTML_TEXT_ALIGN_END },
   { NULL, GST_TTML_TEXT_ALIGN_UNKNOWN }
 };
+const GstTTMLToken *GstTTMLUtilsTokensTextAlign =
+    GstTTMLUtilsTokensTextAlignInternal;
 
 /* Searches for the given name inside an enum's token list and returns its value.
  * This replaces long, cumbersome if-elses with strcmps. */
