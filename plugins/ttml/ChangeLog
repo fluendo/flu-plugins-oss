@@ -1,6 +1,16 @@
 2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region),
+	(gst_ttmlrender_show_regions):
+	* src/gstttmlutils.c:
+	Support for "overflow" attribute.
+
+2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_new_styling_default),
 	(gst_ttml_attribute_add_event):
 	* src/gstttmlattribute.h:

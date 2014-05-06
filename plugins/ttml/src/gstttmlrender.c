@@ -36,6 +36,7 @@ typedef struct _GstTTMLRegion {
   gint extentx, extenty;
   guint32 background_color;
   GstTTMLDisplayAlign display_align;
+  gboolean overflow_visible;
 
   /* List of PangoLayouts, already filled with text and attributes */
   GList *layouts;
@@ -156,6 +157,9 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   region->display_align = attr ? attr->value.display_align :
       GST_TTML_DISPLAY_ALIGN_BEFORE;
 
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_OVERFLOW);
+  region->overflow_visible = attr ? attr->value.b : FALSE;
+
   return region;
 }
 
@@ -260,6 +264,12 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         GET_CAIRO_COMP (region->background_color,  0));
     cairo_rectangle (render->cairo, region->originx, region->originy, region->extentx, region->extenty);
     cairo_fill (render->cairo);
+  }
+
+  /* Clip contents to region, if required */
+  if (!region->overflow_visible) {
+    cairo_rectangle (render->cairo, region->originx, region->originy, region->extentx, region->extenty);
+    cairo_clip (render->cairo);
   }
 
   cairo_set_source_rgb (render->cairo, 1,1,1);
