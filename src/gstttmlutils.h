@@ -13,13 +13,13 @@
 G_BEGIN_DECLS
 
 /* Enum token arrays, for parsing and writing debugging messages */
-extern const GstTTMLToken GstTTMLUtilsTokensNodeType[];
-extern const GstTTMLToken GstTTMLUtilsTokensAttributeType[];
-extern const GstTTMLToken GstTTMLUtilsTokensLengthUnit[];
-extern const GstTTMLToken GstTTMLUtilsTokensFontStyle[];
-extern const GstTTMLToken GstTTMLUtilsTokensFontWeight[];
-extern const GstTTMLToken GstTTMLUtilsTokensTextDecoration[];
-extern const GstTTMLToken GstTTMLUtilsTokensTextAlign[];
+extern const GstTTMLToken *GstTTMLUtilsTokensNodeType;
+extern const GstTTMLToken *GstTTMLUtilsTokensAttributeType;
+extern const GstTTMLToken *GstTTMLUtilsTokensLengthUnit;
+extern const GstTTMLToken *GstTTMLUtilsTokensFontStyle;
+extern const GstTTMLToken *GstTTMLUtilsTokensFontWeight;
+extern const GstTTMLToken *GstTTMLUtilsTokensTextDecoration;
+extern const GstTTMLToken *GstTTMLUtilsTokensTextAlign;
 
 /* Enum name -> value */
 #define gst_ttml_utils_enum_parse(name,type) \
