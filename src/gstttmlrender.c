@@ -99,6 +99,7 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region,
     switch (attr->value.text_align) {
     case GST_TTML_TEXT_ALIGN_LEFT:
     case GST_TTML_TEXT_ALIGN_START:
+    case GST_TTML_TEXT_ALIGN_UNKNOWN:
       pango_align = PANGO_ALIGN_LEFT;
       break;
     case GST_TTML_TEXT_ALIGN_RIGHT:
