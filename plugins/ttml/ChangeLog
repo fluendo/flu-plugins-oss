@@ -1,5 +1,10 @@
 2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout):
+	More gcc pedantry.
+
+2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlutils.c:
 	* src/gstttmlutils.h:
 	Make gcc happy.
