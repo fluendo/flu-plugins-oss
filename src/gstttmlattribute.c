@@ -212,7 +212,8 @@ GstTTMLAttribute *
 gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     const char *name, const char *value)
 {
-  GstTTMLAttribute *attr;
+  GstTTMLAttribute *attr = NULL;
+  GstTTMLAttributeType type;
   char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
 
   if (!gst_ttml_utils_namespace_is_ttml (ns)) {
@@ -223,137 +224,124 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
   }
 
   setlocale (LC_NUMERIC, "C");
+
   GST_LOG ("Parsing attribute %s=%s", name, value);
-  if (gst_ttml_utils_element_is_type (name, "begin")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_BEGIN;
+  type = gst_ttml_utils_enum_parse (name, AttributeType);
+  if (type == GST_TTML_ATTR_UNKNOWN) {
+    GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
+    goto beach;
+  }
+
+  attr = g_new (GstTTMLAttribute, 1);
+  attr->type = type;
+  attr->timeline = NULL;
+
+  switch (attr->type) {
+  case GST_TTML_ATTR_BEGIN:
     attr->value.time = gst_ttml_attribute_parse_time_expression (state, value);
-  } else if (gst_ttml_utils_element_is_type (name, "end")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_END;
+    break;
+  case GST_TTML_ATTR_END:
     attr->value.time = gst_ttml_attribute_parse_time_expression (state, value);
-  } else if (gst_ttml_utils_element_is_type (name, "dur")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_DUR;
+    break;
+  case GST_TTML_ATTR_DUR:
     attr->value.time = gst_ttml_attribute_parse_time_expression (state, value);
-  } else if (gst_ttml_utils_element_is_type (name, "tickRate")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_TICK_RATE;
+    break;
+  case GST_TTML_ATTR_TICK_RATE:
     attr->value.d = g_ascii_strtod (value, NULL) / GST_SECOND;
     GST_LOG ("Parsed '%s' ticksRate into %g", value, attr->value.d);
-  } else if (gst_ttml_utils_element_is_type (name, "frameRate")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_FRAME_RATE;
+    break;
+  case GST_TTML_ATTR_FRAME_RATE:
     attr->value.d = g_ascii_strtod (value, NULL);
     GST_LOG ("Parsed '%s' frameRate into %g", value, attr->value.d);
-  } else if (gst_ttml_utils_element_is_type (name, "frameRateMultiplier")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_FRAME_RATE_MULTIPLIER;
+    break;
+  case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
     sscanf (value, "%d %d",
         &attr->value.fraction.num, &attr->value.fraction.den);
     GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
         attr->value.fraction.num, attr->value.fraction.den);
-  } else if (gst_ttml_utils_element_is_type (name, "space")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_WHITESPACE_PRESERVE;
+    break;
+  case GST_TTML_ATTR_WHITESPACE_PRESERVE:
     attr->value.b = gst_ttml_utils_attr_value_is (value, "preserve");
     GST_LOG ("Parsed '%s' xml:space into preserve=%d", value, attr->value.b);
-  } else if (gst_ttml_utils_element_is_type (name, "timeContainer")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER;
+    break;
+  case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
     attr->value.b = gst_ttml_utils_attr_value_is (value, "seq");
     GST_LOG ("Parsed '%s' timeContainer into sequential=%d", value,
         attr->value.b);
-  } else if (gst_ttml_utils_element_is_type (name, "color")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_COLOR;
+    break;
+  case GST_TTML_ATTR_COLOR:
     attr->value.color = gst_ttml_attribute_parse_color_expression (value);
     GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
-  } else if (gst_ttml_utils_element_is_type (name, "backgroundColor")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_BACKGROUND_COLOR;
+    break;
+  case GST_TTML_ATTR_BACKGROUND_COLOR:
     attr->value.color = gst_ttml_attribute_parse_color_expression (value);
     GST_LOG ("Parsed '%s' background color into #%08X", value,
         attr->value.color);
-  } else if (gst_ttml_utils_element_is_type (name, "display")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_DISPLAY;
+    break;
+  case GST_TTML_ATTR_DISPLAY:
     attr->value.b = gst_ttml_utils_attr_value_is (value, "auto");
     GST_LOG ("Parsed '%s' display into display=%d", value, attr->value.b);
-  } else if (gst_ttml_utils_element_is_type (name, "fontFamily")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_FONT_FAMILY;
+    break;
+  case GST_TTML_ATTR_FONT_FAMILY:
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' font family", value);
-  } else if (gst_ttml_utils_element_is_type (name, "fontSize")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_FONT_SIZE;
+    break;
+  case GST_TTML_ATTR_FONT_SIZE:
     gst_ttml_attribute_parse_length_pair_expression (value, attr);
     if (attr->value.length[1].f == -1.f) {
       GST_LOG ("Parsed '%s' font size into %g (%s)", value,
           attr->value.length[0].f,
-          gst_ttml_style_get_length_unit_name (attr->value.length[0].unit));
+          gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
     } else {
       GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
           attr->value.length[0].f,
-          gst_ttml_style_get_length_unit_name (attr->value.length[0].unit),
+          gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
           attr->value.length[1].f,
-          gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
+          gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
     }
-  } else if (gst_ttml_utils_element_is_type (name, "fontStyle")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_FONT_STYLE;
-    if (gst_ttml_utils_attr_value_is (value, "italic"))
-      attr->value.font_style = GST_TTML_FONT_STYLE_ITALIC;
-    else if (gst_ttml_utils_attr_value_is (value, "oblique"))
-      attr->value.font_style = GST_TTML_FONT_STYLE_OBLIQUE;
-    else
+    break;
+  case GST_TTML_ATTR_FONT_STYLE:
+    attr->value.font_style = gst_ttml_utils_enum_parse (value, FontStyle);
+    if (attr->value.font_style == GST_TTML_FONT_STYLE_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' font style", value);
       attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
+    }
     GST_LOG ("Parsed '%s' font style into %d (%s)", value,
         attr->value.font_style,
-        gst_ttml_style_get_font_style_name (attr->value.font_style));
-  } else if (gst_ttml_utils_element_is_type (name, "fontWeight")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_FONT_WEIGHT;
-    if (gst_ttml_utils_attr_value_is (value, "bold"))
-      attr->value.font_weight = GST_TTML_FONT_WEIGHT_BOLD;
-    else
+        gst_ttml_utils_enum_name (attr->value.font_style, FontStyle));
+    break;
+  case GST_TTML_ATTR_FONT_WEIGHT:
+    attr->value.font_weight = gst_ttml_utils_enum_parse (value, FontWeight);
+    if (attr->value.font_weight == GST_TTML_FONT_WEIGHT_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' font weight", value);
       attr->value.font_weight = GST_TTML_FONT_WEIGHT_NORMAL;
+    }
     GST_LOG ("Parsed '%s' font weight into %d (%s)", value,
         attr->value.font_weight,
-        gst_ttml_style_get_font_weight_name (attr->value.font_weight));
-  } else if (gst_ttml_utils_element_is_type (name, "textDecoration")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_TEXT_DECORATION;
+        gst_ttml_utils_enum_name (attr->value.font_weight, FontWeight));
+    break;
+  case GST_TTML_ATTR_TEXT_DECORATION:
     attr->value.text_decoration = GST_TTML_TEXT_DECORATION_NONE;
-    if (strstr (value, "underline"))
-      attr->value.text_decoration |= GST_TTML_TEXT_DECORATION_UNDERLINE;
-    if (strstr (value, "lineThrough"))
-      attr->value.text_decoration |= GST_TTML_TEXT_DECORATION_STRIKETHROUGH;
-    if (strstr (value, "overline"))
-      attr->value.text_decoration |= GST_TTML_TEXT_DECORATION_OVERLINE;
+    attr->value.text_decoration =
+        gst_ttml_utils_flags_parse (value, TextDecoration);
     GST_LOG ("Parsed '%s' text decoration into %d (%s)", value,
         attr->value.text_decoration,
-        gst_ttml_style_get_text_decoration_name (attr->value.text_decoration));
-  } else if (gst_ttml_utils_element_is_type (name, "id")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_ID;
+        gst_ttml_utils_flags_name (attr->value.text_decoration, TextDecoration));
+    break;
+  case GST_TTML_ATTR_ID:
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' id", value);
-  } else if (gst_ttml_utils_element_is_type (name, "style")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_STYLE;
+    break;
+  case GST_TTML_ATTR_STYLE:
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' style", value);
-  } else if (gst_ttml_utils_element_is_type (name, "region")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_REGION;
+    break;
+  case GST_TTML_ATTR_REGION:
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' region", value);
-  } else if (gst_ttml_utils_element_is_type (name, "origin")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_ORIGIN;
-    if (gst_ttml_utils_element_is_type (value, "auto")) {
+    break;
+  case GST_TTML_ATTR_ORIGIN:
+    if (gst_ttml_utils_attr_value_is (value, "auto")) {
       /* 0 length means: use the container's origin */
       attr->value.length[0].f = 0.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
@@ -367,15 +355,14 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       } else {
         GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
             attr->value.length[0].f,
-            gst_ttml_style_get_length_unit_name (attr->value.length[0].unit),
+            gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
             attr->value.length[1].f,
-            gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
+            gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
       }
     }
-  } else if (gst_ttml_utils_element_is_type (name, "extent")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_EXTENT;
-    if (gst_ttml_utils_element_is_type (value, "auto")) {
+    break;
+  case GST_TTML_ATTR_EXTENT:
+    if (gst_ttml_utils_attr_value_is (value, "auto")) {
       /* 0 length means: use the container's size */
       attr->value.length[0].f = 0.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
@@ -387,41 +374,33 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       } else {
         GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
             attr->value.length[0].f,
-            gst_ttml_style_get_length_unit_name (attr->value.length[0].unit),
+            gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
             attr->value.length[1].f,
-            gst_ttml_style_get_length_unit_name (attr->value.length[1].unit));
+            gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
       }
     }
-  } else if (gst_ttml_utils_element_is_type (name, "textAlign")) {
-    attr = g_new (GstTTMLAttribute, 1);
-    attr->type = GST_TTML_ATTR_TEXT_ALIGN;
-    if (gst_ttml_utils_attr_value_is (value, "left"))
-      attr->value.text_align = GST_TTML_TEXT_ALIGN_LEFT;
-    else if (gst_ttml_utils_attr_value_is (value, "center"))
-      attr->value.text_align = GST_TTML_TEXT_ALIGN_CENTER;
-    else if (gst_ttml_utils_attr_value_is (value, "right"))
-      attr->value.text_align = GST_TTML_TEXT_ALIGN_RIGHT;
-    else if (gst_ttml_utils_attr_value_is (value, "start"))
-      attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
-    else if (gst_ttml_utils_attr_value_is (value, "end"))
-      attr->value.text_align = GST_TTML_TEXT_ALIGN_END;
-    else {
+    break;
+  case GST_TTML_ATTR_TEXT_ALIGN:
+    attr->value.text_align = gst_ttml_utils_enum_parse (value, TextAlign);
+    if (attr->value.text_align == GST_TTML_TEXT_ALIGN_UNKNOWN) {
       GST_WARNING ("Could not understand '%s' text align", value);
       attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
     }
     GST_LOG ("Parsed '%s' text align into %d (%s)", value,
         attr->value.text_align,
-        gst_ttml_style_get_text_align_name (attr->value.text_align));
-  } else {
+        gst_ttml_utils_enum_name (attr->value.text_align, TextAlign));
+    break;
+  default:
+    GST_WARNING ("Attribute not implemented");
+    /* We should never reach here, anyway, dispose of the useless attribute */
+    g_free (attr);
     attr = NULL;
-    GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
+    break;
   }
+
+beach:
   setlocale (LC_NUMERIC, previous_locale);
   g_free (previous_locale);
-
-  if (attr) {
-    attr->timeline = NULL;
-  }
 
   return attr;
 }
