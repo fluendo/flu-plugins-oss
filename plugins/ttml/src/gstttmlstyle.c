@@ -125,6 +125,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
+        /* Second length ignored, as it cannot be used through pango markup */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
           font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);
           font_size_is_relative = FALSE;

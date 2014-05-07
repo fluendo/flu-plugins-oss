@@ -70,6 +70,7 @@ const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
 
 
 const GstTTMLToken GstTTMLUtilsTokensLengthUnitInternal[] = {
+  { "not present", GST_TTML_LENGTH_UNIT_NOT_PRESENT },
   { "pixels", GST_TTML_LENGTH_UNIT_PIXELS },
   { "relative", GST_TTML_LENGTH_UNIT_RELATIVE },
   { NULL, GST_TTML_LENGTH_UNIT_UNKNOWN }

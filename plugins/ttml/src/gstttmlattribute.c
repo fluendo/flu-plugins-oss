@@ -161,6 +161,7 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
       *unit = GST_TTML_LENGTH_UNIT_PIXELS;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "em", 2)) {
+      /* FIXME: the "e" has been consumed by the sscanf! */
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "c", 1)) {
@@ -179,13 +180,14 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
   }
 
   if (error) {
-    GST_WARNING ("Could not understand length expression '%s', using 1 (relative)", expr);
+    GST_WARNING ("Could not understand length expression '%s', using %g (%s)",
+      expr, *value, gst_ttml_utils_enum_name (*unit, LengthUnit));
   }
   return error;
 }
 
 /* Reads a <length> expression, possibly followed by a second <length>.
- * If the second length is not present, it will be filled with -1.
+ * If the second length is not present, its UNIT is set to NOT_PRESENT.
  */
 static void
 gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
@@ -193,8 +195,8 @@ gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
 {
   const gchar *next;
 
-  /* Mark the second length as initially unused */
-  attr->value.length[1].f = -1.f;
+  /* Mark the second length as initially not present */
+  attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
 
   if (!gst_ttml_attribute_parse_length_expression (expr,
         &attr->value.length[0].f, &attr->value.length[0].unit, &next) &&
@@ -232,7 +234,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     goto beach;
   }
 
-  attr = g_new (GstTTMLAttribute, 1);
+  attr = g_new0 (GstTTMLAttribute, 1);
   attr->type = type;
   attr->timeline = NULL;
 
@@ -288,17 +290,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_FONT_SIZE:
     gst_ttml_attribute_parse_length_pair_expression (value, attr);
-    if (attr->value.length[1].f == -1.f) {
-      GST_LOG ("Parsed '%s' font size into %g (%s)", value,
-          attr->value.length[0].f,
-          gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
-    } else {
-      GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
-          attr->value.length[0].f,
-          gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-          attr->value.length[1].f,
-          gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
-    }
+    GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
+        attr->value.length[0].f,
+        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
+        attr->value.length[1].f,
+        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_FONT_STYLE:
     attr->value.font_style = gst_ttml_utils_enum_parse (value, FontStyle);
@@ -350,7 +346,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       GST_LOG ("Parsed '%s' origin into AUTO", value);
     } else {
       gst_ttml_attribute_parse_length_pair_expression (value, attr);
-      if (attr->value.length[1].f == -1.f) {
+      if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
       } else {
         GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
@@ -369,7 +365,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       GST_LOG ("Parsed '%s' extent into AUTO", value);
     } else {
       gst_ttml_attribute_parse_length_pair_expression (value, attr);
-      if (attr->value.length[1].f == -1.f) {
+      if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
       } else {
         GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
@@ -561,7 +557,7 @@ gst_ttml_attribute_new_fraction (GstTTMLAttributeType type, gint num, gint den)
 GstTTMLAttribute *
 gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = g_new0 (GstTTMLAttribute, 1);
   attr->type = type;
   attr->timeline = NULL;
   switch (type) {
@@ -581,8 +577,7 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
     case GST_TTML_ATTR_FONT_SIZE:
       attr->value.length[0].f = 1.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      attr->value.length[1].f = -1.f; /* Second component initially unused */
-      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
       break;
     case GST_TTML_ATTR_FONT_STYLE:
       attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
