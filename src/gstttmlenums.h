@@ -69,6 +69,7 @@ typedef enum _GstTTMLEventType {
 
 /* Length units */
 typedef enum _GstTTMLLengthUnit {
+  GST_TTML_LENGTH_UNIT_NOT_PRESENT = 0,
   GST_TTML_LENGTH_UNIT_PIXELS,
   GST_TTML_LENGTH_UNIT_RELATIVE,
   GST_TTML_LENGTH_UNIT_UNKNOWN

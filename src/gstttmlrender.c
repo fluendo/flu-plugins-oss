@@ -139,10 +139,8 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   region->zindex = 0; /* FIXME: until the ZIndex attributte is parsed */
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
-  region->originx = attr && attr->value.length[0].f > 0 ?
-      attr->value.length[0].f : 0;
-  region->originy = attr && attr->value.length[1].f > 0 ?
-      attr->value.length[1].f : 0;
+  region->originx = attr ? attr->value.length[0].f : 0;
+  region->originy = attr ? attr->value.length[1].f : 0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
   region->extentx = attr && attr->value.length[0].f > 0 ?
@@ -296,7 +294,6 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
     cairo_translate (render->cairo, 0, posy);
   }
-
 
   /* Show all layouts */
   link = region->layouts;

@@ -1,3 +1,18 @@
+2014-05-07  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_parse_length_pair_expression),
+	(gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region),
+	(gst_ttmlrender_show_regions):
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	* src/gstttmlutils.c:
+	Start putting some sense into the LengthUnit handling.
+	Comments, FIXMEs & whitespace.
+
 2014-05-06  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
