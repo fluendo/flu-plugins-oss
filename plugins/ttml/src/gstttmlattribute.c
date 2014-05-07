@@ -156,12 +156,15 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
   *end = expr;
   n = 0;
   if (sscanf (expr, "%f%n", value, &n)) {
+    if (n > 0 && expr[n - 1] == 'e') {
+      /* sscanf consumes the "e" in "2em" when reading floats. Undo it. */
+      n--;
+    }
     *end += n;
     if (!g_ascii_strncasecmp (expr + n, "px", 2)) {
       *unit = GST_TTML_LENGTH_UNIT_PIXELS;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "em", 2)) {
-      /* FIXME: the "e" has been consumed by the sscanf! */
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "c", 1)) {
