@@ -1,6 +1,12 @@
 2014-05-07  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression):
+	Fix parsing of "em" units (sscanf was consuming the "e")
+
+2014-05-07  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_length_expression),
 	(gst_ttml_attribute_parse_length_pair_expression),
 	(gst_ttml_attribute_parse),
