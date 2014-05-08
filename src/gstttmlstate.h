@@ -28,6 +28,8 @@ struct _GstTTMLState {
   gdouble frame_rate;
   gint frame_rate_num;
   gint frame_rate_den;
+  gint cell_resolution_x;
+  gint cell_resolution_y;
   gboolean whitespace_preserve;
   gboolean sequential_time_container;
 

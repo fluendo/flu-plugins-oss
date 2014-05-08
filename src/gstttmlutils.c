@@ -45,6 +45,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "tickRate", GST_TTML_ATTR_TICK_RATE },
   { "frameRate", GST_TTML_ATTR_FRAME_RATE },
   { "frameRateMultiplier", GST_TTML_ATTR_FRAME_RATE_MULTIPLIER },
+  { "cellResolution", GST_TTML_ATTR_CELLRESOLUTION },
   { "space", GST_TTML_ATTR_WHITESPACE_PRESERVE },
   { "timeContainer", GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER },
   { "style", GST_TTML_ATTR_STYLE },
@@ -72,6 +73,7 @@ const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
 const GstTTMLToken GstTTMLUtilsTokensLengthUnitInternal[] = {
   { "not present", GST_TTML_LENGTH_UNIT_NOT_PRESENT },
   { "pixels", GST_TTML_LENGTH_UNIT_PIXELS },
+  { "cells", GST_TTML_LENGTH_UNIT_CELLS },
   { "relative", GST_TTML_LENGTH_UNIT_RELATIVE },
   { NULL, GST_TTML_LENGTH_UNIT_UNKNOWN }
 };

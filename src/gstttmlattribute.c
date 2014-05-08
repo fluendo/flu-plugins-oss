@@ -168,7 +168,7 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "c", 1)) {
-      *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      *unit = GST_TTML_LENGTH_UNIT_CELLS;
       *end += 1;
     } else if (!g_ascii_strncasecmp (expr + n, "%", 1)) {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
@@ -207,6 +207,24 @@ gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
     /* A first length has been succesfully read, and there is more input */
     gst_ttml_attribute_parse_length_expression (next,
         &attr->value.length[1].f, &attr->value.length[1].unit, &next);
+  }
+}
+
+/* Turns lengths in CELL units into relative units. This must be done here
+ * because we only know the cellResolution during the parsing process.
+ * (It is lost once the TT node is popped) */
+static void
+gst_ttml_attribute_normalize_length (const GstTTMLState *state,
+    GstTTMLAttribute *attr, int offset, int direction)
+{
+  switch (attr->value.length[offset].unit) {
+  case GST_TTML_LENGTH_UNIT_CELLS:
+    attr->value.length[offset].f /=
+        direction == 0 ? state->cell_resolution_x : state->cell_resolution_y;
+    attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    break;
+  default:
+    break;
   }
 }
 
@@ -293,6 +311,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_FONT_SIZE:
     gst_ttml_attribute_parse_length_pair_expression (value, attr);
+    gst_ttml_attribute_normalize_length (state, attr, 0, 0);
+    gst_ttml_attribute_normalize_length (state, attr, 1, 1);
     GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
         attr->value.length[0].f,
         gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
@@ -352,6 +372,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
       } else {
+        gst_ttml_attribute_normalize_length (state, attr, 0, 0);
+        gst_ttml_attribute_normalize_length (state, attr, 1, 1);
         GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
             attr->value.length[0].f,
             gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
@@ -362,8 +384,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_EXTENT:
     if (gst_ttml_utils_attr_value_is (value, "auto")) {
-      /* 0 length means: use the container's size */
-      attr->value.length[0].f = 0.f;
+      attr->value.length[0].f = 1.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       GST_LOG ("Parsed '%s' extent into AUTO", value);
     } else {
@@ -371,6 +392,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
       } else {
+        gst_ttml_attribute_normalize_length (state, attr, 0, 0);
+        gst_ttml_attribute_normalize_length (state, attr, 1, 1);
         GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
             attr->value.length[0].f,
             gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
@@ -402,6 +425,20 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
   case GST_TTML_ATTR_OVERFLOW:
     attr->value.b = gst_ttml_utils_attr_value_is (value, "visible");
     GST_LOG ("Parsed '%s' overflow into overflow_visible=%d", value, attr->value.b);
+    break;
+  case GST_TTML_ATTR_CELLRESOLUTION:
+    {
+      int numx = 32, numy = 15;
+      if (sscanf (value, "%d %d", &numx, &numy) != 2) {
+        GST_WARNING ("Could not understand '%s' cellResolution", value);
+      }
+      attr->value.length[0].f = numx;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
+      attr->value.length[1].f = numy;
+      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
+      GST_LOG ("Parsed '%s' cellResolution into numx=%d numy=%d", value,
+          numx, numy);
+    }
     break;
   default:
     GST_WARNING ("Attribute not implemented");
@@ -579,7 +616,7 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_FONT_SIZE:
       attr->value.length[0].f = 1.f;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
       attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
       break;
     case GST_TTML_ATTR_FONT_STYLE:
@@ -591,9 +628,12 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.text_decoration = GST_TTML_TEXT_DECORATION_NONE;
       break;
     case GST_TTML_ATTR_ORIGIN:
-    case GST_TTML_ATTR_EXTENT:
-      /* 0,0 Means AUTO: use container's origin or extent */
       attr->value.length[0].f = attr->value.length[1].f = 0.f;
+      attr->value.length[0].unit = attr->value.length[1].unit =
+          GST_TTML_LENGTH_UNIT_RELATIVE;
+      break;
+    case GST_TTML_ATTR_EXTENT:
+      attr->value.length[0].f = attr->value.length[1].f = 1.f;
       attr->value.length[0].unit = attr->value.length[1].unit =
           GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
