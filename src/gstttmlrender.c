@@ -79,6 +79,7 @@ gst_ttmlrender_length_to_pixels (const GstTTMLRender *render,
   case GST_TTML_LENGTH_UNIT_NOT_PRESENT:
   case GST_TTML_LENGTH_UNIT_UNKNOWN:
   case GST_TTML_LENGTH_UNIT_CELLS:
+  case GST_TTML_LENGTH_UNIT_EM:
     GST_WARNING_OBJECT (render, "Illegal length unit (%s)",
         gst_ttml_utils_enum_name (length->unit, LengthUnit));
     /* Deliberate fallthrough */

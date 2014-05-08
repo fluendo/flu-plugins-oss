@@ -165,7 +165,7 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
       *unit = GST_TTML_LENGTH_UNIT_PIXELS;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "em", 2)) {
-      *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      *unit = GST_TTML_LENGTH_UNIT_EM;
       *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "c", 1)) {
       *unit = GST_TTML_LENGTH_UNIT_CELLS;
@@ -222,6 +222,11 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
     attr->value.length[offset].f /=
         direction == 0 ? state->cell_resolution_x : state->cell_resolution_y;
     attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    break;
+  case GST_TTML_LENGTH_UNIT_EM:
+    /* 1em = 16px, according to http://www.w3schools.com/css/css_font.asp */
+    attr->value.length[offset].f *= 16.0;
+    attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
     break;
   default:
     break;
