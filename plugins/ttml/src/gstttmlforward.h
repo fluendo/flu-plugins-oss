@@ -17,6 +17,8 @@ typedef struct _GstTTMLAttributeEvent GstTTMLAttributeEvent;
 typedef struct _GstTTMLEvent GstTTMLEvent;
 typedef struct _GstTTMLStyle GstTTMLStyle;
 typedef struct _GstTTMLToken GstTTMLToken;
+typedef struct _GstTTMLLength GstTTMLLength;
+typedef struct _GstTTMLFraction GstTTMLFraction;
 
 G_END_DECLS
 

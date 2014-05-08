@@ -67,6 +67,35 @@ static GstStaticPadTemplate ttmlrender_src_template =
 G_DEFINE_TYPE (GstTTMLRender, gst_ttmlrender, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlrender_parent_class
 
+
+/* Turn a length attribute into pixels. direction=0 means WIDTH,
+ * 1 means HEIGHT. */
+gint
+gst_ttmlrender_length_to_pixels (const GstTTMLRender *render,
+    const GstTTMLLength *length, int direction)
+{
+  int pixels = 0;
+  switch (length->unit) {
+  case GST_TTML_LENGTH_UNIT_NOT_PRESENT:
+  case GST_TTML_LENGTH_UNIT_UNKNOWN:
+  case GST_TTML_LENGTH_UNIT_CELLS:
+    GST_WARNING_OBJECT (render, "Illegal length unit (%s)",
+        gst_ttml_utils_enum_name (length->unit, LengthUnit));
+    /* Deliberate fallthrough */
+  case GST_TTML_LENGTH_UNIT_RELATIVE:
+    if (direction == 0)
+      pixels = (int)(render->width * length->f);
+    else
+      pixels = (int)(render->height * length->f);
+    break;
+  case GST_TTML_LENGTH_UNIT_PIXELS:
+    pixels =  (int)length->f;
+    break;
+  }
+
+  return pixels;
+}
+
 static gint
 gst_ttmlrender_region_compare_zindex (GstTTMLRegion *region, gint *zindex)
 {
@@ -139,14 +168,18 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   region->zindex = 0; /* FIXME: until the ZIndex attributte is parsed */
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
-  region->originx = attr ? attr->value.length[0].f : 0;
-  region->originy = attr ? attr->value.length[1].f : 0;
+  region->originx = attr ?
+      gst_ttmlrender_length_to_pixels (render, &attr->value.length[0], 0) : 0;
+  region->originy = attr ?
+      gst_ttmlrender_length_to_pixels (render, &attr->value.length[1], 1) : 0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
-  region->extentx = attr && attr->value.length[0].f > 0 ?
-      attr->value.length[0].f : render->width;
-  region->extenty = attr && attr->value.length[1].f > 0 ?
-      attr->value.length[1].f : render->height;
+  region->extentx = attr ?
+      gst_ttmlrender_length_to_pixels (render, &attr->value.length[0], 0) :
+      render->width;
+  region->extenty = attr ?
+      gst_ttmlrender_length_to_pixels (render, &attr->value.length[1], 1) :
+      render->height;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;

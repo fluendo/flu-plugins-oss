@@ -1,3 +1,21 @@
+2014-05-08  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_normalize_length), (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlforward.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_length_to_pixels),
+	(gst_ttmlrender_new_region):
+	* src/gstttmlstate.c: (gst_ttml_state_reset),
+	(gst_ttml_state_set_attribute), (gst_ttml_state_get_attribute):
+	* src/gstttmlstate.h:
+	* src/gstttmlutils.c:
+	Support cellResolution attribute and "cell" units for lengths.
+	(Not working yet for fontSize)
+
 2014-05-07  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:

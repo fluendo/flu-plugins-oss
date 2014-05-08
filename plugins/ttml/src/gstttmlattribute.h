@@ -12,6 +12,16 @@
 
 G_BEGIN_DECLS
 
+struct _GstTTMLFraction {
+  gint num;
+  gint den;
+};
+
+struct _GstTTMLLength {
+  GstTTMLLengthUnit unit;
+  gfloat f;
+};
+
 /* A stored attribute */
 struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
@@ -20,17 +30,11 @@ struct _GstTTMLAttribute {
     GstClockTime time;
     gdouble d;
     gboolean b;
-    struct _GstTTMLFraction {
-      gint num;
-      gint den;
-    } fraction;
+    GstTTMLFraction fraction;
     gchar *string;
     guint32 color;
     GstTTMLFontStyle font_style;
-    struct _GstTTMLLength {
-      GstTTMLLengthUnit unit;
-      gfloat f;
-    } length[2];
+    GstTTMLLength length[2];
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
     GstTTMLTextAlign text_align;
