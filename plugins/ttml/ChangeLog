@@ -1,5 +1,16 @@
 2014-05-08  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_normalize_length):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_length_to_pixels):
+	* src/gstttmlutils.c:
+	Support "em" length units, which are equal to 16 pixels,
+	according to http://www.w3schools.com/css/css_font.asp
+
+2014-05-08  Xavi Artigas  <xartigas@fluendo.com>
+
 	* testsuite/Parameters/CellResolution001.xml:
 	Fix testsuite which is WROOOOOONG!
 

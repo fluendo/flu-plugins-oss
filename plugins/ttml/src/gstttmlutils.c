@@ -74,6 +74,7 @@ const GstTTMLToken GstTTMLUtilsTokensLengthUnitInternal[] = {
   { "not present", GST_TTML_LENGTH_UNIT_NOT_PRESENT },
   { "pixels", GST_TTML_LENGTH_UNIT_PIXELS },
   { "cells", GST_TTML_LENGTH_UNIT_CELLS },
+  { "em", GST_TTML_LENGTH_UNIT_EM },
   { "relative", GST_TTML_LENGTH_UNIT_RELATIVE },
   { NULL, GST_TTML_LENGTH_UNIT_UNKNOWN }
 };
