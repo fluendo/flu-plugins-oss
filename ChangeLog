@@ -1,5 +1,10 @@
 2014-05-08  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/Parameters/CellResolution001.xml:
+	Fix testsuite which is WROOOOOONG!
+
+2014-05-08  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_length_expression),
 	(gst_ttml_attribute_normalize_length), (gst_ttml_attribute_parse),

@@ -17,7 +17,7 @@
       </ttp:features>
     </ttp:profile>
     <layout>
-      <region xml:id="r1" tts:origin="11c 4c" tts:extent="36c 3c"/>
+      <region xml:id="r1" tts:origin="4c 11c" tts:extent="36c 3c"/>
     </layout>
   </head>
   <body>
