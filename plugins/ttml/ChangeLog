@@ -1,3 +1,16 @@
+2014-05-09  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts),
+	(gst_ttmlrender_get_property), (gst_ttmlrender_set_property),
+	(gst_ttmlrender_dispose), (gst_ttmlrender_class_init),
+	(gst_ttmlrender_init):
+	* src/gstttmlrender.h:
+	* src/gstttmlspan.c: (gst_ttml_span_compose):
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	* src/gstttmlstyle.h:
+	Allow specifying the default font family through a property. This is
+	used when the TTML file does not set the font family explicitly.
+
 2014-05-08  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:

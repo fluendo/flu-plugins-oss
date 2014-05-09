@@ -23,6 +23,9 @@ typedef struct _GstTTMLRender {
   cairo_surface_t *surface;
   cairo_t *cairo;
 
+  /* Font family used when the TTML file does not explicitly set one */
+  gchar *default_font_family;
+
   /* Each entry is a GstTTMLRegion, sorted by ZIndex.
    * This is a temporal structure used to render each frame */
   GList *regions;

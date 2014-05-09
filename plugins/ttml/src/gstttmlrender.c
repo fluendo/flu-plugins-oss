@@ -25,6 +25,12 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlrender_debug);
 #define GST_CAT_DEFAULT ttmlrender_debug
 
+enum
+{
+  PROP_0,
+  PROP_DEFAULT_FONT_FAMILY
+};
+
 #define DEFAULT_RENDER_WIDTH 720
 #define DEFAULT_RENDER_HEIGHT 576
 
@@ -243,7 +249,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       curr_len = 0;
     }
 
-    gst_ttml_style_gen_pango_markup (&span->style, &markup_head, &markup_tail);
+    gst_ttml_style_gen_pango_markup (&span->style, &markup_head, &markup_tail,
+        render->default_font_family);
     markup_head_len = strlen (markup_head);
     markup_tail_len = strlen (markup_tail);
 
@@ -426,6 +433,41 @@ gst_ttmlrender_setcaps (GstTTMLBase *base, GstCaps *caps)
 }
 
 static void
+gst_ttmlrender_get_property (GObject * object, guint prop_id, GValue * value,
+    GParamSpec * pspec)
+{
+  GstTTMLRender *render = GST_TTMLRENDER (object);
+
+  switch (prop_id) {
+    case PROP_DEFAULT_FONT_FAMILY:
+      g_value_set_string (value, render->default_font_family);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+  }
+}
+
+static void
+gst_ttmlrender_set_property (GObject * object, guint prop_id,
+    const GValue * value, GParamSpec * pspec)
+{
+  GstTTMLRender *render = GST_TTMLRENDER (object);
+
+  switch (prop_id) {
+    case PROP_DEFAULT_FONT_FAMILY:
+      if (render->default_font_family) {
+        g_free (render->default_font_family);
+      }
+      render->default_font_family = g_strdup (g_value_get_string (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+  }
+}
+
+static void
 gst_ttmlrender_dispose (GObject * object)
 {
   GstTTMLRender *render = GST_TTMLRENDER (object);
@@ -436,6 +478,11 @@ gst_ttmlrender_dispose (GObject * object)
     g_list_free_full (render->regions,
         (GDestroyNotify)gst_ttmlrender_free_region);
     render->regions = NULL;
+  }
+
+  if (render->default_font_family) {
+    g_free (render->default_font_family);
+    render->default_font_family = NULL;
   }
 
   if (render->pango_context) {
@@ -455,6 +502,14 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
   parent_class = GST_TTMLBASE_CLASS (g_type_class_peek_parent (klass));
 
   gobject_class->dispose = GST_DEBUG_FUNCPTR (gst_ttmlrender_dispose);
+  gobject_class->set_property = GST_DEBUG_FUNCPTR (gst_ttmlrender_set_property);
+  gobject_class->get_property = GST_DEBUG_FUNCPTR (gst_ttmlrender_get_property);
+
+  /* Register properties */
+  g_object_class_install_property (gobject_class, PROP_DEFAULT_FONT_FAMILY,
+      g_param_spec_string ("default_font_family", "Default font family",
+        "Font family to use when the TTML file does not explicitly set one",
+        "default", G_PARAM_READWRITE));
 
   /* Here we register a Pad Template called "src" which the base class will
    * use to instantiate the src pad. */
@@ -477,4 +532,6 @@ gst_ttmlrender_init (GstTTMLRender * render)
 {
   render->pango_context =
       pango_font_map_create_context (pango_cairo_font_map_get_default ());
+
+  render->default_font_family = g_strdup ("default");
 }
