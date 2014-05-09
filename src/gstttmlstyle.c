@@ -89,14 +89,16 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
-/* Generate Pango Markup for the style */
+/* Generate Pango Markup for the style.
+ * default_font_family can be NULL. */
 void
 gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
-    gchar **head, gchar **tail)
+    gchar **head, gchar **tail,
+    const gchar *default_font_family)
 {
   gchar *attrs = g_strdup ("");
   GList *link = style->attributes;
-  gchar *font_family = NULL;
+  gchar *font_family = g_strdup (default_font_family);
   gchar *font_size = NULL;
   gboolean font_size_is_relative = FALSE;
 
@@ -120,8 +122,12 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         break;
 
       case GST_TTML_ATTR_FONT_FAMILY:
-        if (attr->value.string)
+        if (attr->value.string) {
+          if (font_family) {
+            g_free (font_family);
+          }
           font_family = g_strdup (attr->value.string);
+        }
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
