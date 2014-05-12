@@ -22,6 +22,12 @@ struct _GstTTMLLength {
   gfloat f;
 };
 
+struct _GstTTMLTextOutline {
+  guint32 color;
+  gboolean use_current_color;
+  GstTTMLLength length[2];
+};
+
 /* A stored attribute */
 struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
@@ -39,6 +45,7 @@ struct _GstTTMLAttribute {
     GstTTMLTextDecoration text_decoration;
     GstTTMLTextAlign text_align;
     GstTTMLDisplayAlign display_align;
+    GstTTMLTextOutline text_outline;
   } value;
   GList *timeline;
 };

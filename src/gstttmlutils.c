@@ -64,6 +64,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "textAlign", GST_TTML_ATTR_TEXT_ALIGN },
   { "displayAlign", GST_TTML_ATTR_DISPLAY_ALIGN },
   { "overflow", GST_TTML_ATTR_OVERFLOW },
+  { "textOutline", GST_TTML_ATTR_TEXTOUTLINE },
   { NULL, GST_TTML_ATTR_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensAttributeType =

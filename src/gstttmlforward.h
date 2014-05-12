@@ -19,6 +19,7 @@ typedef struct _GstTTMLStyle GstTTMLStyle;
 typedef struct _GstTTMLToken GstTTMLToken;
 typedef struct _GstTTMLLength GstTTMLLength;
 typedef struct _GstTTMLFraction GstTTMLFraction;
+typedef struct _GstTTMLTextOutline GstTTMLTextOutline;
 
 G_END_DECLS
 

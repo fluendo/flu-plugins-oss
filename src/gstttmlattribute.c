@@ -105,29 +105,45 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
   | "rgba" "(" r-value "," g-value "," b-value "," a-value ")"
   | <namedColor>
  */
-static guint32
-gst_ttml_attribute_parse_color_expression (const gchar *expr)
+static gboolean
+gst_ttml_attribute_parse_color_expression (const gchar *expr, guint32 *color,
+    const gchar **end)
 {
   guint r, g, b, a;
-  if (sscanf (expr, "#%02x%02x%02x%02x", &r, &g, &b, &a) == 4) {
-    return MAKE_COLOR (r, g, b, a);
-  } else if (sscanf (expr, "#%02x%02x%02x", &r, &g, &b) == 3) {
-    return MAKE_COLOR (r, g, b, 0xFF);
-  } else if (sscanf (expr, "rgb(%d,%d,%d)", &r, &g, &b) == 3) {
-    return MAKE_COLOR (r, g, b, 0xFF);
-  } else if (sscanf (expr, "rgba(%d,%d,%d,%d)", &r, &g, &b, &a) == 4) {
-    return MAKE_COLOR (r, g, b, a);
+  int n = 0;
+  if (end)
+    *end = expr;
+  if (sscanf (expr, "#%02x%02x%02x%02x%n", &r, &g, &b, &a, &n) == 4) {
+    *color =  MAKE_COLOR (r, g, b, a);
+  } else if (sscanf (expr, "#%02x%02x%02x%n", &r, &g, &b, &n) == 3) {
+    *color =  MAKE_COLOR (r, g, b, 0xFF);
+  } else if (sscanf (expr, "rgb(%d,%d,%d)%n", &r, &g, &b, &n) == 3) {
+    *color =  MAKE_COLOR (r, g, b, 0xFF);
+  } else if (sscanf (expr, "rgba(%d,%d,%d,%d)%n", &r, &g, &b, &a, &n) == 4) {
+    *color =  MAKE_COLOR (r, g, b, a);
   } else {
     struct _GstTTMLNamedColor *c = GstTTMLNamedColors;
     while (c->name) {
-      if (gst_ttml_utils_attr_value_is (expr, c->name))
-        return c->color;
+      if (!g_ascii_strncasecmp (expr, c->name, strlen (c->name))) {
+        *color =  c->color;
+        n = strlen (c->name);
+        break;
+      }
       c++;
+    }
+    if (!c->name) {
+      *color = 0xFFFFFFFF;
+      return FALSE;
     }
   }
 
-  GST_WARNING ("Could not understand color expression '%s'", expr);
-  return 0xFFFFFFFF;
+  /* Skip trailing whitespace */
+  if (end) {
+    while (expr[n] != '\0' && g_ascii_isspace (expr[n])) n++;
+    *end = expr + n;
+  }
+
+  return TRUE;
 }
 
 /* Parse <length> expressions as per the TTML specification.
@@ -191,23 +207,27 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
 
 /* Reads a <length> expression, possibly followed by a second <length>.
  * If the second length is not present, its UNIT is set to NOT_PRESENT.
+ * Returns TRUE on error (if not even one length could be read).
  */
-static void
+static gboolean
 gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
-    GstTTMLAttribute *attr)
+    GstTTMLLength *length)
 {
   const gchar *next;
 
   /* Mark the second length as initially not present */
-  attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+  length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
 
   if (!gst_ttml_attribute_parse_length_expression (expr,
-        &attr->value.length[0].f, &attr->value.length[0].unit, &next) &&
+        &length[0].f, &length[0].unit, &next) &&
       *next != '\0') {
     /* A first length has been succesfully read, and there is more input */
     gst_ttml_attribute_parse_length_expression (next,
-        &attr->value.length[1].f, &attr->value.length[1].unit, &next);
+        &length[1].f, &length[1].unit, &next);
+  } else {
+    return TRUE;
   }
+  return FALSE;
 }
 
 /* Turns as many relative units as possible into absolute pixel units.
@@ -327,11 +347,15 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
         attr->value.b);
     break;
   case GST_TTML_ATTR_COLOR:
-    attr->value.color = gst_ttml_attribute_parse_color_expression (value);
+    if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,
+        NULL))
+      GST_WARNING ("Could not understand color expression '%s'", value);
     GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
     break;
   case GST_TTML_ATTR_BACKGROUND_COLOR:
-    attr->value.color = gst_ttml_attribute_parse_color_expression (value);
+    if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,
+        NULL))
+      GST_WARNING ("Could not understand color expression '%s'", value);
     GST_LOG ("Parsed '%s' background color into #%08X", value,
         attr->value.color);
     break;
@@ -344,7 +368,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     GST_LOG ("Parsed '%s' font family", value);
     break;
   case GST_TTML_ATTR_FONT_SIZE:
-    gst_ttml_attribute_parse_length_pair_expression (value, attr);
+    gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
     gst_ttml_attribute_normalize_length (state, attr, 0, 0);
     gst_ttml_attribute_normalize_length (state, attr, 1, 1);
     GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
@@ -402,7 +426,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       GST_LOG ("Parsed '%s' origin into AUTO", value);
     } else {
-      gst_ttml_attribute_parse_length_pair_expression (value, attr);
+      gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
       } else {
@@ -422,7 +446,7 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       GST_LOG ("Parsed '%s' extent into AUTO", value);
     } else {
-      gst_ttml_attribute_parse_length_pair_expression (value, attr);
+      gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
       } else {
@@ -473,6 +497,25 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       GST_LOG ("Parsed '%s' cellResolution into numx=%d numy=%d", value,
           numx, numy);
     }
+    break;
+  case GST_TTML_ATTR_TEXTOUTLINE:
+    if (gst_ttml_utils_attr_value_is (value, "none")) {
+      attr->value.text_outline.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+    } else {
+      const gchar *ptr;
+      gst_ttml_attribute_parse_color_expression (value,
+          &attr->value.text_outline.color, &ptr);
+      attr->value.text_outline.use_current_color = (ptr == value);
+      gst_ttml_attribute_parse_length_pair_expression (ptr,
+          attr->value.text_outline.length);
+    }
+    GST_LOG ("Parsed '%s' textOutline into color=#%08X use_current_color=%d "
+        "length=%g (%s), %g (%s)", value, attr->value.text_outline.color,
+        attr->value.text_outline.use_current_color,
+        attr->value.text_outline.length[0].f,
+        gst_ttml_utils_enum_name (attr->value.text_outline.length[0].unit, LengthUnit),
+        attr->value.text_outline.length[1].f,
+        gst_ttml_utils_enum_name (attr->value.text_outline.length[1].unit, LengthUnit));
     break;
   default:
     GST_WARNING ("Attribute not implemented");
@@ -683,6 +726,9 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_OVERFLOW:
       attr->value.b = FALSE;
+      break;
+    case GST_TTML_ATTR_TEXTOUTLINE:
+      attr->value.text_outline.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
