@@ -48,6 +48,12 @@ struct _GstTTMLState {
   /* These are named styles used for regions.
    * Each entry in the HashTable is an attribute stack. */
   GHashTable *saved_region_attr_stacks;
+
+  /* This piece of state is a bit special. It is only present when used in the
+   * ttmlrender, not the ttmlparser, and it comes from the caps nego process,
+   * not the parsing of the TTML file. */
+  gint frame_width;
+  gint frame_height;
 };
 
 void gst_ttml_state_free (GstTTMLState *state);

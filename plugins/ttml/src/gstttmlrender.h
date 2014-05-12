@@ -29,9 +29,6 @@ typedef struct _GstTTMLRender {
   /* Each entry is a GstTTMLRegion, sorted by ZIndex.
    * This is a temporal structure used to render each frame */
   GList *regions;
-
-  gint width;
-  gint height;
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */

@@ -91,9 +91,9 @@ gst_ttmlrender_length_to_pixels (const GstTTMLRender *render,
     /* Deliberate fallthrough */
   case GST_TTML_LENGTH_UNIT_RELATIVE:
     if (direction == 0)
-      pixels = (int)(render->width * length->f);
+      pixels = (int)(render->base.state.frame_width * length->f);
     else
-      pixels = (int)(render->height * length->f);
+      pixels = (int)(render->base.state.frame_height * length->f);
     break;
   case GST_TTML_LENGTH_UNIT_PIXELS:
     pixels =  (int)length->f;
@@ -183,10 +183,10 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
   region->extentx = attr ?
       gst_ttmlrender_length_to_pixels (render, &attr->value.length[0], 0) :
-      render->width;
+      render->base.state.frame_width;
   region->extenty = attr ?
       gst_ttmlrender_length_to_pixels (render, &attr->value.length[1], 1) :
-      render->height;
+      render->base.state.frame_height;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;
@@ -368,11 +368,13 @@ gst_ttmlrender_gen_buffer (GstTTMLBase *base)
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
 
-  buffer = gst_buffer_new_and_alloc (render->width * render->height * 4);
+  buffer = gst_buffer_new_and_alloc (
+      render->base.state.frame_width * render->base.state.frame_height * 4);
   gst_buffer_map (buffer, &map_info, GST_MAP_WRITE);
 
   render->surface = cairo_image_surface_create_for_data (map_info.data,
-      CAIRO_FORMAT_ARGB32, render->width, render->height, render->width * 4);
+      CAIRO_FORMAT_ARGB32, render->base.state.frame_width,
+      render->base.state.frame_height, render->base.state.frame_width * 4);
   render->cairo = cairo_create (render->surface);
   cairo_set_operator (render->cairo, CAIRO_OPERATOR_CLEAR);
   cairo_paint (render->cairo);
@@ -428,8 +430,8 @@ gst_ttmlrender_setcaps (GstTTMLBase *base, GstCaps *caps)
 
   GST_DEBUG_OBJECT (render, "Got frame size %dx%d", width, height);
 
-  render->width = width;
-  render->height = height;
+  render->base.state.frame_width = width;
+  render->base.state.frame_height = height;
 }
 
 static void

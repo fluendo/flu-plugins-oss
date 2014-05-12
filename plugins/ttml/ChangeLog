@@ -1,3 +1,15 @@
+2014-05-12  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlbase.c: (gst_ttmlbase_init):
+	* src/gstttmlrender.c: (gst_ttmlrender_length_to_pixels),
+	(gst_ttmlrender_new_region), (gst_ttmlrender_gen_buffer),
+	(gst_ttmlrender_setcaps):
+	* src/gstttmlrender.h:
+	* src/gstttmlstate.h:
+	Move the frame width & height from the ttmlrender to the ttmlstate,
+	so it is accessible to other areas of the code.
+	No change in functionality.
+
 2014-05-09  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts),
