@@ -44,6 +44,10 @@ typedef struct _GstTTMLRegion {
   GstTTMLDisplayAlign display_align;
   gboolean overflow_visible;
 
+  /* FIXME: textOutline is a CHARACTER attribute, not a REGION one.
+   * This is just a first step. */
+  GstTTMLTextOutline text_outline;
+
   /* List of PangoLayouts, already filled with text and attributes */
   GList *layouts;
 
@@ -160,6 +164,13 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_DISPLAY_ALIGN);
   region->display_align = attr ? attr->value.display_align :
       GST_TTML_DISPLAY_ALIGN_BEFORE;
+
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_TEXTOUTLINE);
+  if (attr) {
+    region->text_outline = attr->value.text_outline;
+  } else {
+    region->text_outline.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+  }
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_OVERFLOW);
   region->overflow_visible = attr ? attr->value.b : FALSE;
@@ -310,6 +321,22 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
     pango_layout_get_extents (layout, &ink_rect, &logical_rect);
     pango_cairo_show_layout (render->cairo, layout);
+
+    if (region->text_outline.length[0].unit !=
+        GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+      /* Draw the text outline */
+      guint32 color = region->text_outline.use_current_color ?
+          0xFFFFFFFF : region->text_outline.color;
+      cairo_set_source_rgba (render->cairo,
+          GET_CAIRO_COMP (color, 24), 
+          GET_CAIRO_COMP (color, 16), 
+          GET_CAIRO_COMP (color,  8), 
+          GET_CAIRO_COMP (color,  0));
+      cairo_set_line_width (render->cairo, region->text_outline.length[0].f);
+      pango_cairo_layout_path (render->cairo, layout);
+      cairo_stroke (render->cairo);
+    }
+
     cairo_translate (render->cairo, 0.0, logical_rect.height / PANGO_SCALE);
 
     link = g_list_next (link);

@@ -1,5 +1,22 @@
 2014-05-12  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_parse_length_pair_expression),
+	(gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlforward.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region),
+	(gst_ttmlrender_show_regions):
+	* src/gstttmlutils.c:
+	Support for textOutline AT THE REGION LEVEL. Supporting it at
+	the character level is in progress, but it will not be as
+	simple.
+
+2014-05-12  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
 	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
