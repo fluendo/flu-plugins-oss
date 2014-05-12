@@ -1130,6 +1130,8 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
 
   gst_ttmlbase_cleanup (base);
   gstflu_demo_reset_statistics (&base->stats);
+
+  base->state.frame_width = base->state.frame_height = 0;
 }
 
 GType
