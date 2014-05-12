@@ -126,12 +126,16 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
           if (font_family) {
             g_free (font_family);
           }
+          /* TODO: Translate TTML's generic family names into something Pango
+           * understands (default, monospace, sansSerif, ...) */
           font_family = g_strdup (attr->value.string);
         }
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
-        /* Second length ignored, as it cannot be used through pango markup */
+        /* FIXME:
+         *  - Second length ignored: it cannot be used through pango markup
+         *  - Process EM and RELATIVE units */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
           font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);
           font_size_is_relative = FALSE;

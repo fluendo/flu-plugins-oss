@@ -210,23 +210,52 @@ gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
   }
 }
 
-/* Turns lengths in CELL units into relative units. This must be done here
- * because we only know the cellResolution during the parsing process.
- * (It is lost once the TT node is popped) */
+/* Turns as many relative units as possible into absolute pixel units.
+ * This must be done here because we only know the cellResolution during the
+ * parsing process (It is lost once the TT node is popped) */
 static void
 gst_ttml_attribute_normalize_length (const GstTTMLState *state,
     GstTTMLAttribute *attr, int offset, int direction)
 {
   switch (attr->value.length[offset].unit) {
   case GST_TTML_LENGTH_UNIT_CELLS:
-    attr->value.length[offset].f /=
-        direction == 0 ? state->cell_resolution_x : state->cell_resolution_y;
-    attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    if (state->frame_width > 0) {
+      /* Frame size is known: produce absolute length */
+      if (direction == 0)
+        attr->value.length[offset].f = attr->value.length[offset].f *
+            state->frame_width / state->cell_resolution_x;
+      else
+        attr->value.length[offset].f = attr->value.length[offset].f *
+            state->frame_height / state->cell_resolution_y;
+      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    } else {
+      /* Unknown frame size: use size relative to default size (1em = 1c) */
+      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_EM;
+    }
+    break;
+  case GST_TTML_LENGTH_UNIT_RELATIVE:
+    /* This is relative to different things, depending on the type of attr.
+     * Not all attributes require conversion. */
+    if (attr->type == GST_TTML_ATTR_ORIGIN ||
+        attr->type == GST_TTML_ATTR_EXTENT) {
+      if (direction == 0)
+        attr->value.length[offset].f *= state->frame_width;
+      else
+        attr->value.length[offset].f *= state->frame_height;
+      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    }
     break;
   case GST_TTML_LENGTH_UNIT_EM:
-    /* 1em = 16px, according to http://www.w3schools.com/css/css_font.asp */
-    attr->value.length[offset].f *= 16.0;
-    attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    /* We can let EM units through if they are used for fontSize, but we need
+     * to convert them to pixels for origin & extent */
+    if (attr->type == GST_TTML_ATTR_ORIGIN ||
+        attr->type == GST_TTML_ATTR_EXTENT) {
+      /* FIXME: proper conversion from em to pixels requires knowing the
+       * current font size in pixels. We assume 1c = 16px for now.
+       * This should be a very rare case anyway. */
+      attr->value.length[offset].f *= 16;
+      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    }
     break;
   default:
     break;

@@ -1,5 +1,14 @@
 2014-05-12  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	Put all unit-conversion code in the same place for simplicity.
+	Allow cell units in fontSize (fixes fontSize004 testsuite).
+	Add some TODO comments.
+
+2014-05-12  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_init):
 	* src/gstttmlrender.c: (gst_ttmlrender_length_to_pixels),
 	(gst_ttmlrender_new_region), (gst_ttmlrender_gen_buffer),
