@@ -89,6 +89,31 @@ gst_ttml_style_str_concat (gchar *str1, gchar *str2)
   return res;
 }
 
+/* Translates TTML's generic family names into something Pango
+ * understands (default, monospace, sansSerif, ...).
+ * Frees the input name and returns a newly allocated string.
+ */
+static gchar *
+gst_ttml_style_translate_generic_font_name (gchar *org_name)
+{
+  gchar *new_name = NULL;
+  /* TODO: Map generic TTML font names to actual system fonts, discovered
+   * during initialization, for example.
+   * For now, simply remove the "default" tag to avoid having Pango-WARNINGs
+   * in the most usual case. */
+  if (strcmp (org_name, "default") == 0) {
+    new_name = NULL;
+  } else {
+    new_name = org_name;
+  }
+
+  if (new_name != org_name) {
+    g_free (org_name);
+  }
+
+  return new_name;
+}
+
 /* Generate Pango Markup for the style.
  * default_font_family can be NULL. */
 void
@@ -126,8 +151,6 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
           if (font_family) {
             g_free (font_family);
           }
-          /* TODO: Translate TTML's generic family names into something Pango
-           * understands (default, monospace, sansSerif, ...) */
           font_family = g_strdup (attr->value.string);
         }
         break;
@@ -182,8 +205,10 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
     gchar *font_desc = g_strdup ("");
     gchar *font_attrs = NULL;
 
-    if (font_family != NULL)
+    if (font_family != NULL) {
+      font_family = gst_ttml_style_translate_generic_font_name (font_family);
       font_desc = gst_ttml_style_str_concat (font_desc, font_family);
+    }
     if (font_size != NULL && !font_size_is_relative)
       font_desc = gst_ttml_style_str_concat (font_desc, font_size);
 
