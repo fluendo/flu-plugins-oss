@@ -313,6 +313,7 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
       break;
     case GST_TTML_NODE_TYPE_LAYOUT:
       base->in_layout_node = TRUE;
+      break;
     default:
       break;
   }
