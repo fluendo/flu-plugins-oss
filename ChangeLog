@@ -1,5 +1,13 @@
 2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstyle.c: (gst_ttml_style_translate_generic_font_name),
+	(gst_ttml_style_gen_pango_markup):
+	Skeleton for remapping generic TTML font names into actual system
+	fonts. For now, it simply removes the "default" tag, so we avoid a
+	lot of Pango-WARNINGs in the most usual scenario.
+
+2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_downstream_negotiation):
 	Fix caps nego in 0.10 when there are no compatible caps.
 
