@@ -22,7 +22,7 @@ void gst_ttml_style_reset (GstTTMLStyle *style);
 void gst_ttml_style_copy (GstTTMLStyle *dest_style,
     const GstTTMLStyle *org_style, gboolean include_timeline);
 
-GstTTMLAttribute *gst_ttml_style_get_attr (GstTTMLStyle *style,
+GstTTMLAttribute *gst_ttml_style_get_attr (const GstTTMLStyle *style,
     GstTTMLAttributeType type);
 
 GstTTMLAttribute *gst_ttml_style_set_attr (GstTTMLStyle *style,

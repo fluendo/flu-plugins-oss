@@ -42,7 +42,7 @@ gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style,
 
 /* Retrieve the given attribute type. It belongs to the style, do not free. */
 GstTTMLAttribute *
-gst_ttml_style_get_attr (GstTTMLStyle *style, GstTTMLAttributeType type)
+gst_ttml_style_get_attr (const GstTTMLStyle *style, GstTTMLAttributeType type)
 {
   GList *link;
 
@@ -133,14 +133,12 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         break;
         
       case GST_TTML_ATTR_FONT_SIZE:
-        /* FIXME:
-         *  - Second length ignored: it cannot be used through pango markup
-         *  - Process EM and RELATIVE units */
+        /* FIXME: Second length ignored: it cannot be used through pango markup */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
           font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);
           font_size_is_relative = FALSE;
         } else if (attr->value.length[0].f != 1.f) {
-          font_size = g_strdup (attr->value.length[0].f>1 ? "large" : "small");
+          font_size = g_strdup (attr->value.length[0].f>1 ? "larger" : "smaller");
           font_size_is_relative = TRUE;
         }
         break;
