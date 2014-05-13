@@ -1,5 +1,10 @@
 2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_downstream_negotiation):
+	Fix caps nego in 0.10 when there are no compatible caps.
+
+2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
 	* src/gstttmlattribute.h:
 	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_start_ns):

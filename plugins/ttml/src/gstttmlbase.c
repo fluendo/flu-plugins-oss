@@ -693,7 +693,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
 
   gst_caps_unref (template_caps);
 
-  if (!src_caps) {
+  if (!src_caps || gst_caps_is_empty (src_caps)) {
     GST_WARNING_OBJECT (base, "Could not find compatible caps for src pad");
     return FALSE;
   }
