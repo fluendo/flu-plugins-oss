@@ -97,7 +97,7 @@ static gchar *
 gst_ttml_style_translate_generic_font_name (gchar *org_name)
 {
   gchar *new_name = NULL;
-  /* TODO: Map generic TTML font names to actual system fonts, discovered
+  /* FIXME: Map generic TTML font names to actual system fonts, discovered
    * during initialization, for example.
    * For now, simply remove the "default" tag to avoid having Pango-WARNINGs
    * in the most usual case. */
@@ -129,7 +129,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
 
   /* Only add attributes which are different from the default Pango values.
    * Transparency is lost in the Pango Markup.
-   * TODO: A little-endian machine is currently assumed for colors */
+   * FIXME: A little-endian machine is currently assumed for colors */
 
   while (link) {
     GstTTMLAttribute *attr = (GstTTMLAttribute *)link->data;
