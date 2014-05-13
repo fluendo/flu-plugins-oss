@@ -1,5 +1,12 @@
 2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_show_regions):
+	* src/gstttmlstyle.c: (gst_ttml_style_translate_generic_font_name),
+	(gst_ttml_style_gen_pango_markup):
+	Add some FIXME comments.
+
+2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_translate_generic_font_name),
 	(gst_ttml_style_gen_pango_markup):
 	Skeleton for remapping generic TTML font names into actual system

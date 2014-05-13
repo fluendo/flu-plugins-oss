@@ -325,6 +325,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     if (region->text_outline.length[0].unit !=
         GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
       /* Draw the text outline */
+      /* FIXME: This adds outline to the bounding box if a backgroundColor
+       * tag is present in the markup! */
       guint32 color = region->text_outline.use_current_color ?
           0xFFFFFFFF : region->text_outline.color;
       cairo_set_source_rgba (render->cairo,
