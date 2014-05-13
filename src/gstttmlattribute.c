@@ -233,52 +233,74 @@ gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
 /* Turns as many relative units as possible into absolute pixel units.
  * This must be done here because we only know the cellResolution during the
  * parsing process (It is lost once the TT node is popped) */
-static void
+void
 gst_ttml_attribute_normalize_length (const GstTTMLState *state,
     GstTTMLAttribute *attr, int offset, int direction)
 {
-  switch (attr->value.length[offset].unit) {
-  case GST_TTML_LENGTH_UNIT_CELLS:
-    if (state->frame_width > 0) {
-      /* Frame size is known: produce absolute length */
-      if (direction == 0)
+  if (state->frame_width > 0) {
+    /* Frame size is known: produce absolute lengths */
+    GstTTMLAttribute *prev_attr;
+
+    switch (attr->value.length[offset].unit) {
+    case GST_TTML_LENGTH_UNIT_CELLS:
+      if (direction == 0) {
         attr->value.length[offset].f = attr->value.length[offset].f *
             state->frame_width / state->cell_resolution_x;
-      else
+      } else {
         attr->value.length[offset].f = attr->value.length[offset].f *
             state->frame_height / state->cell_resolution_y;
+      }
       attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
-    } else {
-      /* Unknown frame size: use size relative to default size (1em = 1c) */
-      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_EM;
-    }
-    break;
-  case GST_TTML_LENGTH_UNIT_RELATIVE:
-    /* This is relative to different things, depending on the type of attr.
-     * Not all attributes require conversion. */
-    if (attr->type == GST_TTML_ATTR_ORIGIN ||
-        attr->type == GST_TTML_ATTR_EXTENT) {
-      if (direction == 0)
-        attr->value.length[offset].f *= state->frame_width;
-      else
-        attr->value.length[offset].f *= state->frame_height;
+      break;
+    case GST_TTML_LENGTH_UNIT_RELATIVE:
+      /* This is relative to different things, depending on the type of attr. */
+      if (attr->type == GST_TTML_ATTR_ORIGIN ||
+          attr->type == GST_TTML_ATTR_EXTENT) {
+        if (direction == 0)
+          attr->value.length[offset].f *= state->frame_width;
+        else
+          attr->value.length[offset].f *= state->frame_height;
+      } else {
+        prev_attr =
+            gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
+        if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+          GST_WARNING ("Current font size should be in pixels");
+        }
+        attr->value.length[offset].f *= prev_attr->value.length[0].f;
+      }
       attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
-    }
-    break;
-  case GST_TTML_LENGTH_UNIT_EM:
-    /* We can let EM units through if they are used for fontSize, but we need
-     * to convert them to pixels for origin & extent */
-    if (attr->type == GST_TTML_ATTR_ORIGIN ||
-        attr->type == GST_TTML_ATTR_EXTENT) {
-      /* FIXME: proper conversion from em to pixels requires knowing the
-       * current font size in pixels. We assume 1c = 16px for now.
-       * This should be a very rare case anyway. */
-      attr->value.length[offset].f *= 16;
+      break;
+    case GST_TTML_LENGTH_UNIT_EM:
+      /* Retrieve current font size (which should be in pixels) and scale as
+       * requested. */
+      prev_attr =
+          gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
+      if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+        GST_WARNING ("Current font size should be in pixels");
+      }
+      attr->value.length[offset].f *= prev_attr->value.length[0].f;
       attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+      break;
+    default:
+      break;
     }
-    break;
-  default:
-    break;
+  } else {
+    /* Frame size unknown: this means we are in ttmlparse, and therefore
+     * region measures are meaningless, and we can use relative font sizes
+     * in the pango markup */
+    
+    switch (attr->value.length[offset].unit) {
+    case GST_TTML_LENGTH_UNIT_CELLS:
+      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      break;
+    case GST_TTML_LENGTH_UNIT_RELATIVE:
+      break;
+    case GST_TTML_LENGTH_UNIT_EM:
+      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      break;
+    default:
+      break;
+    }
   }
 }
 

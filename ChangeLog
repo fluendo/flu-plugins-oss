@@ -1,5 +1,17 @@
 2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
+	* src/gstttmlattribute.h:
+	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_start_ns):
+	* src/gstttmlstyle.c: (gst_ttml_style_get_attr),
+	(gst_ttml_style_gen_pango_markup):
+	* src/gstttmlstyle.h:
+	Use a default font of 1c as the spec says, and finally render
+	correctly font sizes in any length unit. Exactly in ttmlrender
+	and approximately in ttmlparse.
+
+2014-05-13  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_start_ns):
 	Fix innocuous missig 'break'.
 
