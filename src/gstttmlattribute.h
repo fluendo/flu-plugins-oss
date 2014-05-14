@@ -86,7 +86,7 @@ GstTTMLAttribute *gst_ttml_attribute_new_styling_default (
     GstTTMLAttributeType type);
 
 void gst_ttml_attribute_normalize_length (const GstTTMLState *state,
-    GstTTMLAttribute *attr, int offset, int direction);
+    GstTTMLAttributeType type, GstTTMLLength *length, int direction);
 
 gint gst_ttml_attribute_compare_type_func (GstTTMLAttribute *attr,
     GstTTMLAttributeType type);

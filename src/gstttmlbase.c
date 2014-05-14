@@ -376,7 +376,8 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
      * default values, because that method does not know the frame size, or
      * the cell resolution. */
     ttml_attr = gst_ttml_attribute_new_styling_default (GST_TTML_ATTR_FONT_SIZE);
-    gst_ttml_attribute_normalize_length (&base->state, ttml_attr, 0, 1);
+    gst_ttml_attribute_normalize_length (&base->state, ttml_attr->type,
+        &ttml_attr->value.length[0], 1);
     gst_ttml_state_push_attribute (&base->state, ttml_attr);
   }
 
