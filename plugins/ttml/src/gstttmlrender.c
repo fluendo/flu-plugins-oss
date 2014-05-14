@@ -153,10 +153,15 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   region->originy = attr ? attr->value.length[1].f : 0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
-  region->extentx = attr ? attr->value.length[0].f :
-      render->base.state.frame_width;
-  region->extenty = attr ? attr->value.length[1].f :
-      render->base.state.frame_height;
+  if (attr) {
+    gst_ttml_attribute_normalize_length (&render->base.state, attr, 0, 0);
+    region->extentx = attr->value.length[0].f;
+    gst_ttml_attribute_normalize_length (&render->base.state, attr, 1, 1);
+    region->extenty = attr->value.length[1].f;
+  } else {
+    region->extentx = render->base.state.frame_width;
+    region->extenty = render->base.state.frame_height;
+  }
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;
