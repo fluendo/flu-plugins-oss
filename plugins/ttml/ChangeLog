@@ -1,5 +1,15 @@
 2014-05-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_color_expression),
+	(gst_ttml_attribute_normalize_length), (gst_ttml_attribute_parse):
+	* src/gstttmlattribute.h:
+	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_start_ns):
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
+	Allow outline thickness to be specified in relative units.
+
+2014-05-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
 	Fix writing to the main (default) region when other regions are
 	defined.

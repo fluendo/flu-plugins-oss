@@ -113,6 +113,7 @@ gst_ttml_attribute_parse_color_expression (const gchar *expr, guint32 *color,
   int n = 0;
   if (end)
     *end = expr;
+  /* FIXME: This will read "#FF8040 2px p2x" as rgba(FF, 80, 40 2) */
   if (sscanf (expr, "#%02x%02x%02x%02x%n", &r, &g, &b, &a, &n) == 4) {
     *color =  MAKE_COLOR (r, g, b, a);
   } else if (sscanf (expr, "#%02x%02x%02x%n", &r, &g, &b, &n) == 3) {
@@ -235,40 +236,40 @@ gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
  * parsing process (It is lost once the TT node is popped) */
 void
 gst_ttml_attribute_normalize_length (const GstTTMLState *state,
-    GstTTMLAttribute *attr, int offset, int direction)
+    GstTTMLAttributeType type, GstTTMLLength *length, int direction)
 {
   if (state->frame_width > 0) {
     /* Frame size is known: produce absolute lengths */
     GstTTMLAttribute *prev_attr;
 
-    switch (attr->value.length[offset].unit) {
+    switch (length->unit) {
     case GST_TTML_LENGTH_UNIT_CELLS:
       if (direction == 0) {
-        attr->value.length[offset].f = attr->value.length[offset].f *
+        length->f = length->f *
             state->frame_width / state->cell_resolution_x;
       } else {
-        attr->value.length[offset].f = attr->value.length[offset].f *
+        length->f = length->f *
             state->frame_height / state->cell_resolution_y;
       }
-      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+      length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     case GST_TTML_LENGTH_UNIT_RELATIVE:
       /* This is relative to different things, depending on the type of attr. */
-      if (attr->type == GST_TTML_ATTR_ORIGIN ||
-          attr->type == GST_TTML_ATTR_EXTENT) {
+      if (type == GST_TTML_ATTR_ORIGIN ||
+          type == GST_TTML_ATTR_EXTENT) {
         if (direction == 0)
-          attr->value.length[offset].f *= state->frame_width;
+          length->f *= state->frame_width;
         else
-          attr->value.length[offset].f *= state->frame_height;
+          length->f *= state->frame_height;
       } else {
         prev_attr =
             gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
         if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
           GST_WARNING ("Current font size should be in pixels");
         }
-        attr->value.length[offset].f *= prev_attr->value.length[0].f;
+        length->f *= prev_attr->value.length[0].f;
       }
-      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+      length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     case GST_TTML_LENGTH_UNIT_EM:
       /* Retrieve current font size (which should be in pixels) and scale as
@@ -278,8 +279,8 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
       if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
         GST_WARNING ("Current font size should be in pixels");
       }
-      attr->value.length[offset].f *= prev_attr->value.length[0].f;
-      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_PIXELS;
+      length->f *= prev_attr->value.length[0].f;
+      length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     default:
       break;
@@ -289,14 +290,14 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
      * region measures are meaningless, and we can use relative font sizes
      * in the pango markup */
     
-    switch (attr->value.length[offset].unit) {
+    switch (length->unit) {
     case GST_TTML_LENGTH_UNIT_CELLS:
-      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      length->unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     case GST_TTML_LENGTH_UNIT_RELATIVE:
       break;
     case GST_TTML_LENGTH_UNIT_EM:
-      attr->value.length[offset].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      length->unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     default:
       break;
@@ -391,8 +392,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_FONT_SIZE:
     gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
-    gst_ttml_attribute_normalize_length (state, attr, 0, 0);
-    gst_ttml_attribute_normalize_length (state, attr, 1, 1);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
     GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
         attr->value.length[0].f,
         gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
@@ -452,8 +453,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
       } else {
-        gst_ttml_attribute_normalize_length (state, attr, 0, 0);
-        gst_ttml_attribute_normalize_length (state, attr, 1, 1);
+        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
+        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
         GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
             attr->value.length[0].f,
             gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
@@ -472,8 +473,8 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
       } else {
-        gst_ttml_attribute_normalize_length (state, attr, 0, 0);
-        gst_ttml_attribute_normalize_length (state, attr, 1, 1);
+        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
+        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
         GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
             attr->value.length[0].f,
             gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
@@ -530,6 +531,11 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       attr->value.text_outline.use_current_color = (ptr == value);
       gst_ttml_attribute_parse_length_pair_expression (ptr,
           attr->value.text_outline.length);
+      /* Relative measures are relative to the block progression direction */
+      gst_ttml_attribute_normalize_length (state, attr->type,
+          &attr->value.text_outline.length[0], 1);
+      gst_ttml_attribute_normalize_length (state, attr->type,
+          &attr->value.text_outline.length[1], 1);
     }
     GST_LOG ("Parsed '%s' textOutline into color=#%08X use_current_color=%d "
         "length=%g (%s), %g (%s)", value, attr->value.text_outline.color,
