@@ -545,6 +545,14 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
         attr->value.text_outline.length[1].f,
         gst_ttml_utils_enum_name (attr->value.text_outline.length[1].unit, LengthUnit));
     break;
+  case GST_TTML_ATTR_ZINDEX:
+    if (gst_ttml_utils_attr_value_is (value, "auto")) {
+      attr->value.d = 0;
+    } else {
+      attr->value.d = g_ascii_strtod (value, NULL);
+    }
+    GST_LOG ("Parsed '%s' zIndex into %g", value, attr->value.d);
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -757,6 +765,9 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_TEXTOUTLINE:
       attr->value.text_outline.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+      break;
+    case GST_TTML_ATTR_ZINDEX:
+      attr->value.d = 0;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");

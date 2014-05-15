@@ -1,5 +1,15 @@
 2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_region_compare_zindex),
+	(gst_ttmlrender_new_region):
+	* src/gstttmlutils.c:
+	Support zIndex attribute, so regions can be put on top of one another.
+
+2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlutils.c:
 	Fix parsing of lineThrough decoration attribute (Animation013.xml)
 	(This was a regression from ttmlparse)
