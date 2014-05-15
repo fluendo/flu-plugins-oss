@@ -149,7 +149,7 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
    * them, since all spans going into the same region will have the same
    * REGION attributes. */
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ZINDEX);
-  region->zindex = (gint)attr->value.d;
+  region->zindex = attr ? (gint)attr->value.d : 0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
   region->originx = attr ? attr->value.length[0].f : 0;
