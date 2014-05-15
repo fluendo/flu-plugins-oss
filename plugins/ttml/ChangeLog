@@ -1,5 +1,11 @@
 2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlutils.c:
+	Fix parsing of lineThrough decoration attribute (Animation013.xml)
+	(This was a regression from ttmlparse)
+
+2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlutils.c: (gst_ttml_utils_enum_parse_func):
 	Fix parsing of attributes with trailing whitespace (Animation006.xml)
 	(This was a regression from ttmlparse)
