@@ -1,3 +1,19 @@
+2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
+
+	* configure.ac:
+	* src/Makefile.am:
+	* src/gstttmlblur.c: (gst_ttml_blur_create_gaussian_kernel),
+	(gst_ttml_blur_image_surface):
+	* src/gstttmlblur.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_render_outline),
+	(gst_ttmlrender_show_regions):
+	* win32/vs10/libgstfluttml_sdk.vcxproj:
+	* win32/vs10/libgstfluttml_sdk.vcxproj.filters:
+	Support for blurred outline. This is a direct implementation without any
+	optimization. Blur kernels are calculated every time, which might be cached.
+	Also, a simple downscale+upscale will be much faster. This one, however,
+  looks super cool.
+
 2014-05-14  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:

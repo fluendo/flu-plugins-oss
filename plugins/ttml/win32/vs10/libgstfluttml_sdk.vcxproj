@@ -38,6 +38,7 @@
     <ClCompile Include="..\..\src\fluttml.c" />
     <ClCompile Include="..\..\src\gstttmlattribute.c" />
     <ClCompile Include="..\..\src\gstttmlbase.c" />
+    <ClCompile Include="..\..\src\gstttmlblur.c" />
     <ClCompile Include="..\..\src\gstttmlevent.c" />
     <ClCompile Include="..\..\src\gstttmlparse.c" />
     <ClCompile Include="..\..\src\gstttmlrender.c" />
@@ -50,6 +51,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\gstttmlattribute.h" />
     <ClInclude Include="..\..\src\gstttmlbase.h" />
+    <ClInclude Include="..\..\src\gstttmlblur.h" />
     <ClInclude Include="..\..\src\gstttmlenums.h" />
     <ClInclude Include="..\..\src\gstttmlevent.h" />
     <ClInclude Include="..\..\src\gstttmlforward.h" />
@@ -95,6 +97,7 @@
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-0.10.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-base-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-base-0.10.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pixman-1.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\msvc\x86.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\msvc\x86.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
   </ImportGroup>
@@ -103,6 +106,7 @@
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-0.10.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-0.10.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props')" />
     <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
   </ImportGroup>
@@ -111,6 +115,7 @@
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-1.0.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-base-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-base-1.0.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pixman-1.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\msvc\x86.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\msvc\x86.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\libxml-2.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\libxml-2.0.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
@@ -120,6 +125,7 @@
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-1.0.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-1.0.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props')" />
     <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\libxml-2.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\libxml-2.0.props')" />
     <Import Project="..\..\common\fluendo-plugins-sdk.props" />
@@ -132,6 +138,7 @@
       <PrecompiledHeader>
       </PrecompiledHeader>
       <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|Win32'">false</ShowIncludes>
     </ClCompile>
     <Link>
       <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>

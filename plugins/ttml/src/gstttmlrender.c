@@ -21,6 +21,7 @@
 #include "gstttmlevent.h"
 #include "gstttmlattribute.h"
 #include "gstttmlutils.h"
+#include "gstttmlblur.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlrender_debug);
 #define GST_CAT_DEFAULT ttmlrender_debug
@@ -267,6 +268,57 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
 
 #define GET_CAIRO_COMP(c,offs) ((((c)>>offs) & 255) / 255.0)
 
+static void
+gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outline,
+    PangoLayout *layout, PangoRectangle *rect)
+{
+  /* Draw the text outline */
+  guint32 color = outline->use_current_color ?
+      0xFFFFFFFF : outline->color;
+  cairo_t *dest_cairo;
+  cairo_surface_t *dest_surface;
+
+  if (outline->length[1].unit !=
+      GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+    /* Blur is required, draw to a temp surface */
+    dest_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+        rect->width, rect->height);
+    dest_cairo = cairo_create (dest_surface);
+  } else {
+    /* No blur required, draw outline directly over final surface */
+    dest_cairo = render->cairo;
+    dest_surface = render->surface;
+  }
+
+  /* FIXME: This adds outline to the bounding box if a backgroundColor
+    * tag is present in the markup! */
+  cairo_set_source_rgba (dest_cairo,
+      GET_CAIRO_COMP (color, 24), 
+      GET_CAIRO_COMP (color, 16), 
+      GET_CAIRO_COMP (color,  8), 
+      GET_CAIRO_COMP (color,  0));
+  cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
+  cairo_translate (dest_cairo, -rect->x, -rect->y);
+  pango_cairo_layout_path (dest_cairo, layout);
+  cairo_stroke (dest_cairo);
+
+  if (outline->length[1].unit !=
+      GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+    /* And now the blur */
+    cairo_surface_t *blurred =
+        gst_ttml_blur_image_surface (dest_surface,
+            outline->length[1].f * 2,
+            outline->length[1].f);
+
+    cairo_set_source_surface (render->cairo, blurred, rect->x, rect->y);
+    cairo_rectangle (render->cairo, rect->x, rect->y, rect->width, rect->height);
+    cairo_fill (render->cairo);
+
+    cairo_surface_destroy (dest_surface);
+    cairo_destroy (dest_cairo);
+  }
+}
+
 /* Render all the layouts in this region onto the Cairo surface */
 static void
 gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
@@ -295,7 +347,6 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     cairo_clip (render->cairo);
   }
 
-  cairo_set_source_rgb (render->cairo, 1,1,1);
   cairo_translate (render->cairo, region->originx, region->originy);
 
   if (region->display_align != GST_TTML_DISPLAY_ALIGN_BEFORE) {
@@ -324,29 +375,26 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
   link = region->layouts;
   while (link) {
     PangoLayout *layout = (PangoLayout *)link->data;
-    PangoRectangle ink_rect, logical_rect;
+    PangoRectangle logical_rect;
 
-    pango_layout_get_extents (layout, &ink_rect, &logical_rect);
-    pango_cairo_show_layout (render->cairo, layout);
+    pango_layout_get_extents (layout, NULL, &logical_rect);
+    logical_rect.x /= PANGO_SCALE;
+    logical_rect.y /= PANGO_SCALE;
+    logical_rect.width /= PANGO_SCALE;
+    logical_rect.height /= PANGO_SCALE;
 
+    /* Show outline if required */
     if (region->text_outline.length[0].unit !=
         GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
-      /* Draw the text outline */
-      /* FIXME: This adds outline to the bounding box if a backgroundColor
-       * tag is present in the markup! */
-      guint32 color = region->text_outline.use_current_color ?
-          0xFFFFFFFF : region->text_outline.color;
-      cairo_set_source_rgba (render->cairo,
-          GET_CAIRO_COMP (color, 24), 
-          GET_CAIRO_COMP (color, 16), 
-          GET_CAIRO_COMP (color,  8), 
-          GET_CAIRO_COMP (color,  0));
-      cairo_set_line_width (render->cairo, region->text_outline.length[0].f);
-      pango_cairo_layout_path (render->cairo, layout);
-      cairo_stroke (render->cairo);
+      gst_ttmlrender_render_outline (render, &region->text_outline,
+          layout, &logical_rect);
     }
+    
+    /* Show text */
+    cairo_set_source_rgb (render->cairo, 1,1,1);
+    pango_cairo_show_layout (render->cairo, layout);
 
-    cairo_translate (render->cairo, 0.0, logical_rect.height / PANGO_SCALE);
+    cairo_translate (render->cairo, 0.0, logical_rect.height);
 
     link = g_list_next (link);
   }
