@@ -12,6 +12,7 @@
 #include <libxml/parser.h>
 #include <gst/gstconfig.h>
 #include <pango/pangocairo.h>
+#include <math.h>
 
 #include "gstttmlbase.h"
 #include "gstttmlrender.h"
@@ -277,13 +278,16 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
       0xFFFFFFFF : outline->color;
   cairo_t *dest_cairo;
   cairo_surface_t *dest_surface;
+  int blur_radius = 0;
 
   if (outline->length[1].unit !=
       GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
     /* Blur is required, draw to a temp surface */
+    blur_radius = (int)ceilf(outline->length[1].f);
     dest_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-        rect->width, rect->height);
+        rect->width + blur_radius * 2, rect->height + blur_radius * 2);
     dest_cairo = cairo_create (dest_surface);
+    cairo_translate (dest_cairo, blur_radius, blur_radius);
   } else {
     /* No blur required, draw outline directly over final surface */
     dest_cairo = render->cairo;
@@ -310,8 +314,11 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
             outline->length[1].f * 2,
             outline->length[1].f);
 
-    cairo_set_source_surface (render->cairo, blurred, rect->x, rect->y);
-    cairo_rectangle (render->cairo, rect->x, rect->y, rect->width, rect->height);
+    cairo_set_source_surface (render->cairo, blurred,
+        rect->x - blur_radius, rect->y - blur_radius);
+    cairo_rectangle (render->cairo,
+        rect->x - blur_radius, rect->y - blur_radius,
+        rect->width + blur_radius * 2, rect->height + blur_radius * 2);
     cairo_fill (render->cairo);
 
     cairo_surface_destroy (dest_surface);
