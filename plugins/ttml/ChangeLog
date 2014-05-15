@@ -1,5 +1,11 @@
 2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_render_outline):
+	Enlarge blur temporary surface so the blur radius fits in it (fixes
+	truncated blurs on small fonts)
+
+2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* configure.ac:
 	* src/Makefile.am:
 	* src/gstttmlblur.c: (gst_ttml_blur_create_gaussian_kernel),
@@ -12,7 +18,7 @@
 	Support for blurred outline. This is a direct implementation without any
 	optimization. Blur kernels are calculated every time, which might be cached.
 	Also, a simple downscale+upscale will be much faster. This one, however,
-  looks super cool.
+	looks super cool.
 
 2014-05-14  Xavi Artigas  <xartigas@fluendo.com>
 
