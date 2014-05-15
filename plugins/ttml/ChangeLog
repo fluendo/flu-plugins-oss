@@ -1,5 +1,10 @@
 2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
+	Fix crash when zIndex is not defined.
+
+2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlbase.c: (gst_ttmlbase_push_attr):
 	* src/gstttmlstate.c: (gst_ttml_state_push_attribute):
 	Fix backgroundColor when applied to regions from a style.
