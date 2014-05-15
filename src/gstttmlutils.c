@@ -102,7 +102,7 @@ const GstTTMLToken *GstTTMLUtilsTokensFontWeight =
 const GstTTMLToken GstTTMLUtilsTokensTextDecorationInternal[] = {
   { "none", GST_TTML_TEXT_DECORATION_NONE },
   { "underline", GST_TTML_TEXT_DECORATION_UNDERLINE },
-  { "strikethrough", GST_TTML_TEXT_DECORATION_STRIKETHROUGH },
+  { "lineThrough", GST_TTML_TEXT_DECORATION_STRIKETHROUGH },
   { "overline", GST_TTML_TEXT_DECORATION_OVERLINE },
   { NULL, GST_TTML_TEXT_DECORATION_UNKNOWN }
 };
