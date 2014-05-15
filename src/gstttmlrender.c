@@ -201,6 +201,11 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
   int chars_left = span->length;
   gchar *line_break = NULL;
 
+  /* Do nothing if the span is disabled */
+  attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DISPLAY);
+  if (attr && attr->value.b == FALSE)
+    return;
+
   attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_REGION);
   region_id = attr ? attr->value.string : default_region_id;
 
