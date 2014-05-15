@@ -1,5 +1,11 @@
 2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_push_attr):
+	* src/gstttmlstate.c: (gst_ttml_state_push_attribute):
+	Fix backgroundColor when applied to regions from a style.
+
+2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_new_styling_default):
 	* src/gstttmlenums.h:
