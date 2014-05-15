@@ -135,7 +135,7 @@ int gst_ttml_utils_enum_parse_func (const gchar *name,
     const GstTTMLToken *list)
 {
   while (list->name != NULL &&
-      !gst_ttml_utils_attr_value_is (list->name, name)) list++;
+      !gst_ttml_utils_attr_value_is (name, list->name)) list++;
   return list->val;
 }
 
