@@ -80,9 +80,9 @@ G_DEFINE_TYPE (GstTTMLRender, gst_ttmlrender, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlrender_parent_class
 
 static gint
-gst_ttmlrender_region_compare_zindex (GstTTMLRegion *region, gint *zindex)
+gst_ttmlrender_region_compare_zindex (GstTTMLRegion *region1, GstTTMLRegion *region2)
 {
-  return region->zindex - *zindex;
+  return region1->zindex - region2->zindex;
 }
 
 static gint
@@ -148,7 +148,8 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   /* Fill-in region attributes. It does not matter from which span we read
    * them, since all spans going into the same region will have the same
    * REGION attributes. */
-  region->zindex = 0; /* FIXME: until the ZIndex attributte is parsed */
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ZINDEX);
+  region->zindex = (gint)attr->value.d;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
   region->originx = attr ? attr->value.length[0].f : 0;
