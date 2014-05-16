@@ -1,3 +1,8 @@
+2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	Fix parsing of AUTO extent attribute.
+
 2014-05-15  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c: (gst_ttmlrender_new_region):
