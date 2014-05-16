@@ -404,7 +404,12 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     }
     
     /* Show text */
-    cairo_set_source_rgb (render->cairo, 1,1,1);
+    /* The default text color is implementation-dependant, but should be
+     * something with a hight contrast with the region background. */
+    cairo_set_source_rgb (render->cairo, 
+        1.0 - GET_CAIRO_COMP (region->background_color, 24), 
+        1.0 - GET_CAIRO_COMP (region->background_color, 16), 
+        1.0 - GET_CAIRO_COMP (region->background_color,  8));
     pango_cairo_show_layout (render->cairo, layout);
 
     cairo_translate (render->cairo, 0.0, logical_rect.height);
