@@ -43,6 +43,7 @@ gst_ttml_state_reset (GstTTMLState *state)
   gst_ttml_state_free_content (state);
 
   state->last_span_id = 0;
+  state->last_zindex_micro = 0;
   state->id = NULL;
   state->begin = GST_CLOCK_TIME_NONE;
   state->end = GST_CLOCK_TIME_NONE;

@@ -1,5 +1,14 @@
 2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c:
+	* src/gstttmlattribute.h:
+	* src/gstttmlstate.c:
+	* src/gstttmlstate.h:
+	* src/gstttmlrender.c:
+	Deal with zIndex collisions and the AUTO value.
+
+2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstate.c: (gst_ttml_state_push_attribute):
 	Fix region background color state handling.
 

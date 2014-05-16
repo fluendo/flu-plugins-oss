@@ -35,6 +35,7 @@ struct _GstTTMLAttribute {
     GstTTMLNodeType node_type;
     GstClockTime time;
     gdouble d;
+    gint i;
     gboolean b;
     GstTTMLFraction fraction;
     gchar *string;
@@ -55,7 +56,7 @@ struct _GstTTMLAttributeEvent {
   GstTTMLAttribute *attr;
 };
 
-GstTTMLAttribute *gst_ttml_attribute_parse (const GstTTMLState *state,
+GstTTMLAttribute *gst_ttml_attribute_parse (GstTTMLState *state,
     const char *ns, const char *name, const char *value);
 
 void gst_ttml_attribute_free (GstTTMLAttribute *attr);

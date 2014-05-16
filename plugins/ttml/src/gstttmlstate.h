@@ -20,6 +20,7 @@ struct _GstTTMLState {
   GstTTMLNodeType node_type;
   gchar *id;
   guint last_span_id;
+  guint last_zindex_micro;
   GstClockTime begin;
   GstClockTime end;
   GstClockTime container_begin;

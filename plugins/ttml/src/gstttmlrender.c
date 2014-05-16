@@ -149,7 +149,7 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
    * them, since all spans going into the same region will have the same
    * REGION attributes. */
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ZINDEX);
-  region->zindex = attr ? (gint)attr->value.d : 0;
+  region->zindex = attr ? attr->value.i : 0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
   region->originx = attr ? attr->value.length[0].f : 0;
@@ -218,7 +218,6 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
   } else {
     region = gst_ttmlrender_new_region (render, region_id, &span->style);
 
-    /* FIXME: Deal with ZIndex collisions */
     render->regions = g_list_insert_sorted (render->regions, region,
         (GCompareFunc)gst_ttmlrender_region_compare_zindex);
   }
