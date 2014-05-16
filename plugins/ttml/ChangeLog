@@ -1,5 +1,11 @@
 2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_show_regions):
+	Set default text color (which is implementation dependent) to the inverse
+	of the region background color, as the spec suggests.
+
+2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
 	Fix parsing of AUTO extent attribute.
 
