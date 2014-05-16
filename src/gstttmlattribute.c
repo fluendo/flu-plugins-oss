@@ -447,41 +447,39 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       attr->value.length[1].f = 0.f;
       attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      GST_LOG ("Parsed '%s' origin into AUTO", value);
     } else {
       gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
-      } else {
-        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
-        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
-        GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
-            attr->value.length[0].f,
-            gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-            attr->value.length[1].f,
-            gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
       }
     }
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
+    GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
+        attr->value.length[0].f,
+        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
+        attr->value.length[1].f,
+        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_EXTENT:
     if (gst_ttml_utils_attr_value_is (value, "auto")) {
       attr->value.length[0].f = 1.f;
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      GST_LOG ("Parsed '%s' extent into AUTO", value);
+      attr->value.length[1].f = 1.f;
+      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
     } else {
       gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
-      } else {
-        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
-        gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
-        GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
-            attr->value.length[0].f,
-            gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-            attr->value.length[1].f,
-            gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
       }
     }
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
+    GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
+        attr->value.length[0].f,
+        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
+        attr->value.length[1].f,
+        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_TEXT_ALIGN:
     attr->value.text_align = gst_ttml_utils_enum_parse (value, TextAlign);
