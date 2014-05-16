@@ -1,5 +1,10 @@
 2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlstate.c: (gst_ttml_state_push_attribute):
+	Fix region background color state handling.
+
+2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_show_regions):
 	Set default text color (which is implementation dependent) to the inverse
 	of the region background color, as the spec suggests.

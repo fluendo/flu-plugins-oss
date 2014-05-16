@@ -259,8 +259,7 @@ void
 gst_ttml_state_push_attribute (GstTTMLState *state,
     GstTTMLAttribute *new_attr)
 {
-  GstTTMLAttribute *old_attr =
-      gst_ttml_state_get_attribute (state, new_attr->type);
+  GstTTMLAttribute *old_attr;
 
   if (new_attr->type == GST_TTML_ATTR_BACKGROUND_COLOR &&
       state->node_type == GST_TTML_NODE_TYPE_REGION) {
@@ -268,6 +267,9 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
       * node actually means REGION background, not SPAN background. */
     new_attr->type = GST_TTML_ATTR_BACKGROUND_REGION_COLOR;
   }
+
+  old_attr = gst_ttml_state_get_attribute (state, new_attr->type);
+
   state->attribute_stack = g_list_prepend (state->attribute_stack, old_attr);
   gst_ttml_state_merge_attribute (state, new_attr);
   gst_ttml_attribute_free (new_attr);
