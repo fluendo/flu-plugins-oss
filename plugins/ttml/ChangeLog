@@ -1,5 +1,11 @@
 2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c:
+	Flush posible remaining fragments before rendering all layouts.
+	This fixes BasicTiming007.
+
+2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c:
 	* src/gstttmlattribute.h:
 	* src/gstttmlstate.c:
