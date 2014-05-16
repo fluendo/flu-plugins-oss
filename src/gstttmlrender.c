@@ -55,6 +55,7 @@ typedef struct _GstTTMLRegion {
 
   /* Paragraph currently being filled */
   gchar *current_par_content;
+  GstTTMLStyle current_par_style;
 } GstTTMLRegion;
 
 #if GST_CHECK_VERSION (1,0,0)
@@ -97,8 +98,7 @@ gst_ttmlrender_region_compare_id (GstTTMLRegion *region, gchar *id)
  * shared across all fragments inside the same span.
  */
 static void
-gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region,
-    GstTTMLStyle *span_style)
+gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
 {
   GstTTMLAttribute *attr;
   PangoAlignment pango_align = PANGO_ALIGN_LEFT;
@@ -107,7 +107,8 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region,
   pango_layout_set_width (layout, region->extentx * PANGO_SCALE);
   pango_layout_set_height (layout, region->extenty * PANGO_SCALE);
 
-  attr = gst_ttml_style_get_attr (span_style, GST_TTML_ATTR_TEXT_ALIGN);
+  attr = gst_ttml_style_get_attr (&region->current_par_style,
+      GST_TTML_ATTR_TEXT_ALIGN);
   if (attr) {
     /* FIXME: Handle correctly START and END alignments */
     switch (attr->value.text_align) {
@@ -133,6 +134,7 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region,
 
   g_free (region->current_par_content);
   region->current_par_content = NULL;
+  gst_ttml_style_reset (&region->current_par_style);
 }
 
 static GstTTMLRegion *
@@ -260,13 +262,17 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
     g_free (markup_head);
     g_free (markup_tail);
 
+    if (region->current_par_style.attributes == NULL) {
+      gst_ttml_style_copy (&region->current_par_style, &span->style, FALSE);
+    }
+
     chars_left -= frag_len;
     frag_start += frag_len;
 
     if (line_break) {
       chars_left--;
       frag_start++;
-      gst_ttmlrender_store_layout (render, region, &span->style);
+      gst_ttmlrender_store_layout (render, region);
     }
 
   } while (line_break && chars_left > 0);
@@ -339,6 +345,11 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
   cairo_matrix_t m;
   cairo_get_matrix (render->cairo, &m);
+
+  /* Flush any pending fragment */
+  if (region->current_par_content != NULL) {
+    gst_ttmlrender_store_layout (render,region);
+  }
 
   cairo_save (render->cairo);
 
