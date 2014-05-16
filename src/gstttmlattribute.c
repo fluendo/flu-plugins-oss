@@ -309,7 +309,7 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
  * Returns NULL if the attribute was unknown, and uses g_new to allocate
  * the new attribute. */
 GstTTMLAttribute *
-gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
+gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     const char *name, const char *value)
 {
   GstTTMLAttribute *attr = NULL;
@@ -545,11 +545,15 @@ gst_ttml_attribute_parse (const GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_ZINDEX:
     if (gst_ttml_utils_attr_value_is (value, "auto")) {
-      attr->value.d = 0;
+      attr->value.i = 0;
     } else {
-      attr->value.d = g_ascii_strtod (value, NULL);
+      attr->value.i = (gint)g_ascii_strtod (value, NULL);
     }
-    GST_LOG ("Parsed '%s' zIndex into %g", value, attr->value.d);
+    /* Besides the user-supplied zIndex, we add a 1e-3 ever-increasing index,
+     * so that collisions are resolved by lexical order. */
+    attr->value.i = attr->value.i * 1000 + state->last_zindex_micro;
+    state->last_zindex_micro++;
+    GST_LOG ("Parsed '%s' zIndex into %d", value, attr->value.i);
     break;
   default:
     GST_WARNING ("Attribute not implemented");
@@ -765,7 +769,7 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.text_outline.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
       break;
     case GST_TTML_ATTR_ZINDEX:
-      attr->value.d = 0;
+      attr->value.i = 0;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
