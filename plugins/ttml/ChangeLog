@@ -1,3 +1,9 @@
+2014-05-19  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_fixate_caps):
+	Truncate caps when fixating. I have found some strange cases where I
+	got two identical structures with video/x-raw-rgb.
+
 2014-05-16  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c:
