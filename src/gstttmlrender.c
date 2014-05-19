@@ -486,6 +486,15 @@ gst_ttmlrender_fixate_caps (GstTTMLBase *base, GstCaps * caps)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
   GstStructure *s = gst_caps_get_structure (caps, 0);
+  guint num_structs = gst_caps_get_size (caps);
+
+  /* Remove all structs but the first one.
+   * gst_caps_truncate () does the same thing, but its signature depends on
+   * the GStreamer API. */
+  while (num_structs > 1) {
+    gst_caps_remove_structure (caps, num_structs - 1);
+    num_structs--;
+  }
 
   /* Our peer allows us to choose image size (we have fixed all other values
    * in the template caps) */
