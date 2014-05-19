@@ -706,7 +706,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
     }
   }
 
-  GST_DEBUG_OBJECT (base, "setting caps %s" , gst_caps_to_string (src_caps));
+  GST_DEBUG_OBJECT (base, "setting caps %" GST_PTR_FORMAT, src_caps);
   gst_pad_set_caps (base->srcpad, src_caps);
 
   /* Inform derived class of its final src caps.
