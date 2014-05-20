@@ -21,6 +21,7 @@ extern const GstTTMLToken *GstTTMLUtilsTokensFontWeight;
 extern const GstTTMLToken *GstTTMLUtilsTokensTextDecoration;
 extern const GstTTMLToken *GstTTMLUtilsTokensTextAlign;
 extern const GstTTMLToken *GstTTMLUtilsTokensDisplayAlign;
+extern const GstTTMLToken *GstTTMLUtilsTokensWrapOption;
 
 /* Enum name -> value */
 #define gst_ttml_utils_enum_parse(name,type) \

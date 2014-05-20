@@ -102,9 +102,19 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
 {
   GstTTMLAttribute *attr;
   PangoAlignment pango_align = PANGO_ALIGN_LEFT;
+  GstTTMLWrapOption wrap = GST_TTML_WRAP_OPTION_YES;
 
   PangoLayout *layout = pango_layout_new (render->pango_context);
-  pango_layout_set_width (layout, region->extentx * PANGO_SCALE);
+
+  attr = gst_ttml_style_get_attr (&region->current_par_style,
+      GST_TTML_ATTR_WRAP_OPTION);
+  if (attr) {
+    wrap = attr->value.wrap_option;
+  }
+
+  if (wrap == GST_TTML_WRAP_OPTION_YES) {
+    pango_layout_set_width (layout, region->extentx * PANGO_SCALE);
+  }
   pango_layout_set_height (layout, region->extenty * PANGO_SCALE);
 
   attr = gst_ttml_style_get_attr (&region->current_par_style,
