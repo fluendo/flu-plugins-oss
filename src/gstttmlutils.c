@@ -67,6 +67,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "textOutline", GST_TTML_ATTR_TEXTOUTLINE },
   { "zIndex", GST_TTML_ATTR_ZINDEX },
   { "lineHeight", GST_TTML_ATTR_LINE_HEIGHT },
+  { "wrapOption", GST_TTML_ATTR_WRAP_OPTION },
   { NULL, GST_TTML_ATTR_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
@@ -130,6 +131,14 @@ const GstTTMLToken GstTTMLUtilsTokensDisplayAlignInternal[] = {
 };
 const GstTTMLToken *GstTTMLUtilsTokensDisplayAlign =
     GstTTMLUtilsTokensDisplayAlignInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensWrapOptionInternal[] = {
+  { "wrap", GST_TTML_WRAP_OPTION_YES },
+  { "noWrap", GST_TTML_WRAP_OPTION_NO },
+  { NULL, GST_TTML_WRAP_OPTION_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensWrapOption =
+    GstTTMLUtilsTokensWrapOptionInternal;
 
 /* Searches for the given name inside an enum's token list and returns its value.
  * This replaces long, cumbersome if-elses with strcmps. */

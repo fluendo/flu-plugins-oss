@@ -1,5 +1,16 @@
 2014-05-20  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout):
+	* src/gstttmlutils.c:
+	* src/gstttmlutils.h:
+	Support the wrapOption attribute.
+
+2014-05-20  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c:
 	(gst_ttml_attribute_parse_length_expression),
 	(gst_ttml_attribute_parse),

@@ -47,6 +47,7 @@ struct _GstTTMLAttribute {
     GstTTMLTextAlign text_align;
     GstTTMLDisplayAlign display_align;
     GstTTMLTextOutline text_outline;
+    GstTTMLWrapOption wrap_option;
   } value;
   GList *timeline;
 };

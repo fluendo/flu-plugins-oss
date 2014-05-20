@@ -568,6 +568,16 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         attr->value.length[0].f,
         gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
     break;
+  case GST_TTML_ATTR_WRAP_OPTION:
+    attr->value.wrap_option = gst_ttml_utils_enum_parse (value, WrapOption);
+    if (attr->value.wrap_option == GST_TTML_WRAP_OPTION_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' wrap option", value);
+      attr->value.wrap_option = GST_TTML_WRAP_OPTION_YES;
+    }
+    GST_LOG ("Parsed '%s' wrap option into %d (%s)", value,
+        attr->value.wrap_option,
+        gst_ttml_utils_enum_name (attr->value.wrap_option, WrapOption));
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -786,6 +796,9 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_LINE_HEIGHT:
       attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+      break;
+    case GST_TTML_ATTR_WRAP_OPTION:
+      attr->value.wrap_option = GST_TTML_WRAP_OPTION_YES;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
