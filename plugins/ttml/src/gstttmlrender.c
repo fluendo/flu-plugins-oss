@@ -302,7 +302,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
 }
 
 static void
-gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout)
+gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
+    gboolean render)
 {
   int ndx, num_lines, spacing, baseline;
 
@@ -327,7 +328,11 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout)
     }
 
     cairo_translate (cairo, 0, pre_space);
-    pango_cairo_layout_line_path (cairo, line);
+    if (render) {
+      pango_cairo_show_layout_line (cairo, line);
+    } else {
+      pango_cairo_layout_line_path (cairo, line);
+    }
     cairo_translate (cairo, 0, post_space);
   }
 }
@@ -369,7 +374,7 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
       GET_CAIRO_COMP (color,  8), 
       GET_CAIRO_COMP (color,  0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
-  gst_ttmlrender_show_layout (dest_cairo, layout);
+  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE);
   cairo_stroke (dest_cairo);
 
   if (outline->length[1].unit !=
@@ -473,8 +478,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         1.0 - GET_CAIRO_COMP (region->background_color, 24), 
         1.0 - GET_CAIRO_COMP (region->background_color, 16), 
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
-    gst_ttmlrender_show_layout (render->cairo, layout);
-    cairo_fill (render->cairo);
+    gst_ttmlrender_show_layout (render->cairo, layout, TRUE);
 
     link = g_list_next (link);
   }
