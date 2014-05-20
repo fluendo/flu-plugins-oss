@@ -128,6 +128,19 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
   }
   pango_layout_set_alignment (layout, pango_align);
 
+  attr = gst_ttml_style_get_attr (&region->current_par_style,
+      GST_TTML_ATTR_LINE_HEIGHT);
+  if (attr && attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+    /* Since we are drawing the layout lines one by one, Pango will not use
+     * this parameter. We use it to send the lineHeight to the drawing
+     * routine, though. */
+    pango_layout_set_spacing (layout, attr->value.length[0].f);
+  } else {
+    /* This means we want to use Pango's default line height, but is not
+     * a valid Pango spacing... */
+    pango_layout_set_spacing (layout, -1);
+  }
+
   pango_layout_set_markup (layout, region->current_par_content, -1);
 
   region->layouts = g_list_append (region->layouts, layout);
@@ -278,6 +291,37 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
   } while (line_break && chars_left > 0);
 }
 
+static void
+gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout)
+{
+  int ndx, num_lines, spacing, baseline;
+
+  num_lines = pango_layout_get_line_count (layout);
+  spacing = pango_layout_get_spacing (layout);
+  baseline = pango_layout_get_baseline (layout) / PANGO_SCALE;
+
+  for (ndx = 0; ndx < num_lines; ndx++) {
+    PangoLayoutLine *line = pango_layout_get_line_readonly (layout, ndx);
+    int pre_space, post_space;
+
+    if (spacing == -1) {
+      /* Use default line spacing */
+      PangoRectangle rect;
+      pango_layout_line_get_pixel_extents (line, NULL, &rect);
+      pre_space = -rect.y;
+      post_space = rect.y + rect.height;
+    } else {
+      /* Use supplied line spacing */
+      pre_space = baseline;
+      post_space = spacing - baseline;
+    }
+
+    cairo_translate (cairo, 0, pre_space);
+    pango_cairo_layout_line_path (cairo, line);
+    cairo_translate (cairo, 0, post_space);
+  }
+}
+
 #define GET_CAIRO_COMP(c,offs) ((((c)>>offs) & 255) / 255.0)
 
 static void
@@ -290,6 +334,8 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
   cairo_t *dest_cairo;
   cairo_surface_t *dest_surface;
   int blur_radius = 0;
+  
+  cairo_save (render->cairo);
 
   if (outline->length[1].unit !=
       GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
@@ -313,8 +359,7 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
       GET_CAIRO_COMP (color,  8), 
       GET_CAIRO_COMP (color,  0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
-  cairo_translate (dest_cairo, -rect->x, -rect->y);
-  pango_cairo_layout_path (dest_cairo, layout);
+  gst_ttmlrender_show_layout (dest_cairo, layout);
   cairo_stroke (dest_cairo);
 
   if (outline->length[1].unit !=
@@ -335,6 +380,8 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
     cairo_surface_destroy (dest_surface);
     cairo_destroy (dest_cairo);
   }
+
+  cairo_restore (render->cairo);
 }
 
 /* Render all the layouts in this region onto the Cairo surface */
@@ -378,10 +425,10 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     link = region->layouts;
     while (link) {
       PangoLayout *layout = (PangoLayout *)link->data;
-      PangoRectangle ink_rect, logical_rect;
+      PangoRectangle logical_rect;
 
-      pango_layout_get_extents (layout, &ink_rect, &logical_rect);
-      height += logical_rect.height / (double)PANGO_SCALE;
+      pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
+      height += logical_rect.height;
 
       link = g_list_next (link);
     }
@@ -400,11 +447,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     PangoLayout *layout = (PangoLayout *)link->data;
     PangoRectangle logical_rect;
 
-    pango_layout_get_extents (layout, NULL, &logical_rect);
-    logical_rect.x /= PANGO_SCALE;
-    logical_rect.y /= PANGO_SCALE;
-    logical_rect.width /= PANGO_SCALE;
-    logical_rect.height /= PANGO_SCALE;
+    pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
     /* Show outline if required */
     if (region->text_outline.length[0].unit !=
@@ -420,9 +463,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         1.0 - GET_CAIRO_COMP (region->background_color, 24), 
         1.0 - GET_CAIRO_COMP (region->background_color, 16), 
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
-    pango_cairo_show_layout (render->cairo, layout);
-
-    cairo_translate (render->cairo, 0.0, logical_rect.height);
+    gst_ttmlrender_show_layout (render->cairo, layout);
+    cairo_fill (render->cairo);
 
     link = g_list_next (link);
   }

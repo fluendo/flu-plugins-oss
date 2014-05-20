@@ -170,27 +170,27 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
 
   *value = 1.f;
   *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-  *end = expr;
+  if (end) *end = expr;
   n = 0;
   if (sscanf (expr, "%f%n", value, &n)) {
     if (n > 0 && expr[n - 1] == 'e') {
       /* sscanf consumes the "e" in "2em" when reading floats. Undo it. */
       n--;
     }
-    *end += n;
+    if (end) *end += n;
     if (!g_ascii_strncasecmp (expr + n, "px", 2)) {
       *unit = GST_TTML_LENGTH_UNIT_PIXELS;
-      *end += 2;
+      if (end) *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "em", 2)) {
       *unit = GST_TTML_LENGTH_UNIT_EM;
-      *end += 2;
+      if (end) *end += 2;
     } else if (!g_ascii_strncasecmp (expr + n, "c", 1)) {
       *unit = GST_TTML_LENGTH_UNIT_CELLS;
-      *end += 1;
+      if (end) *end += 1;
     } else if (!g_ascii_strncasecmp (expr + n, "%", 1)) {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       *value /= 100.0;
-      *end += 1;
+      if (end) *end += 1;
     } else {
       *unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       error = TRUE;
@@ -555,6 +555,19 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     state->last_zindex_micro++;
     GST_LOG ("Parsed '%s' zIndex into %d", value, attr->value.i);
     break;
+  case GST_TTML_ATTR_LINE_HEIGHT:
+    if (gst_ttml_utils_attr_value_is (value, "normal")) {
+      attr->value.length[0].f = 0.f;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+    } else {
+      gst_ttml_attribute_parse_length_expression (value, &attr->value.length[0].f,
+          &attr->value.length[0].unit, NULL);
+    }
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 1);
+    GST_LOG ("Parsed '%s' line height into %g (%s)", value,
+        attr->value.length[0].f,
+        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -770,6 +783,9 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_ZINDEX:
       attr->value.i = 0;
+      break;
+    case GST_TTML_ATTR_LINE_HEIGHT:
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");
