@@ -1,3 +1,19 @@
+2014-05-20  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c:
+	(gst_ttml_attribute_parse_length_expression),
+	(gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_show_layout), (gst_ttmlrender_render_outline),
+	(gst_ttmlrender_show_regions):
+	* src/gstttmlutils.c:
+	Add support for lineHeight attribute.
+	Draw layout lines one by one instead of letting Pango draw the whole layout
+	so we can control line spacing.
+	Use get_pixel_extents for simplicity.
+
 2014-05-19  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlbase.c: (gst_ttmlbase_downstream_negotiation):
