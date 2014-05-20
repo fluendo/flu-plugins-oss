@@ -1,5 +1,11 @@
 2014-05-20  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_show_layout),
+	(gst_ttmlrender_render_outline), (gst_ttmlrender_show_regions):
+	Fix attribute rendering when showing layouts line by line.
+
+2014-05-20  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_new_styling_default):
 	* src/gstttmlattribute.h:
