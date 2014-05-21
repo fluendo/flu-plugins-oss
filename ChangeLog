@@ -1,5 +1,10 @@
 2014-05-21  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_show_regions):
+	Fix textAlign when showing layouts line by line.
+
+2014-05-21  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse_lengths_list),
 	(gst_ttml_attribute_normalize_length), (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_new_styling_default):
