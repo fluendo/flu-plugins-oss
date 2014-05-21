@@ -328,6 +328,9 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
   for (ndx = 0; ndx < num_lines; ndx++) {
     PangoLayoutLine *line = pango_layout_get_line_readonly (layout, ndx);
     int pre_space, post_space;
+    int *ranges, n_ranges;
+    pango_layout_line_get_x_ranges (line, line->start_index,
+        line->start_index + line->length, &ranges, &n_ranges);
 
     if (spacing == -1) {
       /* Use default line spacing */
@@ -341,13 +344,13 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
       post_space = spacing - baseline;
     }
 
-    cairo_translate (cairo, 0, pre_space);
+    cairo_translate (cairo, ranges[0] / PANGO_SCALE, pre_space);
     if (render) {
       pango_cairo_show_layout_line (cairo, line);
     } else {
       pango_cairo_layout_line_path (cairo, line);
     }
-    cairo_translate (cairo, 0, post_space);
+    cairo_translate (cairo, -ranges[0] / PANGO_SCALE, post_space);
   }
 }
 
@@ -480,15 +483,13 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
     pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
-    cairo_translate (render->cairo, logical_rect.x, 0);
-
     /* Show outline if required */
     if (region->text_outline.length[0].unit !=
         GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
       gst_ttmlrender_render_outline (render, &region->text_outline,
           layout, &logical_rect);
     }
-    
+
     /* Show text */
     /* The default text color is implementation-dependant, but should be
      * something with a hight contrast with the region background. */
@@ -497,8 +498,6 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         1.0 - GET_CAIRO_COMP (region->background_color, 16), 
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
     gst_ttmlrender_show_layout (render->cairo, layout, TRUE);
-
-    cairo_translate (render->cairo, -logical_rect.x, 0);
 
     link = g_list_next (link);
   }
