@@ -24,4 +24,4 @@ typedef struct _GstTTMLTextOutline GstTTMLTextOutline;
 G_END_DECLS
 
 #endif /* __GST_TTML_FORWARD_H__ */
- 
+
