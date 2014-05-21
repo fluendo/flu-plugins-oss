@@ -42,6 +42,8 @@ typedef struct _GstTTMLRegion {
   gint zindex;
   gint originx, originy;
   gint extentx, extenty;
+  gint padded_originx, padded_originy;
+  gint padded_extentx, padded_extenty;
   guint32 background_color;
   GstTTMLDisplayAlign display_align;
   gboolean overflow_visible;
@@ -113,9 +115,9 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
   }
 
   if (wrap == GST_TTML_WRAP_OPTION_YES) {
-    pango_layout_set_width (layout, region->extentx * PANGO_SCALE);
+    pango_layout_set_width (layout, region->padded_extentx * PANGO_SCALE);
   }
-  pango_layout_set_height (layout, region->extenty * PANGO_SCALE);
+  pango_layout_set_height (layout, region->padded_extenty * PANGO_SCALE);
 
   attr = gst_ttml_style_get_attr (&region->current_par_style,
       GST_TTML_ATTR_TEXT_ALIGN);
@@ -191,6 +193,18 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
   } else {
     region->extentx = render->base.state.frame_width;
     region->extenty = render->base.state.frame_height;
+  }
+  
+  region->padded_originx = region->originx;
+  region->padded_originy = region->originy;
+  region->padded_extentx = region->extentx;
+  region->padded_extenty = region->extenty;
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_PADDING);
+  if (attr) {
+    region->padded_originx += attr->value.length[3].f;
+    region->padded_originy += attr->value.length[0].f;
+    region->padded_extentx -= attr->value.length[3].f + attr->value.length[1].f;
+    region->padded_extenty -= attr->value.length[0].f + attr->value.length[2].f;
   }
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
@@ -422,17 +436,19 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         GET_CAIRO_COMP (region->background_color, 16), 
         GET_CAIRO_COMP (region->background_color,  8), 
         GET_CAIRO_COMP (region->background_color,  0));
-    cairo_rectangle (render->cairo, region->originx, region->originy, region->extentx, region->extenty);
+    cairo_rectangle (render->cairo, region->originx, region->originy,
+        region->extentx, region->extenty);
     cairo_fill (render->cairo);
   }
 
   /* Clip contents to region, if required */
   if (!region->overflow_visible) {
-    cairo_rectangle (render->cairo, region->originx, region->originy, region->extentx, region->extenty);
+    cairo_rectangle (render->cairo, region->padded_originx, region->padded_originy,
+        region->padded_extentx, region->padded_extenty);
     cairo_clip (render->cairo);
   }
 
-  cairo_translate (render->cairo, region->originx, region->originy);
+  cairo_translate (render->cairo, region->padded_originx, region->padded_originy);
 
   if (region->display_align != GST_TTML_DISPLAY_ALIGN_BEFORE) {
     /* Calculate height of text */

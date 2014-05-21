@@ -1,3 +1,16 @@
+2014-05-21  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse_lengths_list),
+	(gst_ttml_attribute_normalize_length), (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_styling_default):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_new_region), (gst_ttmlrender_show_regions):
+	* src/gstttmlstate.c: (gst_ttml_state_push_attribute):
+	* src/gstttmlutils.c:
+	Support for the Padding attribute.
+
 2014-05-20  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c: (gst_ttmlrender_show_layout),

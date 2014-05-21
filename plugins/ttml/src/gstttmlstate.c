@@ -262,11 +262,18 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
 {
   GstTTMLAttribute *old_attr;
 
-  if (new_attr->type == GST_TTML_ATTR_BACKGROUND_COLOR &&
-      state->node_type == GST_TTML_NODE_TYPE_REGION) {
-    /* Special case: a backgroundColor attribute specified inside a region
-      * node actually means REGION background, not SPAN background. */
-    new_attr->type = GST_TTML_ATTR_BACKGROUND_REGION_COLOR;
+  if (new_attr->type == GST_TTML_ATTR_BACKGROUND_COLOR) {
+    if (state->node_type == GST_TTML_NODE_TYPE_REGION ||
+        state->node_type == GST_TTML_NODE_TYPE_DIV) {
+      /* Special cases:
+       *  - A backgroundColor attribute specified inside a REGION
+       *    node actually means REGION background, not SPAN background.
+       *  - Same for DIV nodes. Does not make much sense to me, but allows
+       *    us to pass the Padding testsuite (which might be wrong, but
+       *    other TTML renderers do it like this).
+       */
+      new_attr->type = GST_TTML_ATTR_BACKGROUND_REGION_COLOR;
+    }
   }
 
   old_attr = gst_ttml_state_get_attribute (state, new_attr->type);

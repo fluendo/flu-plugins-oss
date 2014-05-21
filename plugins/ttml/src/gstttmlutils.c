@@ -68,6 +68,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "zIndex", GST_TTML_ATTR_ZINDEX },
   { "lineHeight", GST_TTML_ATTR_LINE_HEIGHT },
   { "wrapOption", GST_TTML_ATTR_WRAP_OPTION },
+  { "padding", GST_TTML_ATTR_PADDING },
   { NULL, GST_TTML_ATTR_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
