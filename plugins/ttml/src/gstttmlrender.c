@@ -480,6 +480,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
     pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
+    cairo_translate (render->cairo, logical_rect.x, 0);
+
     /* Show outline if required */
     if (region->text_outline.length[0].unit !=
         GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
@@ -495,6 +497,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         1.0 - GET_CAIRO_COMP (region->background_color, 16), 
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
     gst_ttmlrender_show_layout (render->cairo, layout, TRUE);
+
+    cairo_translate (render->cairo, -logical_rect.x, 0);
 
     link = g_list_next (link);
   }
