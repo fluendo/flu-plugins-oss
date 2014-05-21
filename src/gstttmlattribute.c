@@ -206,29 +206,32 @@ gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
   return error;
 }
 
-/* Reads a <length> expression, possibly followed by a second <length>.
- * If the second length is not present, its UNIT is set to NOT_PRESENT.
- * Returns TRUE on error (if not even one length could be read).
+/* Reads a list of <length> expressions and returns the number of elements.
+ * The UNIT of elements not read is set to NOT_PRESENT.
  */
 static gboolean
-gst_ttml_attribute_parse_length_pair_expression (const gchar *expr,
-    GstTTMLLength *length)
+gst_ttml_attribute_parse_lengths_list (const gchar *expr,
+    GstTTMLLength *length, int max_elements)
 {
   const gchar *next;
+  int ndx = 0, i;
+  gboolean error;
 
-  /* Mark the second length as initially not present */
-  length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+  do {
+    error = gst_ttml_attribute_parse_length_expression (expr,
+        &length[ndx].f, &length[ndx].unit, &next);
+    if (!error) {
+      expr = next;
+      ndx++;
+    }
+  } while (!error && *next != '\0' && ndx < max_elements);
 
-  if (!gst_ttml_attribute_parse_length_expression (expr,
-        &length[0].f, &length[0].unit, &next) &&
-      *next != '\0') {
-    /* A first length has been succesfully read, and there is more input */
-    gst_ttml_attribute_parse_length_expression (next,
-        &length[1].f, &length[1].unit, &next);
-  } else {
-    return TRUE;
+  /* Mark all other elements as NOT PRESENT */
+  for (i = ndx; i < max_elements; i++) {
+    length[i].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
   }
-  return FALSE;
+
+  return ndx;
 }
 
 /* Turns as many relative units as possible into absolute pixel units.
@@ -261,6 +264,19 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
           length->f *= state->frame_width;
         else
           length->f *= state->frame_height;
+      } else if (type == GST_TTML_ATTR_PADDING) {
+        /* FIXME We should make sure EXTENT attr is parsed before PADDING */
+        prev_attr =
+            gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_EXTENT);
+        if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS ||
+            prev_attr->value.length[1].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+          GST_WARNING ("Region extent should be in pixels");
+        }
+        if (direction == 0) {
+          length->f *= prev_attr->value.length[0].f;
+        } else {
+          length->f *= prev_attr->value.length[1].f;
+        }
       } else {
         prev_attr =
             gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
@@ -391,7 +407,7 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     GST_LOG ("Parsed '%s' font family", value);
     break;
   case GST_TTML_ATTR_FONT_SIZE:
-    gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
+    gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 2);
     gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
     gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
     GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
@@ -448,7 +464,7 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       attr->value.length[1].f = 0.f;
       attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
     } else {
-      gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
+      gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 2);
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
       }
@@ -468,7 +484,7 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       attr->value.length[1].f = 1.f;
       attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
     } else {
-      gst_ttml_attribute_parse_length_pair_expression (value, attr->value.length);
+      gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 2);
       if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
       }
@@ -527,8 +543,8 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       gst_ttml_attribute_parse_color_expression (value,
           &attr->value.text_outline.color, &ptr);
       attr->value.text_outline.use_current_color = (ptr == value);
-      gst_ttml_attribute_parse_length_pair_expression (ptr,
-          attr->value.text_outline.length);
+      gst_ttml_attribute_parse_lengths_list (ptr,
+          attr->value.text_outline.length, 2);
       /* Relative measures are relative to the block progression direction */
       gst_ttml_attribute_normalize_length (state, attr->type,
           &attr->value.text_outline.length[0], 1);
@@ -577,6 +593,37 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     GST_LOG ("Parsed '%s' wrap option into %d (%s)", value,
         attr->value.wrap_option,
         gst_ttml_utils_enum_name (attr->value.wrap_option, WrapOption));
+    break;
+  case GST_TTML_ATTR_PADDING:
+    {
+      int i, num_elements;
+      static const int padding_map[4][3] = {
+          {0, 0, 0}, {1, 0, 1}, {1, 2, 1}, {1, 2, 3} };
+
+      num_elements =
+          gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 4);
+      if (num_elements > 0) {
+        for (i = 3; i > 0; i--) {
+          attr->value.length [i] =
+              attr->value.length [padding_map [num_elements - 1][i - 1]];
+        }
+      } else {
+        GST_WARNING ("Could not understand '%s' padding", value);
+      }
+    }
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 1);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 0);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[2], 1);
+    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[3], 0);
+    GST_LOG ("Parsed '%s' padding into %g (%s), %g (%s), %g (%s), %g (%s)", value,
+        attr->value.length[0].f,
+        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
+        attr->value.length[1].f,
+        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit),
+        attr->value.length[2].f,
+        gst_ttml_utils_enum_name (attr->value.length[2].unit, LengthUnit),
+        attr->value.length[3].f,
+        gst_ttml_utils_enum_name (attr->value.length[3].unit, LengthUnit));
     break;
   default:
     GST_WARNING ("Attribute not implemented");
@@ -799,6 +846,13 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_WRAP_OPTION:
       attr->value.wrap_option = GST_TTML_WRAP_OPTION_YES;
+      break;
+    case GST_TTML_ATTR_PADDING:
+      attr->value.length[0].f = attr->value.length[1].f =
+          attr->value.length[2].f = attr->value.length[3].f = 0.f;
+      attr->value.length[0].unit = attr->value.length[1].unit =
+          attr->value.length[2].unit = attr->value.length[3].unit =
+          GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");

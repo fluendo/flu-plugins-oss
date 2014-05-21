@@ -41,7 +41,7 @@ struct _GstTTMLAttribute {
     gchar *string;
     guint32 color;
     GstTTMLFontStyle font_style;
-    GstTTMLLength length[2];
+    GstTTMLLength length[4];
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
     GstTTMLTextAlign text_align;
