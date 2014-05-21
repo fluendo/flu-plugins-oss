@@ -168,7 +168,7 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
 {
   GstTTMLAttribute *attr;
   GstTTMLRegion *region;
-  
+
   region = g_new0 (GstTTMLRegion, 1);
   region->id = g_strdup (id);
 
@@ -194,7 +194,7 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
     region->extentx = render->base.state.frame_width;
     region->extenty = render->base.state.frame_height;
   }
-  
+
   region->padded_originx = region->originx;
   region->padded_originy = region->originy;
   region->padded_extentx = region->extentx;
@@ -366,7 +366,7 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
   cairo_t *dest_cairo;
   cairo_surface_t *dest_surface;
   int blur_radius = 0;
-  
+
   cairo_save (render->cairo);
 
   if (outline->length[1].unit !=
@@ -386,9 +386,9 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
   /* FIXME: This adds outline to the bounding box if a backgroundColor
     * tag is present in the markup! */
   cairo_set_source_rgba (dest_cairo,
-      GET_CAIRO_COMP (color, 24), 
-      GET_CAIRO_COMP (color, 16), 
-      GET_CAIRO_COMP (color,  8), 
+      GET_CAIRO_COMP (color, 24),
+      GET_CAIRO_COMP (color, 16),
+      GET_CAIRO_COMP (color,  8),
       GET_CAIRO_COMP (color,  0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
   gst_ttmlrender_show_layout (dest_cairo, layout, FALSE);
@@ -435,9 +435,9 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
   /* Show backgorund, if required */
   if (region->background_color != 0x00000000) {
     cairo_set_source_rgba (render->cairo,
-        GET_CAIRO_COMP (region->background_color, 24), 
-        GET_CAIRO_COMP (region->background_color, 16), 
-        GET_CAIRO_COMP (region->background_color,  8), 
+        GET_CAIRO_COMP (region->background_color, 24),
+        GET_CAIRO_COMP (region->background_color, 16),
+        GET_CAIRO_COMP (region->background_color,  8),
         GET_CAIRO_COMP (region->background_color,  0));
     cairo_rectangle (render->cairo, region->originx, region->originy,
         region->extentx, region->extenty);
@@ -493,9 +493,9 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     /* Show text */
     /* The default text color is implementation-dependant, but should be
      * something with a hight contrast with the region background. */
-    cairo_set_source_rgb (render->cairo, 
-        1.0 - GET_CAIRO_COMP (region->background_color, 24), 
-        1.0 - GET_CAIRO_COMP (region->background_color, 16), 
+    cairo_set_source_rgb (render->cairo,
+        1.0 - GET_CAIRO_COMP (region->background_color, 24),
+        1.0 - GET_CAIRO_COMP (region->background_color, 16),
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
     gst_ttmlrender_show_layout (render->cairo, layout, TRUE);
 
@@ -543,7 +543,7 @@ gst_ttmlrender_gen_buffer (GstTTMLBase *base)
   g_list_foreach (base->active_spans, (GFunc)gst_ttmlrender_build_layouts, render);
 
   g_list_foreach (render->regions, (GFunc)gst_ttmlrender_show_regions, render);
-  
+
   /* We are done processing the regions, destroy the temp structures */
   g_list_free_full (render->regions,
       (GDestroyNotify)gst_ttmlrender_free_region);

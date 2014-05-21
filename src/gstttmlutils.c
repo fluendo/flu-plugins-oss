@@ -260,7 +260,7 @@ void gst_ttml_utils_memdump_buffer (GObject *object,
   if (!gst_buffer_map (buffer, &info, GST_MAP_READ)) {
     return;
   }
-  
+
   GST_MEMDUMP_OBJECT (object, msg, info.data, info.size);
 
   gst_buffer_unmap (buffer, &info);

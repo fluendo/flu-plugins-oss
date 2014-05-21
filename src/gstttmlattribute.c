@@ -159,7 +159,7 @@ percentage
 units
   : "px"
   | "em"
-  | "c" 
+  | "c"
  */
 static gboolean
 gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
@@ -305,7 +305,7 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
     /* Frame size unknown: this means we are in ttmlparse, and therefore
      * region measures are meaningless, and we can use relative font sizes
      * in the pango markup */
-    
+
     switch (length->unit) {
     case GST_TTML_LENGTH_UNIT_CELLS:
       length->unit = GST_TTML_LENGTH_UNIT_RELATIVE;

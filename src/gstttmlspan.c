@@ -140,7 +140,7 @@ gst_ttml_span_list_add (GList *active_spans, GstTTMLSpan *span)
       (GCompareFunc)gst_ttml_span_compare_id);
 }
 
-/* Remove the span with the given ID from the list of active spans and 
+/* Remove the span with the given ID from the list of active spans and
  * free it */
 GList *
 gst_ttml_span_list_remove (GList *active_spans, guint id)

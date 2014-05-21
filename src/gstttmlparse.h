@@ -14,7 +14,7 @@
 #include "gstttmlstate.h"
 
 G_BEGIN_DECLS
-  
+
 /* The GStreamer ttmlparse element */
 typedef struct _GstTTMLParse {
   GstTTMLBase base;

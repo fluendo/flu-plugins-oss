@@ -154,7 +154,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
           font_family = g_strdup (attr->value.string);
         }
         break;
-        
+
       case GST_TTML_ATTR_FONT_SIZE:
         /* FIXME: Second length ignored: it cannot be used through pango markup */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
