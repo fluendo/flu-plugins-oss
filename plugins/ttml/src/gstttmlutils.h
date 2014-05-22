@@ -45,6 +45,12 @@ const gchar *gst_ttml_utils_enum_name_func (int val, const GstTTMLToken *list);
 int gst_ttml_utils_flags_parse_func (const gchar *name, const GstTTMLToken *list);
 const gchar *gst_ttml_utils_flags_name_func (int val, const GstTTMLToken *list);
 
+/* Enum GTypes to register properties */
+#define GST_TTML_TEXT_ALIGN_SPEC (gst_ttml_text_align_spec_get_type ())
+GType gst_ttml_text_align_spec_get_type (void);
+#define GST_TTML_DISPLAY_ALIGN_SPEC (gst_ttml_display_align_spec_get_type ())
+GType gst_ttml_display_align_spec_get_type (void);
+
 /* Miscellaneous utility functions */
 gboolean gst_ttml_utils_namespace_is_ttml (const gchar *ns);
 gboolean gst_ttml_utils_attr_value_is (const gchar *str1, const gchar *str2);

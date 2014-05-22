@@ -23,8 +23,11 @@ typedef struct _GstTTMLRender {
   cairo_surface_t *surface;
   cairo_t *cairo;
 
-  /* Font family used when the TTML file does not explicitly set one */
+  /* Default attributes when TTML file does not explicitly set ones and the
+   * user does not like the spec's defaults. */
   gchar *default_font_family;
+  GstTTMLTextAlign default_text_align;
+  GstTTMLDisplayAlign default_display_align;
 
   /* Each entry is a GstTTMLRegion, sorted by ZIndex.
    * This is a temporal structure used to render each frame */

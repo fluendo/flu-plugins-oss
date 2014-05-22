@@ -1,5 +1,17 @@
 2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_new_region), (gst_ttmlrender_get_property),
+	(gst_ttmlrender_set_property), (gst_ttmlrender_class_init):
+	* src/gstttmlrender.h:
+	* src/gstttmlutils.c: (gst_ttml_text_align_spec_get_type),
+	(gst_ttml_display_align_spec_get_type):
+	* src/gstttmlutils.h:
+	Add a couple of properties to override the default settings for some
+	attributes (text_align and display_align), since they seem a bit odd to me...
+
+2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* testsuite/ttml-check-ALL.sh:
 	* testsuite/ttml-play.sh:
 	* testsuite/ttml-record-ALL-GOLD.sh:
