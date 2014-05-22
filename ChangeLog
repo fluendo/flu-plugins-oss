@@ -1,3 +1,18 @@
+2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
+
+	* testsuite/ttml-check-ALL.sh:
+	* testsuite/ttml-play.sh:
+	* testsuite/ttml-record-ALL-GOLD.sh:
+	* testsuite/ttml-record.sh:
+	* testsuite/ttmlparse-check-ALL.sh:
+	* testsuite/ttmlparse-record-ALL-GOLD.sh:
+	* testsuite/ttmlparse-record.sh:
+	* testsuite/ttmlrender-check-ALL.sh:
+	* testsuite/ttmlrender-play.sh:
+	* testsuite/ttmlrender-record-ALL-GOLD.sh:
+	* testsuite/ttmlrender-record.sh:
+	Test scripts for ttmlparse and ttmlrender.
+
 2014-05-21  Xavi Artigas  <xartigas@fluendo.com>
 
 	Whitespace.
