@@ -265,3 +265,41 @@ void gst_ttml_utils_memdump_buffer (GObject *object,
 
   gst_buffer_unmap (buffer, &info);
 }
+
+GType
+gst_ttml_text_align_spec_get_type (void)
+{
+  static GType gst_ttml_text_align_spec_type = 0;
+  static const GEnumValue text_align_spec_types[] = {
+    {GST_TTML_TEXT_ALIGN_LEFT, "Left", "left"},
+    {GST_TTML_TEXT_ALIGN_CENTER, "Center", "center"},
+    {GST_TTML_TEXT_ALIGN_RIGHT, "Right", "right"},
+    {GST_TTML_TEXT_ALIGN_START, "Start edge", "start"},
+    {GST_TTML_TEXT_ALIGN_END, "End edge", "end"},
+    {0, NULL, NULL}
+  };
+
+  if (!gst_ttml_text_align_spec_type) {
+    gst_ttml_text_align_spec_type =
+        g_enum_register_static ("GstTTMLTextAlignSpec", text_align_spec_types);
+  }
+  return gst_ttml_text_align_spec_type;
+}
+
+GType
+gst_ttml_display_align_spec_get_type (void)
+{
+  static GType gst_display_text_align_spec_type = 0;
+  static const GEnumValue display_align_spec_types[] = {
+    {GST_TTML_DISPLAY_ALIGN_BEFORE, "Before", "before"},
+    {GST_TTML_DISPLAY_ALIGN_CENTER, "Center", "center"},
+    {GST_TTML_DISPLAY_ALIGN_AFTER, "After", "after"},
+    {0, NULL, NULL}
+  };
+
+  if (!gst_display_text_align_spec_type) {
+    gst_display_text_align_spec_type =
+        g_enum_register_static ("GstTTMLDisplayAlignSpec", display_align_spec_types);
+  }
+  return gst_display_text_align_spec_type;
+}

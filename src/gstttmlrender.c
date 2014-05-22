@@ -30,7 +30,9 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlrender_debug);
 enum
 {
   PROP_0,
-  PROP_DEFAULT_FONT_FAMILY
+  PROP_DEFAULT_FONT_FAMILY,
+  PROP_DEFAULT_TEXT_ALIGN,
+  PROP_DEFAULT_DISPLAY_ALIGN
 };
 
 #define DEFAULT_RENDER_WIDTH 720
@@ -121,9 +123,8 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
 
   attr = gst_ttml_style_get_attr (&region->current_par_style,
       GST_TTML_ATTR_TEXT_ALIGN);
-  if (attr) {
-    /* FIXME: Handle correctly START and END alignments */
-    switch (attr->value.text_align) {
+  /* FIXME: Handle correctly START and END alignments */
+  switch (attr ? attr->value.text_align : render->default_text_align) {
     case GST_TTML_TEXT_ALIGN_LEFT:
     case GST_TTML_TEXT_ALIGN_START:
     case GST_TTML_TEXT_ALIGN_UNKNOWN:
@@ -136,7 +137,6 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
     case GST_TTML_TEXT_ALIGN_CENTER:
       pango_align = PANGO_ALIGN_CENTER;
       break;
-    }
   }
   pango_layout_set_alignment (layout, pango_align);
 
@@ -212,7 +212,7 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_DISPLAY_ALIGN);
   region->display_align = attr ? attr->value.display_align :
-      GST_TTML_DISPLAY_ALIGN_BEFORE;
+      render->default_display_align;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_TEXTOUTLINE);
   if (attr) {
@@ -606,6 +606,12 @@ gst_ttmlrender_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_DEFAULT_FONT_FAMILY:
       g_value_set_string (value, render->default_font_family);
       break;
+    case PROP_DEFAULT_TEXT_ALIGN:
+      g_value_set_enum (value, render->default_text_align);
+      break;
+    case PROP_DEFAULT_DISPLAY_ALIGN:
+      g_value_set_enum (value, render->default_display_align);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -624,6 +630,14 @@ gst_ttmlrender_set_property (GObject * object, guint prop_id,
         g_free (render->default_font_family);
       }
       render->default_font_family = g_strdup (g_value_get_string (value));
+      break;
+    case PROP_DEFAULT_TEXT_ALIGN:
+      render->default_text_align =
+          (GstTTMLTextAlign)g_value_get_enum (value);
+      break;
+    case PROP_DEFAULT_DISPLAY_ALIGN:
+      render->default_display_align =
+          (GstTTMLDisplayAlign)g_value_get_enum (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -674,6 +688,16 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
       g_param_spec_string ("default_font_family", "Default font family",
         "Font family to use when the TTML file does not explicitly set one",
         "default", G_PARAM_READWRITE));
+
+  g_object_class_install_property (gobject_class, PROP_DEFAULT_TEXT_ALIGN,
+      g_param_spec_enum ("default_text_align", "Default text alignment",
+        "Text alignment to use when the TTML file does not explicitly set one",
+        GST_TTML_TEXT_ALIGN_SPEC, GST_TTML_TEXT_ALIGN_LEFT, G_PARAM_READWRITE));
+
+  g_object_class_install_property (gobject_class, PROP_DEFAULT_DISPLAY_ALIGN,
+      g_param_spec_enum ("default_display_align", "Default display alignment",
+        "Display alignment to use when the TTML file does not explicitly set one",
+        GST_TTML_DISPLAY_ALIGN_SPEC, GST_TTML_DISPLAY_ALIGN_BEFORE, G_PARAM_READWRITE));
 
   /* Here we register a Pad Template called "src" which the base class will
    * use to instantiate the src pad. */
