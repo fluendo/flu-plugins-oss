@@ -1,5 +1,12 @@
 2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/ttml-play.bat:
+	* testsuite/ttmlrender-play.bat:
+	* testsuite/ttmlparse-play.bat:
+	Test scripts for ttmlparse and ttmlrender. (on Windows).
+
+2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
 	(gst_ttmlrender_new_region), (gst_ttmlrender_get_property),
 	(gst_ttmlrender_set_property), (gst_ttmlrender_class_init):

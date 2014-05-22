@@ -1,0 +1,1 @@
+i:\gstreamer-sdk\0.10\x86\bin\gst-launch-0.10 filesrc location=%1.xml ! ttmlrender ! video/x-raw-rgb,width=300,height=200 ! timeoverlay halignment=center valignment=center ! ffmpegcolorspace ! d3dvideosink
