@@ -265,18 +265,19 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
         else
           length->f *= state->frame_height;
       } else if (type == GST_TTML_ATTR_PADDING) {
+        gint parent_length;
         /* FIXME We should make sure EXTENT attr is parsed before PADDING */
         prev_attr =
             gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_EXTENT);
-        if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS ||
-            prev_attr->value.length[1].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
-          GST_WARNING ("Region extent should be in pixels");
-        }
-        if (direction == 0) {
-          length->f *= prev_attr->value.length[0].f;
+        if (prev_attr) {
+          if (prev_attr->value.length[direction].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+            GST_WARNING ("Region extent should be in pixels");
+          }
+          parent_length = prev_attr->value.length[direction].f;
         } else {
-          length->f *= prev_attr->value.length[1].f;
+          parent_length = direction == 0 ? state->frame_width : state->frame_height;
         }
+        length->f *= parent_length;
       } else {
         prev_attr =
             gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
