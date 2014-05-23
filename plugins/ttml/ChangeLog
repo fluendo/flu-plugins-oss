@@ -1,5 +1,10 @@
 2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
+	Fix corner case crash for RELATIVE padding without extent attribute.
+
+2014-05-22  Xavi Artigas  <xartigas@fluendo.com>
+
 	* testsuite/ttml-play.bat:
 	* testsuite/ttmlrender-play.bat:
 	* testsuite/ttmlparse-play.bat:
