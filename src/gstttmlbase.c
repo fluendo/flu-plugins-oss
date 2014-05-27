@@ -679,6 +679,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
   {
     GstCaps *peer_caps = gst_pad_peer_get_caps (base->srcpad);
     if (!peer_caps) {
+      GST_WARNING_OBJECT (base, "Peer has no caps!");
       return FALSE;
     }
     src_caps = gst_caps_intersect (peer_caps, template_caps);
