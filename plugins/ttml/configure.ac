@@ -7,7 +7,7 @@ dnl fill in your package name and version here
 dnl the fourth (nano) number should be 0 for a release, 1 for CVS,
 dnl and 2... for a prerelease
 dnl releases only do -Wall, cvs and prerelease does -Werror too
-AC_INIT(GStreamer Fluendo TTML Element, 0.10.11,,
+AC_INIT(GStreamer Fluendo TTML Element, 0.10.11.1,,
     gst-fluendo-ttml)
 
 AG_GST_INIT
