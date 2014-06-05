@@ -21,7 +21,8 @@ BuildRequires:  %{gstreamer}-plugins-base-devel
 BuildRequires:  gst-plugins-base-devel
 %endif
 
-ExclusiveArch:  i386 x86_64 
+Requires:       pango >= 1.16.0 cairo pixman >= 0.18.0
+BuildRequires:  pango-devel >= 1.16.0 cairo-devel pixman-devel >= 0.18.0
  
 %description
 Fluendo GStreamer plug-in for TTML specification
