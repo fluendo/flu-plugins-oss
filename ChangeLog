@@ -1,3 +1,8 @@
+2014-06-05  Xavi Artigas  <xartigas@fluendo.com>
+
+	* gst-fluendo-ttml.spec.in:
+	Add dependencies to spec file.
+
 2014-06-04  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
