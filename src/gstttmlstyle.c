@@ -161,7 +161,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
           font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);
           font_size_is_relative = FALSE;
         } else if (attr->value.length[0].f != 1.f) {
-          font_size = g_strdup (attr->value.length[0].f>1 ? "larger" : "smaller");
+          font_size = g_strdup (attr->value.length[0].f>1 ? "large" : "small");
           font_size_is_relative = TRUE;
         }
         break;
