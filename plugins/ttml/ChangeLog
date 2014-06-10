@@ -1,3 +1,12 @@
+2014-06-10  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	Revert back to absolute font sizes for ttmlparse ("large" and "small"),
+	since relative ones ("larger" and "smaller") do not seem to work well
+	with OPD, which adds additional Pango markup around them.
+	As a result, subtitles which specify the font size cannot have their
+	size changed from OPD's preferences menu (but at least they are shown.
+
 2014-06-05  Xavi Artigas  <xartigas@fluendo.com>
 
 	* testsuite/ttmlrender-play-1.0.sh:
