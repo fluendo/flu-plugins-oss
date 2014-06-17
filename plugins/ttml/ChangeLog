@@ -1,3 +1,5 @@
+=== release 0.10.12 ===
+
 2014-06-10  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
