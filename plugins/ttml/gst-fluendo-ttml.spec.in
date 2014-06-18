@@ -1,6 +1,13 @@
-%define majorminor  0.10
+%{!?fc18: %define fc18 0}
 
-%{!?gstreamer:  %define         gstreamer       gstreamer}
+%if %{fc18}
+%define majorminor  1.0
+%define gstreamer gstreamer1
+%else
+%define majorminor  0.10
+%define gstreamer gstreamer
+%endif
+
 %{expand:%%define meego %(test -e /etc/meego-release && echo 1 || echo 0)}
 
 Name:		%{gstreamer}-fluendo-ttml
@@ -51,5 +58,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/gstreamer-%{majorminor}/libgstfluttml.so
 
 %changelog
+* Thu Jun 5 2014 Julien Moutte <julien@fluendo.com>
+- Small tweaks for GStreamer 1.0
+
 * Thu Sep 13 2012 Jorge Zapata <jzapata@fluendo.com>
 - Initial spec file.
