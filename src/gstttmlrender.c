@@ -706,7 +706,7 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
 
   gst_element_class_set_details_simple (GST_ELEMENT_CLASS (klass),
     "TTML subtitle renderer",
-    "Codec/Render/Subtitle",
+    "Codec/Decoder/Subtitle",
     "Render TTML subtitle streams into a video stream",
     "Fluendo S.A. <support@fluendo.com>");
 

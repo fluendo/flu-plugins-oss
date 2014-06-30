@@ -1,5 +1,11 @@
 2014-06-30  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_class_init):
+	Set the ttmlrender class to "Codec/Decoder/Subtitle" so it can be
+	autoplugged by playbin.
+
+2014-06-30  Xavi Artigas  <xartigas@fluendo.com>
+
 	* win32/include/config.h:
 	Force building of the ttmlparse and ttmlrender elements on Windows,
 	since it does not have the configure mechanism to make them optional.
