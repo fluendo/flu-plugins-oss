@@ -86,6 +86,27 @@ AG_GST_CHECK_GST_BASE($GST_MAJORMINOR, [$GST_REQ])
 AG_GST_CHECK_GST_CONTROLLER($GST_MAJORMINOR, [$GST_REQ], yes)
 AG_GST_CHECK_GST_PLUGINS_BASE($GST_MAJORMINOR, [$GST_REQ])
 
+dnl Check which elements to build
+AC_ARG_ENABLE(ttmlparse,
+  AC_HELP_STRING([--disable-ttmlparse],
+    [do not build the ttmlparse element]),
+  [BUILD_TTMLPARSE=no], [BUILD_TTMLPARSE=yes])
+if test "x$BUILD_TTMLPARSE" = "xyes"
+then
+AC_DEFINE_UNQUOTED(BUILD_TTMLPARSE, 1, [Whether the ttmlparse element has to be built])
+fi
+AM_CONDITIONAL([BUILD_TTMLPARSE], [test "$BUILD_TTMLPARSE" = "yes"])
+
+AC_ARG_ENABLE(ttmlrender,
+  AC_HELP_STRING([--disable-ttmlrender],
+    [do not build the ttmlrender element]),
+  [BUILD_TTMLRENDER=no], [BUILD_TTMLRENDER=yes])
+if test "x$BUILD_TTMLRENDER" = "xyes"
+then
+AC_DEFINE_UNQUOTED(BUILD_TTMLRENDER, 1, [Whether the ttmlrender element has to be built])
+fi
+AM_CONDITIONAL([BUILD_TTMLRENDER], [test "$BUILD_TTMLRENDER" = "yes"])
+
 dnl append ERROR_CFLAGS cflags to GST_CFLAGS
 GST_CFLAGS="$GST_CFLAGS $ERROR_CFLAGS"
 
@@ -103,8 +124,11 @@ AG_GST_SET_PLUGINDIR
 
 dnl Check for the libraries
 AG_GST_PKG_CHECK_MODULES(LIBXML, libxml-2.0 >= 2.4.9)
+if test "x$BUILD_TTMLRENDER" = "xyes"
+then
 AG_GST_PKG_CHECK_MODULES(PANGO, pango >= 1.16.0  pangocairo >= 1.16.0)
 AG_GST_PKG_CHECK_MODULES(PIXMAN, pixman-1 >= 0.18.4)
+fi
 
 AC_OUTPUT(
 Makefile
@@ -124,4 +148,12 @@ $PACKAGE-$VERSION
         prefix:                           ${prefix}
         compiler:                         ${CC}
         Building for GStreamer-${GST_MAJORMINOR}
+        Building ttmlparse element        ${BUILD_TTMLPARSE}
+        Building ttmlrender element       ${BUILD_TTMLRENDER}
 "
+if test "x$BUILD_TTMLPARSE" = "xno" -a "x$BUILD_TTMLRENDER" = "xno"
+then
+echo "        ***********************************
+        WARNING: No elements will be built!
+        ***********************************"
+fi

@@ -6,9 +6,6 @@ plugin_LTLIBRARIES = libgstfluttml.la
 libgstfluttml_la_SOURCES = \
 fluttml.c \
 gstttmlbase.c \
-gstttmlblur.c \
-gstttmlparse.c \
-gstttmlrender.c \
 gstttmltype.c \
 gstttmlattribute.c \
 gstttmlstate.c \
@@ -29,16 +26,22 @@ libgstfluttml_la_CFLAGS = \
 -I$(top_srcdir)/gst/ttml \
  $(GST_CFLAGS) \
  $(GST_BASE_CFLAGS) \
- $(LIBXML_CFLAGS) \
- $(PANGO_CFLAGS) \
- $(PIXMAN_CFLAGS)
+ $(LIBXML_CFLAGS)
 
 libgstfluttml_la_LIBADD = \
 $(GST_LIBS) \
 $(GST_BASE_LIBS) \
-$(LIBXML_LIBS) \
-$(PANGO_LIBS) \
-$(PIXMAN_LIBS)
+$(LIBXML_LIBS)
+
+if BUILD_TTMLPARSE
+libgstfluttml_la_SOURCES += gstttmlparse.c
+endif
+
+if BUILD_TTMLRENDER
+libgstfluttml_la_SOURCES += gstttmlrender.c gstttmlblur.c
+libgstfluttml_la_CFLAGS += $(PANGO_CFLAGS) $(PIXMAN_CFLAGS)
+libgstfluttml_la_LIBADD += $(PANGO_LIBS) $(PIXMAN_LIBS)
+endif
 
 libgstfluttml_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) $(CPU_TUNE_LDFLAGS) \
   -no-undefined

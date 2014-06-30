@@ -11,8 +11,14 @@
 #include "gst-demo.h"
 #include "gst-fluendo.h"
 
+#ifdef BUILD_TTMLPARSE
 #include "gstttmlparse.h"
+#endif
+
+#ifdef BUILD_TTMLRENDER
 #include "gstttmlrender.h"
+#endif
+
 #include "gstttmltype.h"
 
 GST_DEBUG_CATEGORY (ttmlbase_debug);
@@ -26,20 +32,26 @@ plugin_init (GstPlugin * plugin)
   GST_DEBUG_CATEGORY_INIT (ttmlbase_debug, "ttmlbase",
       GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
       "Fluendo TTML base element");
+
+#ifdef BUILD_TTMLPARSE
   GST_DEBUG_CATEGORY_INIT (ttmlparse_debug, "ttmlparse",
       GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
       "Fluendo TTML parser");
-  GST_DEBUG_CATEGORY_INIT (ttmlrender_debug, "ttmlrender",
-      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
-      "Fluendo TTML renderer");
 
   if (!gst_element_register (plugin, "ttmlparse", GST_RANK_MARGINAL,
           gst_ttmlparse_get_type ()))
     return FALSE;
+#endif
+
+#ifdef BUILD_TTMLRENDER
+  GST_DEBUG_CATEGORY_INIT (ttmlrender_debug, "ttmlrender",
+      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
+      "Fluendo TTML renderer");
 
   if (!gst_element_register (plugin, "ttmlrender", GST_RANK_MARGINAL,
           gst_ttmlrender_get_type ()))
     return FALSE;
+#endif
 
   gst_ttmltype_init (plugin);
 

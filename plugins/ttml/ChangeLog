@@ -1,3 +1,11 @@
+2014-06-30  Xavi Artigas  <xartigas@fluendo.com>
+
+	* configure.ac:
+	* src/Makefile.am:
+	* src/fluttml.c: (plugin_init):
+	Make compilation of both elements (ttmlparse and ttmlrender) optional
+	through configure switches.
+
 2014-06-18  Julien Moutte  <julien@fluendo.com>
 
 	* gst-fluendo-ttml.spec.in: Fix spec file for 1.0.
