@@ -1,7 +1,7 @@
 MAINTAINERCLEANFILES = Makefile.in config.guess config.sub ltmain.sh config.h.in missing aclocal.m4 install-sh configure depcomp compile
 
 SUBDIRS =
-
+DIST_SUBDIRS = ext/curl
 noinst_HEADERS =
 
 noinst_LTLIBRARIES =
@@ -35,6 +35,11 @@ curl_pipelining_test_SOURCES = $(top_srcdir)/examples/curl_pipelining_test.c
 curl_pipelining_test_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
 
 curl_pipelining_test_LDADD = $(FLUDOWNLOADER_LIBS)
+endif
+
+if !USE_SYSTEM_CURL
+all-local:
+	cd ext/curl && $(MAKE)
 endif
 
 pcfiles = \

@@ -1,3 +1,13 @@
+2014-09-12  Jorge Zapata  <jzapata@fluendo.com>
+
+	* .:
+	* Makefile.am:
+	* configure.ac:
+	* patches:
+	* patches/fix-automake-1.13.patch:
+	Initial approach to link with curl statically
+	Add an external for the version of curl that supports pipelining
+
 2014-03-31  Xavi Artigas  <xartigas@fluendo.com>
 
 	* Makefile.am:
