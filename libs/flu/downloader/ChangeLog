@@ -1,5 +1,10 @@
 2014-09-15  Jorge Zapata  <jzapata@fluendo.com>
 
+	* fludownloader_static.pc.in:
+	Dont fill the static variants but the dynamic variants with the static dependencies
+
+2014-09-15  Jorge Zapata  <jzapata@fluendo.com>
+
 	* examples/Makefile.am:
 	The pipelining test should not be part of the fludownloader
 	examples. It does not use the fludownloader API at all
