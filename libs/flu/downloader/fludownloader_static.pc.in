@@ -6,7 +6,8 @@ includedir=@includedir@
 Name: fludownloader
 Version: @VERSION@
 Description: Fluendo Downloader Library for static linking
-Requires: @REQUIREMENTS_PC@
+Requires.private: @REQUIREMENTS_PC@
+Libs.private: @CURL_LIBS@
 Libs: -L${libdir} -lfludownloader_static
 Cflags: -I${includedir} @REQUIREMENTS_CFLAGS@
 

@@ -1,3 +1,22 @@
+2014-09-15  Jorge Zapata <jzapata@fluendo.com>
+
+	* Makefile.am:
+	* configure.ac:
+	* examples/Makefile.am:
+	* ext:
+	* ext/Makefile.am:
+	* fludownloader.pc.in:
+	* fludownloader_static.pc.in:
+	* lib/Makefile.am:
+	Make the project be recursive. This is needed to first build the local
+	curl in case the lib needs it.
+	Make sure to call the internal curl configuration before the config.stat
+	is created, that gives us a margin to update the different vars.
+	Update the pc files to list the internal libcurl dependencies when
+	linked statically.
+	Be able to create the static version of libfludownloader with libcurl
+	linked statically too.
+
 2014-09-12  Jorge Zapata  <jzapata@fluendo.com>
 
 	* .:
