@@ -1,3 +1,11 @@
+2014-10-30  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmltype.c: (gst_ttmltype_find):
+	* testsuite\MIB4_DASH_Livesubtitle.mp4:
+	Lower probability of typefinder of the <xml> tag does not appear
+	at byte offset 0. This fixes the incorrect detection of the
+	QT file provided.
+
 2014-06-30  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c: (gst_ttmlrender_class_init):

@@ -21,15 +21,24 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
   guint64 offset = 0;
   const guint8 *data;
   guint checks = 0;
+  GstTypeFindProbability prob = GST_TYPE_FIND_MAXIMUM;
 
   while (((data = gst_type_find_peek (tf, offset, 4)) != NULL)
       && offset < 1024) {
-    if (!memcmp (data, tag_xml, sizeof (tag_xml) - 1))
+    if (!memcmp (data, tag_xml, sizeof (tag_xml) - 1)) {
       checks |= 0x01;
+      if (offset > 0) {
+        /* We are only 100% sure this is a TTML file if the XML tag appears at
+         * the beginning of the buffer. Otherwise, this could be TTML embedded
+         * in some other format and therefore we lower our probability.
+         */
+        prob = GST_TYPE_FIND_LIKELY;
+      }
+    }
     if (!memcmp (data, tag_tt, sizeof (tag_tt) - 1))
       checks |= 0x02;
     if (checks == 0x03) {
-      gst_type_find_suggest (tf, GST_TYPE_FIND_MAXIMUM, TTML_CAPS);
+      gst_type_find_suggest (tf, prob, TTML_CAPS);
       return;
     } else {
       offset++;
