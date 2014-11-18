@@ -1,3 +1,8 @@
+2014-11-18  Jorge Zapata  <jzapata@fluendo.com>
+
+	* ext/Makefile.am:
+	Fix the distcheck rule
+
 2014-09-15  Jorge Zapata  <jzapata@fluendo.com>
 
 	* fludownloader_static.pc.in:
