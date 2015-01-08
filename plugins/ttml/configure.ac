@@ -126,8 +126,8 @@ dnl Check for the libraries
 AG_GST_PKG_CHECK_MODULES(LIBXML, libxml-2.0 >= 2.4.9)
 if test "x$BUILD_TTMLRENDER" = "xyes"
 then
-AG_GST_PKG_CHECK_MODULES(PANGO, pango >= 1.16.0  pangocairo >= 1.16.0)
-AG_GST_PKG_CHECK_MODULES(PIXMAN, pixman-1 >= 0.18.4)
+PKG_CHECK_MODULES(PANGO, pango >= 1.16.0  pangocairo >= 1.16.0)
+PKG_CHECK_MODULES(PIXMAN, pixman-1 >= 0.18.4)
 fi
 
 AC_OUTPUT(
