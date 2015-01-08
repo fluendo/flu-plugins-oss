@@ -1,5 +1,11 @@
 2015-01-08  Xavi Artigas  <xartigas@fluendo.com>
 
+	* configure.ac:
+	Pango, Pangocairo and Pixman are not optional. Make sure configure
+	aborts if they are not found.
+
+2015-01-08  Xavi Artigas  <xartigas@fluendo.com>
+
 	* testsuite/smpte-tt/spec-example.xml:
 	Add a sample file including SMPTE-TT images, taken from the spec.
 
