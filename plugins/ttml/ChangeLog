@@ -1,3 +1,8 @@
+2015-01-08  Xavi Artigas  <xartigas@fluendo.com>
+
+	* testsuite/smpte-tt/spec-example.xml:
+	Add a sample file including SMPTE-TT images, taken from the spec.
+
 2014-11-04  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
