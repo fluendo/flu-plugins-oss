@@ -1,3 +1,17 @@
+2015-01-09  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src\gstttmlattribute.c:
+	* src\gstttmlattribute.h:
+	* src\gstttmlbase.c:
+	* src\gstttmlbase.h:
+	* src\gstttmlenums.h:
+	* src\gstttmlstate.c:
+	* src\gstttmlstate.h:
+	* src\gstttmlutils.c:
+	* src\gstttmlutils.h:
+	Start parsing SMPTE-TT-related stuff. image nodes and related attributes
+	are parsed, but no rendering occurs yet.
+
 2015-01-08  Xavi Artigas  <xartigas@fluendo.com>
 
 	* configure.ac:

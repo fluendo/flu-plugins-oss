@@ -28,6 +28,10 @@ const GstTTMLToken GstTTMLUtilsTokensNodeTypeInternal[] = {
   { "style", GST_TTML_NODE_TYPE_STYLE },
   { "layout", GST_TTML_NODE_TYPE_LAYOUT },
   { "region", GST_TTML_NODE_TYPE_REGION },
+  { "metadata", GST_TTML_NODE_TYPE_METADATA },
+  /* SMPTE-TT node types. They are totally overlapped with the TTML namespace,
+   * let's hope there is no collision in the future */
+  { "image", GST_TTML_NODE_TYPE_SMPTE_IMAGE },
   { NULL, GST_TTML_NODE_TYPE_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensNodeType =
@@ -69,6 +73,11 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "lineHeight", GST_TTML_ATTR_LINE_HEIGHT },
   { "wrapOption", GST_TTML_ATTR_WRAP_OPTION },
   { "padding", GST_TTML_ATTR_PADDING },
+  /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
+   * let's hope there is no collision in the future */
+  { "imagetype", GST_TTML_ATTR_SMPTE_IMAGETYPE },
+  { "encoding", GST_TTML_ATTR_SMPTE_ENCODING },
+  { "backgroundImage", GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE },
   { NULL, GST_TTML_ATTR_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensAttributeType =
@@ -141,6 +150,20 @@ const GstTTMLToken GstTTMLUtilsTokensWrapOptionInternal[] = {
 const GstTTMLToken *GstTTMLUtilsTokensWrapOption =
     GstTTMLUtilsTokensWrapOptionInternal;
 
+const GstTTMLToken GstTTMLUtilsTokensSMPTEImageTypeInternal[] = {
+  { "PNG", GST_TTML_SMPTE_IMAGE_TYPE_PNG },
+  { NULL, GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensSMPTEImageType =
+    GstTTMLUtilsTokensSMPTEImageTypeInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensSMPTEEncodingInternal[] = {
+  { "Base64", GST_TTML_SMPTE_ENCODING_BASE64 },
+  { NULL, GST_TTML_SMPTE_ENCODING_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensSMPTEEncoding =
+    GstTTMLUtilsTokensSMPTEEncodingInternal;
+
 /* Searches for the given name inside an enum's token list and returns its value.
  * This replaces long, cumbersome if-elses with strcmps. */
 int gst_ttml_utils_enum_parse_func (const gchar *name,
@@ -207,7 +230,8 @@ gst_ttml_utils_namespace_is_ttml (const gchar *ns)
   /* Compare with the known valid namespaces for TTML */
   return g_str_has_prefix (ns, "http://www.w3.org/ns/ttml") ||
       g_str_has_prefix (ns, "http://www.w3.org/2006/10/ttaf1") ||
-      g_str_has_prefix (ns, "http://www.w3.org/XML/1998/namespace");
+      g_str_has_prefix (ns, "http://www.w3.org/XML/1998/namespace") ||
+      g_str_has_prefix (ns, "http://www.smpte-ra.org/schemas/2052-1/2010/smpte-tt");
 }
 
 /* Check if the given attribute values match, disregarding possible white

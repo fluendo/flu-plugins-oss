@@ -22,7 +22,11 @@ typedef enum _GstTTMLNodeType {
   GST_TTML_NODE_TYPE_STYLING,
   GST_TTML_NODE_TYPE_STYLE,
   GST_TTML_NODE_TYPE_LAYOUT,
-  GST_TTML_NODE_TYPE_REGION
+  GST_TTML_NODE_TYPE_REGION,
+  GST_TTML_NODE_TYPE_METADATA,
+  /* SMPTE-TT node types. They are totally overlapped with the TTML namespace,
+   * let's hope there is no collision in the future */
+  GST_TTML_NODE_TYPE_SMPTE_IMAGE
 } GstTTMLNodeType;
 
 /* Attributes currently supported */
@@ -60,6 +64,11 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_LINE_HEIGHT,
   GST_TTML_ATTR_WRAP_OPTION,
   GST_TTML_ATTR_PADDING,
+  /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
+   * let's hope there is no collision in the future */
+  GST_TTML_ATTR_SMPTE_IMAGETYPE,
+  GST_TTML_ATTR_SMPTE_ENCODING,
+  GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE,
   GST_TTML_ATTR_UNKNOWN
 } GstTTMLAttributeType;
 
@@ -131,6 +140,18 @@ typedef enum _GstTTMLWrapOption {
   GST_TTML_WRAP_OPTION_NO,
   GST_TTML_WRAP_OPTION_UNKNOWN,
 } GstTTMLWrapOption;
+
+/* SMPTE-TT Image types */
+typedef enum _GstTTMLSMPTEImageType {
+  GST_TTML_SMPTE_IMAGE_TYPE_PNG,
+  GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN,
+} GstTTMLSMPTEImageType;
+
+/* SMPTE-TT Encodings */
+typedef enum _GstTTMLSMPTEEncoding {
+  GST_TTML_SMPTE_ENCODING_BASE64,
+  GST_TTML_SMPTE_ENCODING_UNKNOWN,
+} GstTTMLSMPTEEncoding;
 
 G_END_DECLS
 

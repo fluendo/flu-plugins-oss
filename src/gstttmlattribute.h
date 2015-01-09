@@ -48,6 +48,8 @@ struct _GstTTMLAttribute {
     GstTTMLDisplayAlign display_align;
     GstTTMLTextOutline text_outline;
     GstTTMLWrapOption wrap_option;
+    GstTTMLSMPTEImageType smpte_image_type;
+    GstTTMLSMPTEEncoding smpte_encoding;
   } value;
   GList *timeline;
 };

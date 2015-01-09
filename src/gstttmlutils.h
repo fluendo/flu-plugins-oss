@@ -22,6 +22,8 @@ extern const GstTTMLToken *GstTTMLUtilsTokensTextDecoration;
 extern const GstTTMLToken *GstTTMLUtilsTokensTextAlign;
 extern const GstTTMLToken *GstTTMLUtilsTokensDisplayAlign;
 extern const GstTTMLToken *GstTTMLUtilsTokensWrapOption;
+extern const GstTTMLToken *GstTTMLUtilsTokensSMPTEImageType;
+extern const GstTTMLToken *GstTTMLUtilsTokensSMPTEEncoding;
 
 /* Enum name -> value */
 #define gst_ttml_utils_enum_parse(name,type) \
