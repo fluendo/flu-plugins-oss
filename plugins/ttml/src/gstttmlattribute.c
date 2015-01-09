@@ -626,6 +626,30 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         attr->value.length[3].f,
         gst_ttml_utils_enum_name (attr->value.length[3].unit, LengthUnit));
     break;
+  case GST_TTML_ATTR_SMPTE_IMAGETYPE:
+    attr->value.smpte_image_type = gst_ttml_utils_enum_parse (value, SMPTEImageType);
+    if (attr->value.smpte_image_type == GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' image type", value);
+      attr->value.smpte_image_type = GST_TTML_SMPTE_IMAGE_TYPE_PNG;
+    }
+    GST_LOG ("Parsed '%s' image type into %d (%s)", value,
+        attr->value.smpte_image_type,
+        gst_ttml_utils_enum_name (attr->value.smpte_image_type, SMPTEImageType));
+    break;
+  case GST_TTML_ATTR_SMPTE_ENCODING:
+    attr->value.smpte_encoding = gst_ttml_utils_enum_parse (value, SMPTEEncoding);
+    if (attr->value.smpte_encoding == GST_TTML_SMPTE_ENCODING_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' image encoding", value);
+      attr->value.smpte_encoding = GST_TTML_SMPTE_ENCODING_BASE64;
+    }
+    GST_LOG ("Parsed '%s' image encoding into %d (%s)", value,
+        attr->value.smpte_encoding,
+        gst_ttml_utils_enum_name (attr->value.smpte_encoding, SMPTEEncoding));
+    break;
+  case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
+    attr->value.string = g_strstrip (g_strdup (value));
+    GST_LOG ("Parsed '%s' background image", value);
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -854,6 +878,15 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       attr->value.length[0].unit = attr->value.length[1].unit =
           attr->value.length[2].unit = attr->value.length[3].unit =
           GST_TTML_LENGTH_UNIT_PIXELS;
+      break;
+    case GST_TTML_ATTR_SMPTE_IMAGETYPE:
+      attr->value.smpte_image_type = GST_TTML_SMPTE_IMAGE_TYPE_PNG;
+      break;
+    case GST_TTML_ATTR_SMPTE_ENCODING:
+      attr->value.smpte_encoding = GST_TTML_SMPTE_ENCODING_BASE64;
+      break;
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
+      attr->value.string = NULL;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");

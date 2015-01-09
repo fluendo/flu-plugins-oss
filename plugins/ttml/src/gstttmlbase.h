@@ -33,6 +33,7 @@ typedef struct _GstTTMLBase {
   GstTTMLState state;
   gboolean in_styling_node;
   gboolean in_layout_node;
+  gboolean in_metadata_node;
 
   /* Properties */
   gboolean assume_ordered_spans;
@@ -45,7 +46,11 @@ typedef struct _GstTTMLBase {
   /* Active span list */
   GList *active_spans;
 
-  /* For building demo plugins */
+  /* To parse embedded data like images */
+  guint8 *current_data;
+  gint current_data_length;
+
+  /* To build demo plugins */
   GstFluDemoStatistics stats;
 } GstTTMLBase;
 

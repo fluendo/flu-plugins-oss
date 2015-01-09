@@ -256,6 +256,90 @@ gst_ttmlbase_add_characters (GstTTMLBase *base, const gchar *content,
   base->last_event_timestamp = event->timestamp;
 }
 
+/* Adds the found chars to the embedded data string being constructed.
+ * Skips heading and trailing whitespace. Does not decode yet. */
+static void
+gst_ttmlbase_add_data_line (GstTTMLBase *base, const gchar *content,
+    int len)
+{
+  /* Skip heading whitespace */
+  while (len && g_ascii_isspace (*content)) {
+    content++;
+    len--;
+  }
+
+  /* Skip trailing whitespace */
+  while (len && g_ascii_isspace (content[len - 1])) len--;
+
+  /* Concatenate data */
+  if (len) {
+    base->current_data = (guint8 *)g_realloc (base->current_data,
+        base->current_data_length + len);
+    memcpy (base->current_data + base->current_data_length, content, len);
+    base->current_data_length += len;
+  }
+}
+
+/* Base64-decodes the now complete embedded data and adds it to the hash of
+ * saved data, using the current ID. Data still needs to be PNG-decoded if
+ * it is an image. */
+static void
+gst_ttmlbase_decode_data (GstTTMLBase *base)
+{
+  gsize decoded_length;
+  GstTTMLAttribute *attr;
+
+  if (!base->current_data || !base->current_data_length) {
+    GST_WARNING_OBJECT (base, "Found empty data node. Ignoring.");
+    return;
+  }
+
+  attr = gst_ttml_style_get_attr (&base->state.style,
+      GST_TTML_ATTR_SMPTE_ENCODING);
+  if (attr && attr->value.smpte_encoding != GST_TTML_SMPTE_ENCODING_BASE64) {
+    GST_WARNING_OBJECT (base, "Only Base64 encoding is supported. "
+        "Discarding data.");
+    goto error;
+  }
+
+  /* FIXME: This check does not belong here. The imagetype should be stored
+   * with the data, and whoever reads the data should care about its type */
+  attr = gst_ttml_style_get_attr (&base->state.style,
+      GST_TTML_ATTR_SMPTE_IMAGETYPE);
+  if (attr && attr->value.smpte_image_type != GST_TTML_SMPTE_IMAGE_TYPE_PNG) {
+    GST_WARNING_OBJECT (base, "Only PNG images are supported. "
+        "Discarding image.");
+    goto error;
+  }
+
+  if (!base->state.id) {
+    GST_WARNING_OBJECT (base, "Found data node without ID. "
+        "Discarding data.");
+    goto error;
+  }
+
+  /* Add terminator, for glib's base64 decoder */
+  base->current_data = (guint8 *)g_realloc (base->current_data,
+      base->current_data_length + 1);
+  base->current_data[base->current_data_length] = '\0';
+
+  /* Decode */
+  g_base64_decode_inplace ((gchar *)base->current_data, &decoded_length);
+
+  /* Store */
+  gst_ttml_state_save_data  (&base->state, base->current_data,
+      base->current_data_length, base->state.id);
+  goto beach;
+  
+error:
+  /* Free data */
+  g_free (base->current_data);
+
+beach:
+  base->current_data = NULL;
+  base->current_data_length = 0;
+}
+
 /* Helper method to turn SAX2's gchar * attribute array into a GstTTMLAttribute
  * and push it into the stack */
 static void
@@ -307,6 +391,20 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
       break;
     case GST_TTML_NODE_TYPE_LAYOUT:
       base->in_layout_node = TRUE;
+      break;
+    case GST_TTML_NODE_TYPE_METADATA:
+      base->in_metadata_node = TRUE;
+      break;
+    case GST_TTML_NODE_TYPE_SMPTE_IMAGE:
+      if (!base->in_metadata_node) {
+        GST_WARNING_OBJECT (base, "Image node is invalid outside of metadata node. Parsing anyway.");
+      }
+      if (base->current_data) {
+        GST_WARNING_OBJECT (base, "Dangling data found. Discarding.");
+        g_free (base->current_data);
+      }
+      base->current_data = NULL;
+      base->current_data_length = 0;
       break;
     default:
       break;
@@ -455,6 +553,15 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar *name,
         gst_ttml_state_save_attr_stack (&base->state,
             &base->state.saved_region_attr_stacks, base->state.id);
       break;
+    case GST_TTML_NODE_TYPE_METADATA:
+      if (!base->in_metadata_node) {
+        GST_WARNING_OBJECT (base, "Unmatched closing metadata node");
+      }
+      base->in_metadata_node = FALSE;
+      break;
+    case GST_TTML_NODE_TYPE_SMPTE_IMAGE:
+      gst_ttmlbase_decode_data (base);
+      break;
     default:
       break;
   }
@@ -510,14 +617,16 @@ gst_ttmlbase_sax_characters (void *ctx, const xmlChar *ch, int len)
   switch (base->state.node_type) {
     case GST_TTML_NODE_TYPE_P:
     case GST_TTML_NODE_TYPE_SPAN:
+      gst_ttmlbase_add_characters (base, content, len,
+          base->state.whitespace_preserve);
+      break;
+    case GST_TTML_NODE_TYPE_SMPTE_IMAGE:
+      gst_ttmlbase_add_data_line (base, content, len);
       break;
     default:
       /* Ignore characters outside relevant nodes */
       return;
   }
-
-  gst_ttmlbase_add_characters (base, content, len,
-      base->state.whitespace_preserve);
 }
 
 /* Parse SAX warnings (simply shown as debug logs) */
@@ -642,6 +751,12 @@ gst_ttmlbase_reset (GstTTMLBase * base)
     g_list_free_full (base->active_spans,
         (GDestroyNotify)gst_ttml_span_free);
     base->active_spans = NULL;
+  }
+
+  if (base->current_data) {
+    g_free (base->current_data);
+    base->current_data = NULL;
+    base->current_data_length = 0;
   }
 
   gst_ttml_state_reset (&base->state);
@@ -1135,6 +1250,9 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   base->state.attribute_stack = NULL;
   gst_ttml_state_reset (&base->state);
 
+  base->current_data = NULL;
+  base->current_data_length = 0;
+
   gst_ttmlbase_cleanup (base);
   gstflu_demo_reset_statistics (&base->stats);
 
@@ -1165,4 +1283,5 @@ gst_ttmlbase_get_type (void)
   }
 
   return type;
+
 }

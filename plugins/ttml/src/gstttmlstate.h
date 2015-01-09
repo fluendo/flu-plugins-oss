@@ -50,6 +50,9 @@ struct _GstTTMLState {
    * Each entry in the HashTable is an attribute stack. */
   GHashTable *saved_region_attr_stacks;
 
+  /* These are named pieces of data, generally, PNG-encoded images. */
+  GHashTable *saved_data;
+
   /* This piece of state is a bit special. It is only present when used in the
    * ttmlrender, not the ttmlparser, and it comes from the caps nego process,
    * not the parsing of the TTML file. */
@@ -71,6 +74,9 @@ void gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
     const gchar *id);
 
 void gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
+    const gchar *id);
+
+void gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
     const gchar *id);
 
 G_END_DECLS

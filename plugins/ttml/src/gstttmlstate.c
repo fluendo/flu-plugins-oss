@@ -75,6 +75,11 @@ gst_ttml_state_reset (GstTTMLState *state)
     g_hash_table_unref (state->saved_region_attr_stacks);
     state->saved_region_attr_stacks = NULL;
   }
+
+  if (state->saved_data) {
+    g_hash_table_unref (state->saved_data);
+    state->saved_data = NULL;
+  }
 }
 
 /* Puts the given GstTTMLAttribute into the state, overwritting the current
@@ -393,4 +398,27 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
 
     attr_link = attr_link->next;
   }
+}
+
+/* Store the current data in the saved_data hash table with the specified ID
+ * string. Create the hash table if necessary. Data is fully transferred, do
+ * not free.
+ */
+void
+gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
+    const gchar *id)
+{
+  gchar *id_copy = g_strdup (id);
+
+  if (!state->saved_data) {
+    state->saved_data =
+        g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+  }
+  
+  /* Add a little header stating the data size */
+  GST_DEBUG ("Storing image '%s' (raw length is %d bytes)", id, length);
+  data = (guint8 *)g_realloc (data, length + 4);
+  memmove (data + 4, data, length);
+  *(gint32*)data = length;
+  g_hash_table_insert (state->saved_data, id_copy, data);
 }
