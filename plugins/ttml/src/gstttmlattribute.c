@@ -708,6 +708,7 @@ gst_ttml_attribute_copy (const GstTTMLAttribute *src,
     case GST_TTML_ATTR_STYLE:
     case GST_TTML_ATTR_FONT_FAMILY:
     case GST_TTML_ATTR_REGION:
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
       dest->value.string = g_strdup (src->value.string);
       break;
     default:
