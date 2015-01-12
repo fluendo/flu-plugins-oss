@@ -1,3 +1,9 @@
+2015-01-12  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_free):
+	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
+	Fix a couple small leaks.
+
 2015-01-09  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src\gstttmlattribute.c:

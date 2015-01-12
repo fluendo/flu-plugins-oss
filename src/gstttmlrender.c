@@ -351,6 +351,8 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
       pango_cairo_layout_line_path (cairo, line);
     }
     cairo_translate (cairo, -ranges[0] / PANGO_SCALE, post_space);
+
+    g_free (ranges);
   }
 }
 

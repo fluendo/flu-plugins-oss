@@ -675,6 +675,7 @@ gst_ttml_attribute_free (GstTTMLAttribute *attr)
     case GST_TTML_ATTR_STYLE:
     case GST_TTML_ATTR_FONT_FAMILY:
     case GST_TTML_ATTR_REGION:
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
       g_free (attr->value.string);
       break;
     default:
