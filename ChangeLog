@@ -1,5 +1,15 @@
 2015-01-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c:
+	(gst_ttmlrender_decode_image_from_saved_data),
+	(gst_ttmlrender_retrieve_image), (gst_ttmlrender_new_region),
+	(gst_ttmlrender_free_region), (gst_ttmlrender_dispose),
+	(gst_ttmlrender_init):
+	* src/gstttmlrender.h:
+	Cache decoded images to avoid decoding them each time they are needed.
+
+2015-01-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_render_outline):
 	Fix leak on blurred spans.
 

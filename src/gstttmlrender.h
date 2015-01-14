@@ -32,6 +32,10 @@ typedef struct _GstTTMLRender {
   /* Each entry is a GstTTMLRegion, sorted by ZIndex.
    * This is a temporal structure used to render each frame */
   GList *regions;
+
+  /* Cache of ready-to-use Cairo surfaces, so they are not decoded each time
+   * they are needed. */
+  GHashTable *cached_images;
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */

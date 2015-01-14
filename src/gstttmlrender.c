@@ -181,7 +181,7 @@ gst_ttmlrender_cairo_read_memory_func (GstTTMLDecodeEmbeddedImageClosure *closur
 }
 
 static cairo_surface_t *
-gst_ttmlrender_decode_embedded_image (const GstTTMLState *state, const gchar *id)
+gst_ttmlrender_decode_image_from_saved_data (const GstTTMLState *state, const gchar *id)
 {
   GstTTMLDecodeEmbeddedImageClosure closure = { 0 };
   cairo_surface_t *surface = NULL;
@@ -216,6 +216,40 @@ gst_ttmlrender_decode_embedded_image (const GstTTMLState *state, const gchar *id
     GST_WARNING ("No image with id '%s' has been defined", id);
   }
 
+  return surface;
+}
+
+static cairo_surface_t *
+gst_ttmlrender_retrieve_image (GstTTMLRender *render, const gchar *id)
+{
+  cairo_surface_t *surface;
+  gchar *id_copy;
+
+  /* Create cache hash table if it does not exist */
+  if (!render->cached_images) {
+    render->cached_images =
+        g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
+            (GDestroyNotify)cairo_surface_destroy);
+  }
+
+  /* Look in the cache */
+  surface = (cairo_surface_t *)g_hash_table_lookup (render->cached_images, id);
+  if (surface) {
+    GST_DEBUG ("Retrieved image '%s' from cache", id);
+    goto beach;
+  }
+
+  /* Look in the saved data and decode the image */
+  surface = gst_ttmlrender_decode_image_from_saved_data (&render->base.state, id);
+  if (!surface)
+    goto beach;
+
+  /* Store in cache for further use */
+  id_copy = g_strdup (id);
+  g_hash_table_insert (render->cached_images, id_copy, surface);
+  GST_DEBUG ("Stored image '%s' in cache", id);
+
+beach:
   return surface;
 }
 
@@ -272,8 +306,8 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
     gchar *name = attr->value.string;
     if (name[0] == '#') {
       /* Embedded image: Load from saved data */
-      region->smpte_background_image = gst_ttmlrender_decode_embedded_image (
-          &render->base.state, name + 1);
+      region->smpte_background_image = gst_ttmlrender_retrieve_image (render,
+          name + 1);
     } else {
       /* Load from file */
       GST_WARNING ("Loading of external images not implemented yet (id: '%s')",
@@ -591,8 +625,6 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 static void
 gst_ttmlrender_free_region (GstTTMLRegion *region)
 {
-  if (region->smpte_background_image)
-    cairo_surface_destroy (region->smpte_background_image);
   g_free (region->current_par_content);
   g_list_free_full (region->layouts, g_object_unref);
   g_free (region->id);
@@ -737,6 +769,11 @@ gst_ttmlrender_dispose (GObject * object)
 
   GST_DEBUG_OBJECT (render, "disposing TTML renderer");
 
+  if (render->cached_images) {
+    g_hash_table_unref (render->cached_images);
+    render->cached_images = NULL;
+  }
+
   if (render->regions) {
     g_list_free_full (render->regions,
         (GDestroyNotify)gst_ttmlrender_free_region);
@@ -807,4 +844,5 @@ gst_ttmlrender_init (GstTTMLRender * render)
       pango_font_map_create_context (pango_cairo_font_map_get_default ());
 
   render->default_font_family = g_strdup ("default");
+  render->cached_images = NULL;
 }
