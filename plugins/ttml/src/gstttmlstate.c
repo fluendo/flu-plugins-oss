@@ -422,3 +422,26 @@ gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
   *(gint32*)data = length;
   g_hash_table_insert (state->saved_data, id_copy, data);
 }
+
+void
+gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
+    guint8 **data, gint *length)
+{
+  guint8 * rawdata;
+
+  *data = NULL;
+  *length = 0;
+
+  if (!id)
+    return;
+
+  if (!state->saved_data)
+    return;
+
+  rawdata = (guint8 *)g_hash_table_lookup (state->saved_data, id);
+
+  if (rawdata) {
+    *length = *(gint32*)rawdata;
+    *data = rawdata + 4;
+  }
+}

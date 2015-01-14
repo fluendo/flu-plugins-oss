@@ -47,6 +47,7 @@ typedef struct _GstTTMLRegion {
   gint padded_originx, padded_originy;
   gint padded_extentx, padded_extenty;
   guint32 background_color;
+  cairo_surface_t *smpte_background_image;
   GstTTMLDisplayAlign display_align;
   gboolean overflow_visible;
 
@@ -162,6 +163,62 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
   gst_ttml_style_reset (&region->current_par_style);
 }
 
+typedef struct _GstTTMLDecodeEmbeddedImageClosure {
+  guint8 *data;
+  gint datalen;
+} GstTTMLDecodeEmbeddedImageClosure;
+
+static cairo_status_t
+gst_ttmlrender_cairo_read_memory_func (GstTTMLDecodeEmbeddedImageClosure *closure, unsigned char *data,
+    unsigned int len)
+{
+  if (len > closure->datalen)
+    return CAIRO_STATUS_READ_ERROR;
+  memcpy (data, closure->data, len);
+  closure->data += len;
+  closure->datalen -= len;
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static cairo_surface_t *
+gst_ttmlrender_decode_embedded_image (const GstTTMLState *state, const gchar *id)
+{
+  GstTTMLDecodeEmbeddedImageClosure closure = { 0 };
+  cairo_surface_t *surface = NULL;
+
+  gst_ttml_state_restore_data (state, id, &closure.data, &closure.datalen);
+  if (closure.data) {
+    /* This ID has been defined */
+    cairo_status_t status = CAIRO_STATUS_READ_ERROR;
+
+    surface = cairo_image_surface_create_from_png_stream (
+        (cairo_read_func_t)gst_ttmlrender_cairo_read_memory_func, &closure);
+    if (surface) {
+      status = cairo_surface_status (surface);
+    }
+    if (status == CAIRO_STATUS_SUCCESS) {
+      cairo_format_t f = cairo_image_surface_get_format (surface);
+      int w = cairo_image_surface_get_width (surface);
+      int h = cairo_image_surface_get_height (surface);
+      int s = cairo_image_surface_get_stride (surface);
+
+      GST_DEBUG ("Decoded embedded PNG image '%s': "
+          "format %d, width %d, height %d, stride %d",
+          id, f, w, h, s);
+    } else {
+      GST_WARNING ("Could not decode image '%s'. Cairo status: %s", id,
+          cairo_status_to_string (status));
+      cairo_surface_destroy (surface);
+      surface = NULL;
+    }
+  } else {
+    /* ID not found */
+    GST_WARNING ("No image with id '%s' has been defined", id);
+  }
+
+  return surface;
+}
+
 static GstTTMLRegion *
 gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
     GstTTMLStyle *style)
@@ -209,6 +266,22 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;
+
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE);
+  if (attr && attr->value.string) {
+    gchar *name = attr->value.string;
+    if (name[0] == '#') {
+      /* Embedded image: Load from saved data */
+      region->smpte_background_image = gst_ttmlrender_decode_embedded_image (
+          &render->base.state, name + 1);
+    } else {
+      /* Load from file */
+      GST_WARNING ("Loading of external images not implemented yet (id: '%s')",
+          name);
+    }
+  } else {
+    region->smpte_background_image = NULL;
+  }
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_DISPLAY_ALIGN);
   region->display_align = attr ? attr->value.display_align :
@@ -434,7 +507,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 
   cairo_save (render->cairo);
 
-  /* Show backgorund, if required */
+  /* Show background color, if required */
   if (region->background_color != 0x00000000) {
     cairo_set_source_rgba (render->cairo,
         GET_CAIRO_COMP (region->background_color, 24),
@@ -444,6 +517,13 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     cairo_rectangle (render->cairo, region->originx, region->originy,
         region->extentx, region->extenty);
     cairo_fill (render->cairo);
+  }
+
+  /* Show background image, if required */
+  if (region->smpte_background_image) {
+    cairo_set_source_surface (render->cairo, region->smpte_background_image,
+        region->originx, region->originy);
+    cairo_paint (render->cairo);
   }
 
   /* Clip contents to region, if required */
@@ -510,6 +590,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 static void
 gst_ttmlrender_free_region (GstTTMLRegion *region)
 {
+  if (region->smpte_background_image)
+    cairo_surface_destroy (region->smpte_background_image);
   g_free (region->current_par_content);
   g_list_free_full (region->layouts, g_object_unref);
   g_free (region->id);
