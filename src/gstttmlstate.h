@@ -79,6 +79,9 @@ void gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
 void gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
     const gchar *id);
 
+void gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
+    guint8 **data, gint *length);
+
 G_END_DECLS
 
 #endif /* __GST_TTML_STATE_H__ */

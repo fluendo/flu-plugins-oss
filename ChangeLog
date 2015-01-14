@@ -1,3 +1,13 @@
+2015-01-14  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_cairo_read_memory_func),
+	(gst_ttmlrender_decode_embedded_image),
+	(gst_ttmlrender_new_region), (gst_ttmlrender_show_regions),
+	(gst_ttmlrender_free_region):
+	* src/gstttmlstate.c: (gst_ttml_state_restore_data):
+	* src/gstttmlstate.h:
+	First working version of embedded images in SMPTE-TT.
+
 2015-01-12  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_copy):
