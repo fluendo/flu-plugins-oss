@@ -485,6 +485,7 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
     cairo_fill (render->cairo);
 
     cairo_surface_destroy (dest_surface);
+    cairo_surface_destroy (blurred);
     cairo_destroy (dest_cairo);
   }
 

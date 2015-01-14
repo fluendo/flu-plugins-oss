@@ -1,5 +1,10 @@
 2015-01-14  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_render_outline):
+	Fix leak on blurred spans.
+
+2015-01-14  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_cairo_read_memory_func),
 	(gst_ttmlrender_decode_embedded_image),
 	(gst_ttmlrender_new_region), (gst_ttmlrender_show_regions),
