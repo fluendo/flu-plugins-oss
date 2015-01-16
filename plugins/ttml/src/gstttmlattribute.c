@@ -278,6 +278,11 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
           parent_length = direction == 0 ? state->frame_width : state->frame_height;
         }
         length->f *= parent_length;
+      } else if (type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ||
+                 type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL) {
+        /* Do not try to convert these to pixels, since we do not know the image
+         * size yet. Leave them as percentages. */
+        return;
       } else {
         prev_attr =
             gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
@@ -650,6 +655,32 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     attr->value.string = g_strstrip (g_strdup (value));
     GST_LOG ("Parsed '%s' background image", value);
     break;
+  case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
+  case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
+    attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    if (gst_ttml_utils_attr_value_is (value, "left")  ||
+        gst_ttml_utils_attr_value_is (value, "top")) {
+      attr->value.length[0].f = 0.f;
+    } else if (gst_ttml_utils_attr_value_is (value, "center") ||
+               gst_ttml_utils_attr_value_is (value, "inherit")) {
+      /* FIXME: On animations, "inherit" should revert to parent's value.
+       * Assuming this will always be "center" is a quick and dirty fix. */
+      attr->value.length[0].f = 0.5f;
+    } else if (gst_ttml_utils_attr_value_is (value, "right") ||
+               gst_ttml_utils_attr_value_is (value, "bottom")) {
+      attr->value.length[0].f = 1.f;
+    } else {
+      gst_ttml_attribute_parse_length_expression (value, &attr->value.length[0].f,
+          &attr->value.length[0].unit, NULL);
+    }
+    if (attr) {
+      gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0],
+          attr->type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ? 0 : 1);
+      GST_LOG ("Parsed '%s' %s into %g (%s)", value, name,
+          attr->value.length[0].f,
+          gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
+    }
+    break;
   default:
     GST_WARNING ("Attribute not implemented");
     /* We should never reach here, anyway, dispose of the useless attribute */
@@ -889,6 +920,11 @@ gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
       attr->value.string = NULL;
+      break;
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
+      attr->value.length[0].f = 0.5f;
+      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       break;
     default:
       GST_WARNING ("This method should only be used for Styling attributes");

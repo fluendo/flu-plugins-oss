@@ -1,9 +1,9 @@
 2016-01-14  Xavi Artigas  <xartigas@fluendo.com>
 
-	* src\gstttmlattribute.c:
-	* src\gstttmlenums.h:
-	* src\gstttmlrender.c:
-	* src\gstttmlutils.c:
+	* src/gstttmlattribute.c:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c:
+	* src/gstttmlutils.c:
 	Implement SMPTE-TT background image alignment attributes.
 
 2015-01-14  Xavi Artigas  <xartigas@fluendo.com>
