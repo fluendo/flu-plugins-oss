@@ -48,6 +48,8 @@ typedef struct _GstTTMLRegion {
   gint padded_extentx, padded_extenty;
   guint32 background_color;
   cairo_surface_t *smpte_background_image;
+  gint smpte_background_image_posx;
+  gint smpte_background_image_posy;
   GstTTMLDisplayAlign display_align;
   gboolean overflow_visible;
 
@@ -317,6 +319,35 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
     region->smpte_background_image = NULL;
   }
 
+  if (region->smpte_background_image) {
+    gint width = cairo_image_surface_get_width (region->smpte_background_image);
+    gint height = cairo_image_surface_get_height (region->smpte_background_image);
+
+    attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL);
+    if (attr) {
+      if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
+        region->smpte_background_image_posx = region->padded_originx + (region->padded_extentx - width) * attr->value.length[0].f;
+      } else {
+        region->smpte_background_image_posx = region->padded_originx + attr->value.length[0].f;
+      }
+    } else {
+      /* CENTER is the default */
+      region->smpte_background_image_posx = region->padded_originx + (region->padded_extentx - width) / 2;
+    }
+
+    attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL);
+    if (attr) {
+      if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
+        region->smpte_background_image_posy = region->padded_originy + (region->padded_extenty - height) * attr->value.length[0].f;
+      } else {
+        region->smpte_background_image_posy = region->padded_originy + attr->value.length[0].f;
+      }
+    } else {
+      /* CENTER is the default */
+      region->smpte_background_image_posy = region->padded_originy + (region->padded_extenty - height) / 2;
+    }
+  }
+
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_DISPLAY_ALIGN);
   region->display_align = attr ? attr->value.display_align :
       render->default_display_align;
@@ -557,7 +588,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
   /* Show background image, if required */
   if (region->smpte_background_image) {
     cairo_set_source_surface (render->cairo, region->smpte_background_image,
-        region->originx, region->originy);
+        region->smpte_background_image_posx, region->smpte_background_image_posy);
     cairo_paint (render->cairo);
   }
 
