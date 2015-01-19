@@ -652,8 +652,13 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         gst_ttml_utils_enum_name (attr->value.smpte_encoding, SMPTEEncoding));
     break;
   case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
-    attr->value.string = g_strstrip (g_strdup (value));
-    GST_LOG ("Parsed '%s' background image", value);
+    if (gst_ttml_utils_attr_value_is (value, "none")) {
+      attr->value.string = NULL;
+      GST_LOG ("Parsed '%s' background image to NOTHING", value);
+    } else {
+      attr->value.string = g_strstrip (g_strdup (value));
+      GST_LOG ("Parsed '%s' background image", value);
+    }
     break;
   case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
   case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:

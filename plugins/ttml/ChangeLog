@@ -1,3 +1,8 @@
+2015-01-19  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	Take care of special "none" SMPTE-TT background image.
+
 2016-01-14  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c:
