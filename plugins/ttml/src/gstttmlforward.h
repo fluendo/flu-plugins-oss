@@ -20,6 +20,7 @@ typedef struct _GstTTMLToken GstTTMLToken;
 typedef struct _GstTTMLLength GstTTMLLength;
 typedef struct _GstTTMLFraction GstTTMLFraction;
 typedef struct _GstTTMLTextOutline GstTTMLTextOutline;
+typedef struct _GstTTMLDownloader GstTTMLDownloader;
 
 G_END_DECLS
 

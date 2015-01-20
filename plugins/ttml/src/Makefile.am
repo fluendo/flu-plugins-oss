@@ -38,9 +38,9 @@ libgstfluttml_la_SOURCES += gstttmlparse.c
 endif
 
 if BUILD_TTMLRENDER
-libgstfluttml_la_SOURCES += gstttmlrender.c gstttmlblur.c
-libgstfluttml_la_CFLAGS += $(PANGO_CFLAGS) $(PIXMAN_CFLAGS)
-libgstfluttml_la_LIBADD += $(PANGO_LIBS) $(PIXMAN_LIBS)
+libgstfluttml_la_SOURCES += gstttmlrender.c gstttmlblur.c gstttmldownloader.c
+libgstfluttml_la_CFLAGS += $(PANGO_CFLAGS) $(PIXMAN_CFLAGS) $(FLUDOWNLOADER_CFLAGS)
+libgstfluttml_la_LIBADD += $(PANGO_LIBS) $(PIXMAN_LIBS) $(FLUDOWNLOADER_LIBS)
 endif
 
 libgstfluttml_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) $(CPU_TUNE_LDFLAGS) \
@@ -61,5 +61,5 @@ gstttmlspan.h \
 gstttmlenums.h \
 gstttmlutils.h \
 gstttmlstyle.h \
-gstttmlforward.h
-
+gstttmlforward.h \
+gstttmldownloader.h

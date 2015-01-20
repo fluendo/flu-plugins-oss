@@ -955,6 +955,77 @@ negotiation_error:
   return base->current_gst_status;
 }
 
+/* Retrieve the URI of the TTML file we are currently parsing by asking
+ * upstream elements until we find a Source with a "location" property.
+ * Free after use.
+ * Code copied from fludashparser.c */
+gchar *
+gst_ttmlbase_uri_get (GstPad * pad)
+{
+  GstObject *parent;
+  gchar *uri = NULL;
+
+  parent = gst_pad_get_parent (pad);
+  if (!parent)
+    return NULL;
+
+  if (GST_IS_GHOST_PAD (parent)) {
+    GstPad *peer;
+
+    peer = gst_pad_get_peer (GST_PAD (parent));
+    uri = gst_ttmlbase_uri_get (peer);
+    gst_object_unref (peer);
+
+  } else {
+    GstElementFactory *f;
+    const gchar *klass;
+
+    f = gst_element_get_factory (GST_ELEMENT (parent));
+    klass = gst_element_factory_get_klass (f);
+    if (g_strstr_len (klass, -1, "Source") != NULL) {
+      gchar *scheme;
+
+      /* try to get the location property */
+      g_object_get (G_OBJECT (parent), "location", &uri, NULL);
+      scheme = g_uri_parse_scheme (uri);
+      if (!scheme) {
+        if (!g_path_is_absolute (uri)) {
+          gchar *absolute;
+          absolute = g_build_filename (g_get_current_dir (), uri, NULL);
+          uri = g_strdup_printf ("file://%s", absolute);
+          g_free (absolute);
+        } else {
+          uri = g_strdup_printf ("file://%s", uri);
+        }
+      } else {
+        uri = g_strdup (uri);
+        g_free (scheme);
+      }
+    } else {
+      GstPad *sink_pad;
+      GstIterator *iter;
+
+      /* iterate over the sink pads */
+      iter = gst_element_iterate_sink_pads (GST_ELEMENT (parent));
+      while (gst_iterator_next (iter,
+              (gpointer*) &sink_pad) != GST_ITERATOR_DONE) {
+        GstPad *peer;
+
+        peer = gst_pad_get_peer (sink_pad);
+        uri = gst_ttmlbase_uri_get (peer);
+        gst_object_unref (sink_pad);
+        gst_object_unref (peer);
+        if (uri)
+          break;
+      }
+      gst_iterator_free (iter);
+    }
+  }
+  gst_object_unref (parent);
+
+  return uri;
+}
+
 /* Free any information held by the element */
 static void
 gst_ttmlbase_cleanup (GstTTMLBase * base)
