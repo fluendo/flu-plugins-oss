@@ -75,12 +75,11 @@ void gst_ttml_downloader_free (GstTTMLDownloader *downloader)
 gboolean gst_ttml_downloader_download (GstTTMLDownloader *downloader,
       const gchar *url, guint8 **data, gint *size)
 {
-  FluDownloaderTask *task;
   GST_DEBUG ("Downloading %s", url);
   downloader->finished = FALSE;
   downloader->data = NULL;
   downloader->size = 0;
-  task = fludownloader_new_task (downloader->fludownloader, url, NULL, downloader, FALSE);
+  fludownloader_new_task (downloader->fludownloader, url, NULL, downloader, FALSE);
 
   g_mutex_lock (&downloader->done_mutex);
   while (!downloader->finished)
