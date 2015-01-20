@@ -165,13 +165,13 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
   gst_ttml_style_reset (&region->current_par_style);
 }
 
-typedef struct _GstTTMLDecodeEmbeddedImageClosure {
+typedef struct _GstTTMLDataBuffer {
   guint8 *data;
   gint datalen;
-} GstTTMLDecodeEmbeddedImageClosure;
+} GstTTMLDataBuffer;
 
 static cairo_status_t
-gst_ttmlrender_cairo_read_memory_func (GstTTMLDecodeEmbeddedImageClosure *closure, unsigned char *data,
+gst_ttmlrender_cairo_read_memory_func (GstTTMLDataBuffer *closure, unsigned char *data,
     unsigned int len)
 {
   if (len > closure->datalen)
@@ -183,39 +183,31 @@ gst_ttmlrender_cairo_read_memory_func (GstTTMLDecodeEmbeddedImageClosure *closur
 }
 
 static cairo_surface_t *
-gst_ttmlrender_decode_image_from_saved_data (const GstTTMLState *state, const gchar *id)
+gst_ttmlrender_decode_image_from_buffer (const gchar *id, GstTTMLDataBuffer *buffer)
 {
-  GstTTMLDecodeEmbeddedImageClosure closure = { 0 };
   cairo_surface_t *surface = NULL;
 
-  gst_ttml_state_restore_data (state, id, &closure.data, &closure.datalen);
-  if (closure.data) {
-    /* This ID has been defined */
-    cairo_status_t status = CAIRO_STATUS_READ_ERROR;
+  cairo_status_t status = CAIRO_STATUS_READ_ERROR;
 
-    surface = cairo_image_surface_create_from_png_stream (
-        (cairo_read_func_t)gst_ttmlrender_cairo_read_memory_func, &closure);
-    if (surface) {
-      status = cairo_surface_status (surface);
-    }
-    if (status == CAIRO_STATUS_SUCCESS) {
-      cairo_format_t f = cairo_image_surface_get_format (surface);
-      int w = cairo_image_surface_get_width (surface);
-      int h = cairo_image_surface_get_height (surface);
-      int s = cairo_image_surface_get_stride (surface);
+  surface = cairo_image_surface_create_from_png_stream (
+      (cairo_read_func_t)gst_ttmlrender_cairo_read_memory_func, buffer);
+  if (surface) {
+    status = cairo_surface_status (surface);
+  }
+  if (status == CAIRO_STATUS_SUCCESS) {
+    cairo_format_t f = cairo_image_surface_get_format (surface);
+    int w = cairo_image_surface_get_width (surface);
+    int h = cairo_image_surface_get_height (surface);
+    int s = cairo_image_surface_get_stride (surface);
 
-      GST_DEBUG ("Decoded embedded PNG image '%s': "
-          "format %d, width %d, height %d, stride %d",
-          id, f, w, h, s);
-    } else {
-      GST_WARNING ("Could not decode image '%s'. Cairo status: %s", id,
-          cairo_status_to_string (status));
-      cairo_surface_destroy (surface);
-      surface = NULL;
-    }
+    GST_DEBUG ("Decoded PNG image '%s': "
+        "format %d, width %d, height %d, stride %d",
+        id, f, w, h, s);
   } else {
-    /* ID not found */
-    GST_WARNING ("No image with id '%s' has been defined", id);
+    GST_WARNING ("Could not decode image '%s'. Cairo status: %s", id,
+        cairo_status_to_string (status));
+    cairo_surface_destroy (surface);
+    surface = NULL;
   }
 
   return surface;
@@ -226,6 +218,7 @@ gst_ttmlrender_retrieve_image (GstTTMLRender *render, const gchar *id)
 {
   cairo_surface_t *surface;
   gchar *id_copy;
+  GstTTMLDataBuffer buffer;
 
   /* Create cache hash table if it does not exist */
   if (!render->cached_images) {
@@ -241,8 +234,47 @@ gst_ttmlrender_retrieve_image (GstTTMLRender *render, const gchar *id)
     goto beach;
   }
 
-  /* Look in the saved data and decode the image */
-  surface = gst_ttmlrender_decode_image_from_saved_data (&render->base.state, id);
+  if (id[0] == '#') {
+    /* Look in the saved data and decode the image */
+    gst_ttml_state_restore_data (&render->base.state, id + 1, &buffer.data,
+        &buffer.datalen);
+    if (buffer.data) {
+      surface = gst_ttmlrender_decode_image_from_buffer (id + 1, &buffer);
+    } else {
+      /* ID not found */
+      GST_WARNING ("No image with id '%s' has been defined", id + 1);
+    }
+  } else {
+    gchar *scheme = g_uri_parse_scheme (id);
+    gchar *url = NULL;
+    if (scheme) {
+      /* Use the image ID as URL */
+      g_free (scheme);
+      url = g_strdup (id);
+    } else {
+      /* Build the URL using the current file location plus the ID */
+      gchar *baseurl = gst_ttmlbase_uri_get (render->base.sinkpad);
+      gchar *basedir = g_path_get_dirname (baseurl);
+      if (strncmp (baseurl, "file://", 7) == 0) {
+        url = g_build_filename (basedir, id, NULL);
+      } else {
+        url = g_strdup_printf ("%s/%s", basedir, id);
+      }
+      g_free (baseurl);
+      g_free (basedir);
+    }
+
+    /* Load from file */
+    if (gst_ttml_downloader_download (render->downloader, url, &buffer.data,
+        &buffer.datalen)) {
+      surface = gst_ttmlrender_decode_image_from_buffer (id, &buffer);
+    } else {
+      /* Download error */
+      GST_WARNING ("File '%s' could not be retrieved", id);
+    }
+    g_free (url);
+  }
+
   if (!surface)
     goto beach;
 
@@ -305,16 +337,8 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE);
   if (attr && attr->value.string) {
-    gchar *name = attr->value.string;
-    if (name[0] == '#') {
-      /* Embedded image: Load from saved data */
-      region->smpte_background_image = gst_ttmlrender_retrieve_image (render,
-          name + 1);
-    } else {
-      /* Load from file */
-      GST_WARNING ("Loading of external images not implemented yet (id: '%s')",
-          name);
-    }
+    region->smpte_background_image = gst_ttmlrender_retrieve_image (render,
+        attr->value.string);
   } else {
     region->smpte_background_image = NULL;
   }
@@ -821,6 +845,8 @@ gst_ttmlrender_dispose (GObject * object)
     render->pango_context = NULL;
   }
 
+  gst_ttml_downloader_free (render->downloader);
+
   GST_CALL_PARENT (G_OBJECT_CLASS, dispose, (object));
 }
 
@@ -876,4 +902,6 @@ gst_ttmlrender_init (GstTTMLRender * render)
 
   render->default_font_family = g_strdup ("default");
   render->cached_images = NULL;
+
+  render->downloader = gst_ttml_downloader_new ();
 }

@@ -87,5 +87,7 @@ typedef struct _GstTTMLBaseClass {
 
 GType gst_ttmlbase_get_type (void);
 
+gchar *gst_ttmlbase_uri_get (GstPad * pad);
+
 G_END_DECLS
 #endif /* __GST_TTMLBASE_H__ */

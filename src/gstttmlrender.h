@@ -13,6 +13,7 @@
 #include "gst-demo.h"
 #include "gstttmlbase.h"
 #include "gstttmlstate.h"
+#include "gstttmldownloader.h"
 
 G_BEGIN_DECLS
 
@@ -36,6 +37,9 @@ typedef struct _GstTTMLRender {
   /* Cache of ready-to-use Cairo surfaces, so they are not decoded each time
    * they are needed. */
   GHashTable *cached_images;
+
+  /* To download external files */
+  GstTTMLDownloader *downloader;
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */

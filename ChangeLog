@@ -1,3 +1,25 @@
+2015-01-20  Xavi Artigas  <xartigas@fluendo.com>
+
+	* configure.ac:
+	* src/Makefile.am:
+	* src/gstttmlbase.c: (gst_ttmlbase_uri_get):
+	* src/gstttmlbase.h:
+	* src/gstttmldownloader.c: (gst_ttml_downloader_data_cb),
+	(gst_ttml_downloader_done_cb), (gst_ttml_downloader_new),
+	(gst_ttml_downloader_free), (gst_ttml_downloader_download):
+	* src/gstttmldownloader.h:
+	* src/gstttmlforward.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_cairo_read_memory_func),
+	(gst_ttmlrender_decode_image_from_buffer),
+	(gst_ttmlrender_retrieve_image), (gst_ttmlrender_new_region),
+	(gst_ttmlrender_dispose), (gst_ttmlrender_init):
+	* src/gstttmlrender.h:
+	* win32/vs10/libgstfluttml_sdk.vcxproj:
+	* win32/vs10/libgstfluttml_sdk.vcxproj.filters:
+	Implement *synchronous* download of external images using FluDownloader.
+	libfludownloader is now a hard dependency of ttmlrender (it is not
+	required for ttmlparse)
+
 2015-01-19  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
