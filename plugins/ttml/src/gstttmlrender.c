@@ -185,12 +185,13 @@ gst_ttmlrender_cairo_read_memory_func (GstTTMLDataBuffer *closure, unsigned char
 static cairo_surface_t *
 gst_ttmlrender_decode_image_from_buffer (const gchar *id, GstTTMLDataBuffer *buffer)
 {
+  GstTTMLDataBuffer buffer_copy = *buffer;
   cairo_surface_t *surface = NULL;
 
   cairo_status_t status = CAIRO_STATUS_READ_ERROR;
 
   surface = cairo_image_surface_create_from_png_stream (
-      (cairo_read_func_t)gst_ttmlrender_cairo_read_memory_func, buffer);
+      (cairo_read_func_t)gst_ttmlrender_cairo_read_memory_func, &buffer_copy);
   if (surface) {
     status = cairo_surface_status (surface);
   }
@@ -271,6 +272,9 @@ gst_ttmlrender_retrieve_image (GstTTMLRender *render, const gchar *id)
     } else {
       /* Download error */
       GST_WARNING ("File '%s' could not be retrieved", id);
+    }
+    if (buffer.data) {
+      g_free (buffer.data);
     }
     g_free (url);
   }
