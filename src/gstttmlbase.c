@@ -990,15 +990,19 @@ gst_ttmlbase_uri_get (GstPad * pad)
       scheme = g_uri_parse_scheme (uri);
       if (!scheme) {
         if (!g_path_is_absolute (uri)) {
-          gchar *absolute;
-          absolute = g_build_filename (g_get_current_dir (), uri, NULL);
+          gchar *absolute, *cwd;
+          cwd = g_get_current_dir ();
+          absolute = g_build_filename (cwd, uri, NULL);
+          g_free (cwd);
+          g_free (uri);
           uri = g_strdup_printf ("file://%s", absolute);
           g_free (absolute);
         } else {
-          uri = g_strdup_printf ("file://%s", uri);
+          gchar *tmp = uri;
+          uri = g_strdup_printf ("file://%s", tmp);
+          g_free (tmp);
         }
       } else {
-        uri = g_strdup (uri);
         g_free (scheme);
       }
     } else {
