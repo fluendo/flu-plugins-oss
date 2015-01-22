@@ -733,6 +733,8 @@ static xmlSAXHandler gst_ttmlbase_sax_handler = {
 static void
 gst_ttmlbase_reset (GstTTMLBase * base)
 {
+  GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
+
   GST_DEBUG_OBJECT (base, "Resetting parsing information");
 
   if (base->xml_parser) {
@@ -757,6 +759,10 @@ gst_ttmlbase_reset (GstTTMLBase * base)
     g_free (base->current_data);
     base->current_data = NULL;
     base->current_data_length = 0;
+  }
+
+  if (klass->reset) {
+    klass->reset (base);
   }
 
   gst_ttml_state_reset (&base->state);

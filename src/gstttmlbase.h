@@ -71,6 +71,10 @@ typedef struct _GstTTMLBaseClass {
 
   /* Inform the derived class of the final negotiated caps on its srcpad */
   void (*src_setcaps)(GstTTMLBase *base, GstCaps *caps);
+
+  /* Tell the derived class to clear all internal data and go back to the
+   * reset state. */
+  void (*reset)(GstTTMLBase *base);
 } GstTTMLBaseClass;
 
 #define GST_TYPE_TTMLBASE            (gst_ttmlbase_get_type())
