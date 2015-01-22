@@ -822,16 +822,25 @@ gst_ttmlrender_set_property (GObject * object, guint prop_id,
 }
 
 static void
-gst_ttmlrender_dispose (GObject * object)
-{
-  GstTTMLRender *render = GST_TTMLRENDER (object);
+gst_ttmlrender_reset (GstTTMLBase *base) {
+  GstTTMLRender *render = GST_TTMLRENDER (base);
 
-  GST_DEBUG_OBJECT (render, "disposing TTML renderer");
+  GST_DEBUG_OBJECT (render, "resetting TTML renderer");
 
   if (render->cached_images) {
     g_hash_table_unref (render->cached_images);
     render->cached_images = NULL;
   }
+}
+
+static void
+gst_ttmlrender_dispose (GObject * object)
+{
+  GstTTMLRender *render = GST_TTMLRENDER (object);
+
+  gst_ttmlrender_reset (GST_TTMLBASE (render));
+
+  GST_DEBUG_OBJECT (render, "disposing TTML renderer");
 
   if (render->regions) {
     g_list_free_full (render->regions,
@@ -896,6 +905,7 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
   base_klass->gen_buffer = GST_DEBUG_FUNCPTR (gst_ttmlrender_gen_buffer);
   base_klass->fixate_caps = GST_DEBUG_FUNCPTR (gst_ttmlrender_fixate_caps);
   base_klass->src_setcaps = GST_DEBUG_FUNCPTR (gst_ttmlrender_setcaps);
+  base_klass->reset = GST_DEBUG_FUNCPTR (gst_ttmlrender_reset);
 }
 
 static void

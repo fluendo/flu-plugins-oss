@@ -1,3 +1,13 @@
+2015-01-22  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlbase.c: (gst_ttmlbase_reset):
+	* src/gstttmlbase.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_reset),
+	(gst_ttmlrender_dispose), (gst_ttmlrender_class_init):
+	Clear images cache in ttmlrender when parsing is reset (due to
+	document end or flush, for example). This is a first step to avoid
+	having the cache grow forever.
+
 2015-01-20  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlbase.c: (gst_ttmlbase_uri_get),
