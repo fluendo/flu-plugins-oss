@@ -1,5 +1,10 @@
 2015-01-23  Xavi Artigas  <xartigas@fluendo.com>
 
+	* gst-fluendo-ttml.spec.in:
+	Add the fludownloader dependency to the .spec file.
+
+2015-01-23  Xavi Artigas  <xartigas@fluendo.com>
+
 	* configure.ac:
 	Do not abort configure if fludownloader is not found, so releases
 	can still be made in the builder machine.
