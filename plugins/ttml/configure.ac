@@ -128,7 +128,10 @@ if test "x$BUILD_TTMLRENDER" = "xyes"
 then
 PKG_CHECK_MODULES(PANGO, pango >= 1.16.0  pangocairo >= 1.16.0)
 PKG_CHECK_MODULES(PIXMAN, pixman-1 >= 0.18.4)
-PKG_CHECK_MODULES(FLUDOWNLOADER, fludownloader)
+AG_GST_PKG_CHECK_MODULES(FLUDOWNLOADER, fludownloader_static)
+if test "x$HAVE_FLUDOWNLOADER" = "xno"; then
+  AC_MSG_WARN(you do not have a suitable fludownloader installed)
+fi
 fi
 
 AC_OUTPUT(
