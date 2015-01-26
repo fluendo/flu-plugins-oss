@@ -1,3 +1,5 @@
+=== release 0.10.15 ===
+
 2015-01-26  Julien Moutte <julien@fluedno.com>
 
 	* configure.ac: Try to depend on a slighly older version of pixman for
