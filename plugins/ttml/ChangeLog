@@ -1,3 +1,5 @@
+=== release 0.10.16 ===
+
 2015-01-26  Julien Moutte <julien@fluendo.com>
 
 	* src/gstttmldownloader.c: (gst_ttml_downloader_done_cb),
