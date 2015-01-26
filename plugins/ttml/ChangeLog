@@ -1,10 +1,18 @@
+2015-01-26  Julien Moutte <julien@fluendo.com>
+
+	* src/gstttmldownloader.c: (gst_ttml_downloader_done_cb),
+	(gst_ttml_downloader_new), (gst_ttml_downloader_free),
+	(gst_ttml_downloader_download):
+	* src/gstttmldownloader.h: Use old deprecated mutex functions to support
+	FC13 build.
+
 2015-01-26  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
 
 === release 0.10.15 ===
 
-2015-01-26  Julien Moutte <julien@fluedno.com>
+2015-01-26  Julien Moutte <julien@fluendo.com>
 
 	* configure.ac: Try to depend on a slighly older version of pixman for
 	the build to support FC13.

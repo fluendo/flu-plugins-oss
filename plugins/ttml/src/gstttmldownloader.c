@@ -26,7 +26,7 @@ void gst_ttml_downloader_done_cb (FluDownloaderTaskOutcome outcome,
     int http_status_code, size_t downloaded_size, GstTTMLDownloader *downloader,
     FluDownloaderTask *task)
 {
-  g_mutex_lock (&downloader->done_mutex);
+  g_mutex_lock (downloader->done_mutex);
   if (outcome != FLUDOWNLOADER_TASK_OK) {
     g_free (downloader->data);
     downloader->size = 0;
@@ -34,8 +34,8 @@ void gst_ttml_downloader_done_cb (FluDownloaderTaskOutcome outcome,
   downloader->finished = TRUE;
   downloader->http_status_code = http_status_code;
 
-  g_cond_signal (&downloader->done_cond);
-  g_mutex_unlock (&downloader->done_mutex);
+  g_cond_signal (downloader->done_cond);
+  g_mutex_unlock (downloader->done_mutex);
 }
 
 GstTTMLDownloader *gst_ttml_downloader_new ()
@@ -48,8 +48,8 @@ GstTTMLDownloader *gst_ttml_downloader_new ()
       (FluDownloaderDataCallback)gst_ttml_downloader_data_cb,
       (FluDownloaderDoneCallback)gst_ttml_downloader_done_cb);
 
-  g_mutex_init (&downloader->done_mutex);
-  g_cond_init (&downloader->done_cond);
+  downloader->done_mutex = g_mutex_new ();
+  downloader->done_cond = g_cond_new ();
 
   return downloader;
 }
@@ -64,8 +64,8 @@ void gst_ttml_downloader_free (GstTTMLDownloader *downloader)
     fludownloader_destroy (downloader->fludownloader);
   }
 
-  g_mutex_clear (&downloader->done_mutex);
-  g_cond_clear (&downloader->done_cond);
+  g_mutex_free (downloader->done_mutex);
+  g_cond_free (downloader->done_cond);
 
   g_free (downloader);
 
@@ -81,12 +81,12 @@ gboolean gst_ttml_downloader_download (GstTTMLDownloader *downloader,
   downloader->size = 0;
   fludownloader_new_task (downloader->fludownloader, url, NULL, downloader, FALSE);
 
-  g_mutex_lock (&downloader->done_mutex);
+  g_mutex_lock (downloader->done_mutex);
   while (!downloader->finished)
-    g_cond_wait (&downloader->done_cond, &downloader->done_mutex);
+    g_cond_wait (downloader->done_cond, downloader->done_mutex);
   *data = downloader->data;
   *size = downloader->size;
-  g_mutex_unlock (&downloader->done_mutex);
+  g_mutex_unlock (downloader->done_mutex);
   GST_DEBUG ("Download finished (HTTP status: %d, Bytes: %d)",
       downloader->http_status_code, downloader->size);
 
