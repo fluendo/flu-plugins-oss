@@ -1,3 +1,8 @@
+2015-01-26  Julien Moutte <julien@fluedno.com>
+
+	* configure.ac: Try to depend on a slighly older version of pixman for
+	the build to support FC13.
+
 2015-01-23  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
