@@ -15,8 +15,8 @@ G_BEGIN_DECLS
 /* Wrapper around libfludownloader */
 struct _GstTTMLDownloader {
   FluDownloader *fludownloader;
-  GMutex done_mutex;
-  GCond done_cond;
+  GMutex *done_mutex;
+  GCond *done_cond;
   gboolean finished;
   gint http_status_code;
   guint8 *data;
