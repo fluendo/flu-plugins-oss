@@ -483,14 +483,26 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
 
 static void
 gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
-    gboolean render)
+    gboolean render, int right_edge)
 {
   int ndx, num_lines, spacing, baseline;
 
   num_lines = pango_layout_get_line_count (layout);
   spacing = pango_layout_get_spacing (layout);
   baseline = pango_layout_get_baseline (layout) / PANGO_SCALE;
+  int xoffset = 0;
 
+  if (pango_layout_get_width (layout) == -1) {
+    /* Unconstrained line length, alignment must be calculated manually */
+    PangoRectangle ext;
+    pango_layout_get_pixel_extents (layout, NULL, &ext);
+    if (pango_layout_get_alignment (layout) == PANGO_ALIGN_RIGHT) {
+      xoffset = right_edge - ext.width;
+    }
+    if (pango_layout_get_alignment (layout) == PANGO_ALIGN_CENTER) {
+      xoffset = (right_edge - ext.width) / 2;
+    }
+  }
   for (ndx = 0; ndx < num_lines; ndx++) {
     PangoLayoutLine *line = pango_layout_get_line_readonly (layout, ndx);
     int pre_space, post_space;
@@ -510,13 +522,13 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
       post_space = spacing - baseline;
     }
 
-    cairo_translate (cairo, ranges[0] / PANGO_SCALE, pre_space);
+    cairo_translate (cairo, xoffset + ranges[0] / PANGO_SCALE, pre_space);
     if (render) {
       pango_cairo_show_layout_line (cairo, line);
     } else {
       pango_cairo_layout_line_path (cairo, line);
     }
-    cairo_translate (cairo, -ranges[0] / PANGO_SCALE, post_space);
+    cairo_translate (cairo, -xoffset - ranges[0] / PANGO_SCALE, post_space);
 
     g_free (ranges);
   }
@@ -526,7 +538,7 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
 
 static void
 gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outline,
-    PangoLayout *layout, PangoRectangle *rect)
+    PangoLayout *layout, PangoRectangle *rect, int right_edge)
 {
   /* Draw the text outline */
   guint32 color = outline->use_current_color ?
@@ -559,7 +571,7 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
       GET_CAIRO_COMP (color,  8),
       GET_CAIRO_COMP (color,  0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
-  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE);
+  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE, right_edge);
   cairo_stroke (dest_cairo);
 
   if (outline->length[1].unit !=
@@ -663,7 +675,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     if (region->text_outline.length[0].unit !=
         GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
       gst_ttmlrender_render_outline (render, &region->text_outline,
-          layout, &logical_rect);
+          layout, &logical_rect, region->padded_extentx);
     }
 
     /* Show text */
@@ -673,7 +685,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         1.0 - GET_CAIRO_COMP (region->background_color, 24),
         1.0 - GET_CAIRO_COMP (region->background_color, 16),
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
-    gst_ttmlrender_show_layout (render->cairo, layout, TRUE);
+    gst_ttmlrender_show_layout (render->cairo, layout, TRUE,
+        region->padded_extentx);
 
     link = g_list_next (link);
   }

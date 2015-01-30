@@ -1,3 +1,8 @@
+2015-01-23  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c:
+	Fix textAlign when wrapOption=noWrap.
+
 2015-01-26  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.
