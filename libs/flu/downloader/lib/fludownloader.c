@@ -68,24 +68,44 @@ _report_task_done (FluDownloaderTask * task, CURLcode result)
   if (task->abort == FALSE) {
     FluDownloaderTaskOutcome outcome = FLUDOWNLOADER_TASK_OK;
     long http_status_code = 0;
-    long os_status_code = 0;
 
-    if (result != CURLE_OK) {
-      curl_easy_getinfo (task->handle, CURLINFO_OS_ERRNO, &os_status_code);
-      outcome = FLUDOWNLOADER_TASK_ERROR;
+    /* Turn some of CURL's error codes into our possible task outcomes */
+    switch (result) {
+      case CURLE_OK:
+        outcome = FLUDOWNLOADER_TASK_OK;
+        break;
+      case CURLE_COULDNT_RESOLVE_HOST:
+      case CURLE_COULDNT_CONNECT:
+        outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
+        break;
+      case CURLE_SEND_ERROR:
+        outcome = FLUDOWNLOADER_TASK_SEND_ERROR;
+        break;
+      case CURLE_RECV_ERROR:
+        outcome = FLUDOWNLOADER_TASK_RECV_ERROR;
+        break;
+      case CURLE_OPERATION_TIMEDOUT:
+        outcome = FLUDOWNLOADER_TASK_TIMEOUT;
+        break;
+      case CURLE_FILE_COULDNT_READ_FILE:
+        outcome = FLUDOWNLOADER_TASK_FILE_NOT_FOUND;
+        break;
+      default:
+        outcome = FLUDOWNLOADER_TASK_ERROR;
+        break;
     }
 
-    /* Retrieve result code, and inform user */
-    if (!task->is_file) {
+    /* Retrieve HTTP result code, and inform user */
+    if (!task->is_file && outcome == FLUDOWNLOADER_TASK_OK) {
       curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
           &http_status_code);
 
       if (http_status_code >= 300)
-        outcome = FLUDOWNLOADER_TASK_ERROR;
+        outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
     }
 
     if (task->context->done_cb) {
-      task->context->done_cb (outcome, http_status_code, os_status_code,
+      task->context->done_cb (outcome, http_status_code,
           task->downloaded_size, task->user_data, task);
     }
   }
@@ -114,6 +134,7 @@ _write_function (void *buffer, size_t size, size_t nmemb,
      * and a new one has started, but we have not called process_curl_messages
      * yet and therefore we had not noticed before. Tell the user about the
      * finished task. */
+    /* We are assuming that the previous task ended correctly. */
     _report_task_done (prev_task, CURLE_OK);
 
     /* Also mark it as aborted so the user does not get notified again */
@@ -539,4 +560,29 @@ fludownloader_get_polling_period (FluDownloader * context)
   g_mutex_unlock (context->mutex);
 
   return ret;
+}
+
+const gchar *
+fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome)
+{
+  switch (outcome) {
+    case FLUDOWNLOADER_TASK_OK:
+      return "OK";
+    case FLUDOWNLOADER_TASK_ERROR:
+      return "Task error";
+    case FLUDOWNLOADER_TASK_COULD_NOT_CONNECT:
+      return "Could not connect";
+    case FLUDOWNLOADER_TASK_HTTP_ERROR:
+      return "HTTP error";
+    case FLUDOWNLOADER_TASK_SEND_ERROR:
+      return "Send error";
+    case FLUDOWNLOADER_TASK_RECV_ERROR:
+      return "Receive error";
+    case FLUDOWNLOADER_TASK_TIMEOUT:
+      return "Operation timed out";
+    case FLUDOWNLOADER_TASK_FILE_NOT_FOUND:
+      return "File not found";
+    default:
+      return "<Unknown>";
+  }
 }

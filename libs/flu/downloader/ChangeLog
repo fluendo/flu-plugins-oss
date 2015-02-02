@@ -1,3 +1,15 @@
+2015-02-02  Xavi Artigas  <xartigas@fluendo.com>
+
+	reviewed by: Jorge Zapata  <jzapata@fluendo.com>
+
+	* examples/multidl.c: (done_cb), (main):
+	* lib/fludownloader.c: (_report_task_done), (_write_function),
+	(fludownloader_get_polling_period),
+	(fludownloader_get_outcome_string):
+	* lib/fludownloader.h:
+	Ignore errno as CURL does not seem to set it. Use only CURL error codes
+	to return more specific error messages from the done callback.
+
 2015-02-02  Jorge Zapata  <jzapata@fluendo.com>
 
 	* examples/multidl.c: (done_cb):

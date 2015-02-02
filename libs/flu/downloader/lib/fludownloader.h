@@ -17,8 +17,22 @@ typedef struct _FluDownloaderTask FluDownloaderTask;
 
 typedef enum _FluDownloaderTaskOutcome
 {
+  /* Task ended correctly */
   FLUDOWNLOADER_TASK_OK,
+  /* Generic task error (error not in the list below) */
   FLUDOWNLOADER_TASK_ERROR,
+  /* Server not found or connection refused */
+  FLUDOWNLOADER_TASK_COULD_NOT_CONNECT,
+  /* Connection OK, but server returned HTTP error */
+  FLUDOWNLOADER_TASK_HTTP_ERROR,
+  /* Error while writing to the socket */
+  FLUDOWNLOADER_TASK_SEND_ERROR,
+  /* Error while reading from the socket */
+  FLUDOWNLOADER_TASK_RECV_ERROR,
+  /* An operation timed out */
+  FLUDOWNLOADER_TASK_TIMEOUT,
+  /* A local file could not be read */
+  FLUDOWNLOADER_TASK_FILE_NOT_FOUND,
 } FluDownloaderTaskOutcome;
   
 
@@ -28,7 +42,7 @@ typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
 
 /* Done callback. Called when a download finishes. */
 typedef void (*FluDownloaderDoneCallback) (FluDownloaderTaskOutcome outcome,
-    int http_status_code, int os_status_code, size_t downloaded_size,
+    int http_status_code, size_t downloaded_size,
     gpointer user_data, FluDownloaderTask *task);
 
 /* Initialize the library */
@@ -86,4 +100,5 @@ size_t fludownloader_task_get_length (FluDownloaderTask * task);
 void fludownloader_set_polling_period (FluDownloader * context, gint period);
 gint fludownloader_get_polling_period (FluDownloader * context);
 
+const gchar *fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome);
 #endif /* _FLUDOWNLOADER_H */

@@ -18,14 +18,14 @@ data_cb (void *buffer, size_t size, gpointer user_data,
 
 void
 done_cb (FluDownloaderTaskOutcome outcome, int http_status_code,
-    int os_status_code, size_t downloaded_size, gpointer user_data,
+    size_t downloaded_size, gpointer user_data,
     FluDownloaderTask *task)
 {
-  g_printf ("Transfer #%p done %s. HTTP Code = %d. OS Code = %d. %"
+  g_printf ("Transfer #%p done (%s). HTTP Code = %d. %"
       G_GSIZE_FORMAT " downloaded bytes (%s).\n",
       user_data,
-      outcome == FLUDOWNLOADER_TASK_OK ? "OK" : "WITH ERRORS", http_status_code,
-      os_status_code, downloaded_size, fludownloader_task_get_url (task));
+      fludownloader_get_outcome_string (outcome), http_status_code,
+      downloaded_size, fludownloader_task_get_url (task));
 }
 
 int
@@ -93,9 +93,9 @@ main (int argc, char *argv[])
   fludownloader_lock (dl1);
   fludownloader_new_task (dl1, "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", NULL, (gpointer) 0, FALSE);
   fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/aclocal.m42", NULL, (gpointer) 1, FALSE);
-  fludownloader_new_task (dl1, "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp2.m4s", NULL, (gpointer) 2, FALSE);
-  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/configure", NULL, (gpointer) 3, FALSE);
-  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/libfludownloader/ltmain.sh", NULL, (gpointer) 4, FALSE);
+  fludownloader_new_task (dl1, "http://localhost/kjk", NULL, (gpointer) 2, FALSE);
+  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/gstreamer/libfludownloader/configure", NULL, (gpointer) 3, FALSE);
+  fludownloader_new_task (dl1, "file:///home/fluendo/psvn/gstreamer/libfludownloader/ltmain.sh", NULL, (gpointer) 4, FALSE);
   fludownloader_unlock (dl1);
 #endif
 
