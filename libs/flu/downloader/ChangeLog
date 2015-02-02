@@ -1,3 +1,12 @@
+2015-02-02  Jorge Zapata  <jzapata@fluendo.com>
+
+	* examples/multidl.c: (done_cb):
+	* lib/fludownloader.c: (_report_task_done), (_write_function),
+	(_process_curl_messages):
+	* lib/fludownloader.h:
+	Check the CURLcode on the message to know if the task failed or not
+	Pass the errno value in case it is set
+
 2014-11-19  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.

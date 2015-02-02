@@ -62,26 +62,31 @@ struct _FluDownloaderTask
 };
 
 static void
-_report_task_done (FluDownloaderTask * task)
+_report_task_done (FluDownloaderTask * task, CURLcode result)
 {
   /* If the task was told to abort, there is no need to inform the user */
   if (task->abort == FALSE) {
     FluDownloaderTaskOutcome outcome = FLUDOWNLOADER_TASK_OK;
     long http_status_code = 0;
+    long os_status_code = 0;
+
+    if (result != CURLE_OK) {
+      curl_easy_getinfo (task->handle, CURLINFO_OS_ERRNO, &os_status_code);
+      outcome = FLUDOWNLOADER_TASK_ERROR;
+    }
 
     /* Retrieve result code, and inform user */
-    if (task->is_file)
-      outcome = task->downloaded_size > 0 ? FLUDOWNLOADER_TASK_OK :
-          FLUDOWNLOADER_TASK_ERROR;
-    else {
+    if (!task->is_file) {
       curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
           &http_status_code);
-      outcome = http_status_code < 299 ? FLUDOWNLOADER_TASK_OK :
-          FLUDOWNLOADER_TASK_ERROR;
+
+      if (http_status_code >= 300)
+        outcome = FLUDOWNLOADER_TASK_ERROR;
     }
+
     if (task->context->done_cb) {
-      task->context->done_cb (outcome, http_status_code, task->downloaded_size,
-          task->user_data, task);
+      task->context->done_cb (outcome, http_status_code, os_status_code,
+          task->downloaded_size, task->user_data, task);
     }
   }
 }
@@ -109,7 +114,7 @@ _write_function (void *buffer, size_t size, size_t nmemb,
      * and a new one has started, but we have not called process_curl_messages
      * yet and therefore we had not noticed before. Tell the user about the
      * finished task. */
-    _report_task_done (prev_task);
+    _report_task_done (prev_task, CURLE_OK);
 
     /* Also mark it as aborted so the user does not get notified again */
     prev_task->abort = TRUE;
@@ -207,7 +212,7 @@ _process_curl_messages (FluDownloader *context)
     if (!task)
       continue;
 
-    _report_task_done (task);
+    _report_task_done (task, msg->data.result);
 
     /* Remove the easy handle and free the task */
     _remove_task (context, task);
