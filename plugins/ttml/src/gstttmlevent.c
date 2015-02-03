@@ -10,6 +10,7 @@
 #include "gstttmlspan.h"
 #include "gstttmlevent.h"
 #include "gstttmlstate.h"
+#include "gstttmlutils.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
@@ -92,6 +93,22 @@ gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event)
   GST_DEBUG ("Inserting event %s at %" GST_TIME_FORMAT,
       gst_ttml_event_type_name (event->type),
       GST_TIME_ARGS (event->timestamp));
+  switch (event->type) {
+  case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
+    GST_DEBUG ("  span id %d, %d chars", event->data.span_begin.span->id,
+        event->data.span_begin.span->length);
+    break;
+  case GST_TTML_EVENT_TYPE_SPAN_END:
+    GST_DEBUG ("  span id %d", event->data.span_end.id);
+    break;
+  case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
+      GST_DEBUG ("  %s for span id %d", gst_ttml_utils_enum_name (
+          event->data.attr_update.attr->type, AttributeType),
+          event->data.attr_update.id);
+      break;
+  default:
+    break;
+  }
   return g_list_insert_sorted (timeline, event,
       (GCompareFunc)gst_ttml_event_compare);
 }

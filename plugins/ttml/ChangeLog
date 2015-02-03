@@ -1,5 +1,10 @@
 2015-02-03  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlevent.c: (gst_ttml_event_list_insert):
+	A bit more of debug output.
+
+2015-02-03  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
 	Fix GCC Warning (which is Error on VS).
 
