@@ -486,11 +486,11 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
     gboolean render, int right_edge)
 {
   int ndx, num_lines, spacing, baseline;
+  int xoffset = 0;
 
   num_lines = pango_layout_get_line_count (layout);
   spacing = pango_layout_get_spacing (layout);
   baseline = pango_layout_get_baseline (layout) / PANGO_SCALE;
-  int xoffset = 0;
 
   if (pango_layout_get_width (layout) == -1) {
     /* Unconstrained line length, alignment must be calculated manually */
