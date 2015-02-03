@@ -1,3 +1,8 @@
+2015-02-03  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
+	Fix GCC Warning (which is Error on VS).
+
 2015-01-23  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c:
