@@ -1,3 +1,9 @@
+2015-02-05  Xavi Artigas  <xartigas@fluendo.com>
+
+
+	* testsuite/ThisIsCoffee1961_captions.xml:
+	Fix once and for all the mistake in the This Is Coffe xml file.
+
 2015-02-03  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlevent.c: (gst_ttml_event_list_insert):

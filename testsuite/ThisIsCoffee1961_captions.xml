@@ -11,7 +11,7 @@
       </metadata>
       <styling>
 	<style xml:id="s1"
-	       tts:backgroundColor="transparent"  tts:textAlign='center' tts:extent="5ex 1em"
+	       tts:backgroundColor="transparent"  tts:textAlign='center' tts:extent="5em 1em"
 	       />
       </styling>
       <layout>
