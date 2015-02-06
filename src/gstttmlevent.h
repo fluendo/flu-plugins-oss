@@ -39,7 +39,8 @@ struct _GstTTMLEvent
   } data;
 };
 
-typedef void (*GstTTMLEventParseFunc) (GstTTMLEvent *event, void *userdata);
+typedef GList * (*GstTTMLEventParseFunc) (GstTTMLEvent *event, void *userdata,
+    GList *timeline);
 
 typedef void (*GstTTMLEventGenBufferFunc) (GstClockTime begin,
     GstClockTime end, void *userdata);

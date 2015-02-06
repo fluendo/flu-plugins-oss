@@ -1,3 +1,14 @@
+2015-02-06  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlbase.c: (gst_ttmlbase_parse_event):
+	* src/gstttmlevent.c: (gst_ttml_event_list_flush):
+	* src/gstttmlevent.h:
+	* src/gstttmlstate.c: (gst_ttml_state_set_attribute):
+	Expand REGION attributes at buffer-generation time, instead of pasing
+	time. This simplifies the upcoming region timeline implementation.
+	Additionally, it fixes a couple of tests which where wrong but noone
+	ever noticed.
+
 2015-02-05  Xavi Artigas  <xartigas@fluendo.com>
 
 

@@ -135,13 +135,6 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       gst_ttml_state_restore_attr_stack (state,
           state->saved_styling_attr_stacks, attr->value.string);
       break;
-    case GST_TTML_ATTR_REGION:
-      /* Expand the region style into the current state AND also push
-       * the REGION ID attribute */
-      gst_ttml_state_restore_attr_stack (state,
-          state->saved_region_attr_stacks, attr->value.string);
-      ret_attr = gst_ttml_style_set_attr (&state->style, attr);
-      break;
     default:
       /* All Styling attributes are handled here */
       ret_attr = gst_ttml_style_set_attr (&state->style, attr);
