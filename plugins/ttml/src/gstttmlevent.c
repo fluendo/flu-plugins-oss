@@ -147,7 +147,7 @@ gst_ttml_event_list_flush (GList *timeline,
       gen_buffer (time, event->timestamp, userdata);
     }
     time = event->timestamp;
-    parse (event, userdata);
+    timeline = parse (event, userdata, timeline);
   } while (timeline);
 
   /* Generate one last buffer to clear the last span. It will be empty,

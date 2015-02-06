@@ -153,11 +153,39 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
 }
 
 /* Execute the given event */
-void
-gst_ttmlbase_parse_event (GstTTMLEvent *event, GstTTMLBase *base)
+GList *
+gst_ttmlbase_parse_event (GstTTMLEvent *event, GstTTMLBase *base,
+    GList *timeline)
 {
+  GstTTMLAttribute *id_attr;
+  GList *output_timeline = timeline;
+
   switch (event->type) {
     case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
+      /* Expand REGION attribute (if present) to the stored set of attrs. */
+      id_attr = gst_ttml_style_get_attr (&event->data.span_begin.span->style,
+          GST_TTML_ATTR_REGION);
+      if (id_attr) {
+        GList *attr_stack;
+        GstTTMLStyle style;
+        style.attributes = event->data.span_begin.span->style.attributes;
+        /* Retrieve region style */
+        g_hash_table_lookup_extended (base->state.saved_region_attr_stacks,
+            id_attr->value.string, NULL, (gpointer *)&attr_stack);
+        /* Apply it to the span attributes */
+        while (attr_stack) {
+          GstTTMLAttribute *prev;
+          prev = gst_ttml_style_set_attr (&style,
+              (GstTTMLAttribute *)attr_stack->data);
+          gst_ttml_attribute_free (prev);
+          attr_stack = attr_stack->next;
+        }
+        /* Turn any animations present in the region into timeline events */
+        output_timeline = gst_ttml_style_gen_span_events (
+            event->data.span_begin.span->id, &style, timeline);
+      }
+
+      /* Add span to the list of active spans */
       base->active_spans =
           gst_ttml_span_list_add (base->active_spans,
               event->data.span_begin.span);
@@ -180,6 +208,7 @@ gst_ttmlbase_parse_event (GstTTMLEvent *event, GstTTMLBase *base)
       break;
   }
   gst_ttml_event_free (event);
+  return output_timeline;
 }
 
 /* Allocate a new span to hold new characters, and insert into the timeline
