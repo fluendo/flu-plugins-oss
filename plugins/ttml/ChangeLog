@@ -1,10 +1,25 @@
+2015-02-11  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_start_ns):
+	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts),
+	(gst_ttmlrender_get_property), (gst_ttmlrender_set_property),
+	(gst_ttmlrender_dispose), (gst_ttmlrender_class_init),
+	(gst_ttmlrender_init):
+	* src/gstttmlrender.h:
+	* src/gstttmlspan.c: (gst_ttml_span_compose):
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	* src/gstttmlstyle.h:
+	Different approach to default font size that simplifies upcoming
+	region timeline implementation.
+	As a bonus, we offer a default-font-size property now.
+
 2015-02-06  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlbase.c: (gst_ttmlbase_parse_event):
 	* src/gstttmlevent.c: (gst_ttml_event_list_flush):
 	* src/gstttmlevent.h:
 	* src/gstttmlstate.c: (gst_ttml_state_set_attribute):
-	Expand REGION attributes at buffer-generation time, instead of pasing
+	Expand REGION attributes at buffer-generation time, instead of parsing
 	time. This simplifies the upcoming region timeline implementation.
 	Additionally, it fixes a couple of tests which where wrong but noone
 	ever noticed.

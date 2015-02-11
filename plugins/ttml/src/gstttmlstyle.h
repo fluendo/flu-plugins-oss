@@ -30,7 +30,8 @@ GstTTMLAttribute *gst_ttml_style_set_attr (GstTTMLStyle *style,
 
 void gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
     gchar **head, gchar **tail,
-    const gchar *default_font_family);
+    const gchar *default_font_family,
+    const gchar *default_font_size);
 
 GList *gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle *style,
     GList *timeline);

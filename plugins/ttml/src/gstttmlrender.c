@@ -31,6 +31,7 @@ enum
 {
   PROP_0,
   PROP_DEFAULT_FONT_FAMILY,
+  PROP_DEFAULT_FONT_SIZE,
   PROP_DEFAULT_TEXT_ALIGN,
   PROP_DEFAULT_DISPLAY_ALIGN
 };
@@ -433,6 +434,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
     gchar *markup_head, *markup_tail, *ptr;
     int markup_head_len, markup_tail_len;
     int frag_len, curr_len;
+    gchar *default_font_size = render->default_font_size;
     line_break = g_utf8_strchr (frag_start, chars_left, '\n');
     if (line_break) {
       frag_len = line_break - frag_start;
@@ -445,10 +447,20 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       curr_len = 0;
     }
 
+    if (!default_font_size) {
+      /* According to the spec, when no font size is specified, use "1c" */
+      default_font_size = g_strdup_printf ("%fpx",
+          render->base.state.frame_height / (float)render->base.state.cell_resolution_y);
+    }
+
     gst_ttml_style_gen_pango_markup (&span->style, &markup_head, &markup_tail,
-        render->default_font_family);
+        render->default_font_family, default_font_size);
     markup_head_len = strlen (markup_head);
     markup_tail_len = strlen (markup_tail);
+
+    if (!render->default_font_size) {
+      g_free (default_font_size);
+    }
 
     region->current_par_content = (gchar *)g_realloc (region->current_par_content,
         curr_len + markup_head_len + frag_len + markup_tail_len + 1);
@@ -795,6 +807,9 @@ gst_ttmlrender_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_DEFAULT_FONT_FAMILY:
       g_value_set_string (value, render->default_font_family);
       break;
+    case PROP_DEFAULT_FONT_SIZE:
+      g_value_set_string (value, render->default_font_size);
+      break;
     case PROP_DEFAULT_TEXT_ALIGN:
       g_value_set_enum (value, render->default_text_align);
       break;
@@ -819,6 +834,12 @@ gst_ttmlrender_set_property (GObject * object, guint prop_id,
         g_free (render->default_font_family);
       }
       render->default_font_family = g_strdup (g_value_get_string (value));
+      break;
+    case PROP_DEFAULT_FONT_SIZE:
+      if (render->default_font_size) {
+        g_free (render->default_font_size);
+      }
+      render->default_font_size = g_strdup (g_value_get_string (value));
       break;
     case PROP_DEFAULT_TEXT_ALIGN:
       render->default_text_align =
@@ -866,6 +887,11 @@ gst_ttmlrender_dispose (GObject * object)
     render->default_font_family = NULL;
   }
 
+  if (render->default_font_size) {
+    g_free (render->default_font_size);
+    render->default_font_size = NULL;
+  }
+
   if (render->pango_context) {
     g_object_unref (render->pango_context);
     render->pango_context = NULL;
@@ -892,6 +918,11 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
   g_object_class_install_property (gobject_class, PROP_DEFAULT_FONT_FAMILY,
       g_param_spec_string ("default_font_family", "Default font family",
         "Font family to use when the TTML file does not explicitly set one",
+        "default", G_PARAM_READWRITE));
+
+  g_object_class_install_property (gobject_class, PROP_DEFAULT_FONT_SIZE,
+      g_param_spec_string ("default_font_size", "Default font size",
+        "Font size to use when the TTML file does not explicitly set one",
         "default", G_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_DEFAULT_TEXT_ALIGN,
@@ -928,6 +959,7 @@ gst_ttmlrender_init (GstTTMLRender * render)
       pango_font_map_create_context (pango_cairo_font_map_get_default ());
 
   render->default_font_family = g_strdup ("default");
+  render->default_font_size = NULL;
   render->cached_images = NULL;
 
   render->downloader = gst_ttml_downloader_new ();

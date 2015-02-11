@@ -491,17 +491,6 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
     xml_attr = &xml_attr[5];
   }
 
-  if (node_type == GST_TTML_NODE_TYPE_TT) {
-    /* Always push a default font size of 1c (as the spec says). This is easier
-     * than not pushing anything and letting style_gen_pango_markup() use
-     * default values, because that method does not know the frame size, or
-     * the cell resolution. */
-    ttml_attr = gst_ttml_attribute_new_styling_default (GST_TTML_ATTR_FONT_SIZE);
-    gst_ttml_attribute_normalize_length (&base->state, ttml_attr->type,
-        &ttml_attr->value.length[0], 1);
-    gst_ttml_state_push_attribute (&base->state, ttml_attr);
-  }
-
   /* Manually push a 0 DUR attribute if the node did not define it in
    * sequential mode. In this case this node must be ignored and this seemed
    * like the simplest way. */
