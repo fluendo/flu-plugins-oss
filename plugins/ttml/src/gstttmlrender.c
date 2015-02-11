@@ -449,7 +449,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
 
     if (!default_font_size) {
       /* According to the spec, when no font size is specified, use "1c" */
-      default_font_size = g_strdup_printf ("%fpx",
+      default_font_size = g_strdup_printf (" %fpx ",
           render->base.state.frame_height / (float)render->base.state.cell_resolution_y);
     }
 
