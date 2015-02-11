@@ -115,16 +115,17 @@ gst_ttml_style_translate_generic_font_name (gchar *org_name)
 }
 
 /* Generate Pango Markup for the style.
- * default_font_family can be NULL. */
+ * default_font_* can be NULL. */
 void
 gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
     gchar **head, gchar **tail,
-    const gchar *default_font_family)
+    const gchar *default_font_family,
+    const gchar *default_font_size)
 {
   gchar *attrs = g_strdup ("");
   GList *link = style->attributes;
   gchar *font_family = g_strdup (default_font_family);
-  gchar *font_size = NULL;
+  gchar *font_size = g_strdup (default_font_size);
   gboolean font_size_is_relative = FALSE;
 
   /* Only add attributes which are different from the default Pango values.
@@ -156,6 +157,9 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
         break;
 
       case GST_TTML_ATTR_FONT_SIZE:
+        if (font_size) {
+          g_free (font_size);
+        }
         /* FIXME: Second length ignored: it cannot be used through pango markup */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
           font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);

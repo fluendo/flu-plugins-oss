@@ -27,6 +27,7 @@ typedef struct _GstTTMLRender {
   /* Default attributes when TTML file does not explicitly set ones and the
    * user does not like the spec's defaults. */
   gchar *default_font_family;
+  gchar *default_font_size;
   GstTTMLTextAlign default_text_align;
   GstTTMLDisplayAlign default_display_align;
 
