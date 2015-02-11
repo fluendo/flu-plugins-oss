@@ -407,6 +407,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
   gchar *frag_start = span->chars; /* NOT NULL-terminated! */
   int chars_left = span->length;
   gchar *line_break = NULL;
+  GstTTMLStyle final_style;
 
   /* Do nothing if the span is disabled */
   attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DISPLAY);
@@ -416,13 +417,41 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
   attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_REGION);
   region_id = attr ? attr->value.string : default_region_id;
 
+  if (attr) {
+    /* Expand region style into span's style if present */
+    GstTTMLBase *base = GST_TTMLBASE (render);
+    GList *prev_attr_stack = span->style.attributes;
+    GstTTMLStyle src_style;
+
+    /* Retrieve region style */
+    if (!g_hash_table_lookup_extended (base->state.saved_region_attr_stacks,
+      region_id, NULL, (gpointer *)&src_style.attributes)) {
+      /* This region does not exist, discard span */
+      return;
+    }
+    /* Apply span attributes OVER region attributes, since they have higher
+     * priority. */
+    gst_ttml_style_copy (&final_style, &src_style, FALSE);
+
+    while (prev_attr_stack) {
+      GstTTMLAttribute *prev;
+      prev = gst_ttml_style_set_attr (&final_style,
+          (GstTTMLAttribute *)prev_attr_stack->data);
+      gst_ttml_attribute_free (prev);
+      prev_attr_stack = prev_attr_stack->next;
+    }
+  } else {
+    /* No region attr to be expanded */
+    gst_ttml_style_copy (&final_style, &span->style, FALSE);
+  }
+
   /* Find or create region struct */
   region_link = g_list_find_custom (render->regions, region_id,
       (GCompareFunc)gst_ttmlrender_region_compare_id);
   if (region_link) {
     region = (GstTTMLRegion *)region_link->data;
   } else {
-    region = gst_ttmlrender_new_region (render, region_id, &span->style);
+    region = gst_ttmlrender_new_region (render, region_id, &final_style);
 
     render->regions = g_list_insert_sorted (render->regions, region,
         (GCompareFunc)gst_ttmlrender_region_compare_zindex);
@@ -453,7 +482,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
           render->base.state.frame_height / (float)render->base.state.cell_resolution_y);
     }
 
-    gst_ttml_style_gen_pango_markup (&span->style, &markup_head, &markup_tail,
+    gst_ttml_style_gen_pango_markup (&final_style, &markup_head, &markup_tail,
         render->default_font_family, default_font_size);
     markup_head_len = strlen (markup_head);
     markup_tail_len = strlen (markup_tail);
@@ -478,7 +507,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
     g_free (markup_tail);
 
     if (region->current_par_style.attributes == NULL) {
-      gst_ttml_style_copy (&region->current_par_style, &span->style, FALSE);
+      gst_ttml_style_copy (&region->current_par_style, &final_style, FALSE);
     }
 
     chars_left -= frag_len;
@@ -491,6 +520,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
     }
 
   } while (line_break && chars_left > 0);
+
+  gst_ttml_style_reset (&final_style);
 }
 
 static void

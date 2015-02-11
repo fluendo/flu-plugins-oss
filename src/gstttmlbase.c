@@ -157,34 +157,10 @@ GList *
 gst_ttmlbase_parse_event (GstTTMLEvent *event, GstTTMLBase *base,
     GList *timeline)
 {
-  GstTTMLAttribute *id_attr;
   GList *output_timeline = timeline;
 
   switch (event->type) {
     case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
-      /* Expand REGION attribute (if present) to the stored set of attrs. */
-      id_attr = gst_ttml_style_get_attr (&event->data.span_begin.span->style,
-          GST_TTML_ATTR_REGION);
-      if (id_attr) {
-        GList *attr_stack;
-        GstTTMLStyle style;
-        style.attributes = event->data.span_begin.span->style.attributes;
-        /* Retrieve region style */
-        g_hash_table_lookup_extended (base->state.saved_region_attr_stacks,
-            id_attr->value.string, NULL, (gpointer *)&attr_stack);
-        /* Apply it to the span attributes */
-        while (attr_stack) {
-          GstTTMLAttribute *prev;
-          prev = gst_ttml_style_set_attr (&style,
-              (GstTTMLAttribute *)attr_stack->data);
-          gst_ttml_attribute_free (prev);
-          attr_stack = attr_stack->next;
-        }
-        /* Turn any animations present in the region into timeline events */
-        output_timeline = gst_ttml_style_gen_span_events (
-            event->data.span_begin.span->id, &style, timeline);
-      }
-
       /* Add span to the list of active spans */
       base->active_spans =
           gst_ttml_span_list_add (base->active_spans,
@@ -202,6 +178,21 @@ gst_ttmlbase_parse_event (GstTTMLEvent *event, GstTTMLBase *base,
     case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
       gst_ttml_span_list_update_attr (base->active_spans,
           event->data.attr_update.id, event->data.attr_update.attr);
+      break;
+    case GST_TTML_EVENT_TYPE_REGION_BEGIN:
+      gst_ttml_state_new_region (&base->state, event->data.region_begin.id,
+          &event->data.region_begin.style);
+      /* Remove the style from the event, so that when we free the event below
+       * the style does not get freed too (it belongs to the hash of regions now)
+       */
+      event->data.region_begin.style.attributes = NULL;
+      break;
+    case GST_TTML_EVENT_TYPE_REGION_END:
+      gst_ttml_state_remove_region (&base->state, event->data.region_end.id);
+      break;
+    case GST_TTML_EVENT_TYPE_REGION_ATTR_UPDATE:
+      gst_ttml_state_update_region_attr (&base->state,
+          event->data.region_update.id, event->data.region_update.attr);
       break;
     default:
       GST_WARNING ("Unknown event type");
@@ -283,6 +274,40 @@ gst_ttmlbase_add_characters (GstTTMLBase *base, const gchar *content,
           base->timeline);
 
   base->last_event_timestamp = event->timestamp;
+}
+
+/* Insert into the timeline new BEGIN and END events to handle this region. */
+static void
+gst_ttmlbase_add_region (GstTTMLBase *base)
+{
+  GstTTMLEvent *event;
+  GstClockTime timestamp = 0;
+  if (GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
+      base->state.begin >= base->state.end) {
+    GST_DEBUG ("Region with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
+        ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (base->state.begin),
+        GST_TIME_ARGS (base->state.end));
+    return;
+  }
+
+  /* Insert BEGIN and END events in the timeline */
+  event = gst_ttml_event_new_region_begin (base->state.begin, base->state.id,
+      &base->state.style);
+  base->timeline = gst_ttml_event_list_insert (base->timeline, event);
+  if (event)
+    timestamp = event->timestamp;
+
+  event = gst_ttml_event_new_region_end (base->state.end, base->state.id,
+      &base->state.style);
+  base->timeline = gst_ttml_event_list_insert (base->timeline, event);
+  if (event)
+    timestamp = event->timestamp;
+
+  base->timeline =
+      gst_ttml_style_gen_region_events (base->state.id, &base->state.style,
+          base->timeline);
+
+  base->last_event_timestamp = timestamp;
 }
 
 /* Adds the found chars to the embedded data string being constructed.
@@ -469,13 +494,12 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
     GST_DEBUG ("  Style node inside region, attributes belong to parent node");
   }
 
-  /* Push onto the stack the "style" and "region" attributes, if found.
+  /* Push onto the stack the "style" attributes, if found.
    * They go first, because the attributes defined by these styles must be
    * overriden by the values defined in this node, regardless of their
    * parsing order. */
   while (i--) {
-    if (strcmp (xml_attr[0], "style") == 0 ||
-        strcmp (xml_attr[0], "region") == 0) {
+    if (strcmp (xml_attr[0], "style") == 0) {
       gst_ttmlbase_push_attr (base, xml_attr, &dur_attr_found);
     }
     xml_attr = &xml_attr[5];
@@ -484,8 +508,7 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
   xml_attr = (const gchar **) xml_attrs;
   i = nb_attributes;
   while (i--) {
-    if (strcmp (xml_attr[0], "style") != 0 &&
-        strcmp (xml_attr[0], "region") != 0) {
+    if (strcmp (xml_attr[0], "style") != 0) {
       gst_ttmlbase_push_attr (base, xml_attr, &dur_attr_found);
     }
     xml_attr = &xml_attr[5];
@@ -567,9 +590,9 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar *name,
     case GST_TTML_NODE_TYPE_REGION:
       /* We are closing a region definition. Store the current style IF
        * we are inside a <layout> node. */
-      if (base->in_layout_node)
-        gst_ttml_state_save_attr_stack (&base->state,
-            &base->state.saved_region_attr_stacks, base->state.id);
+      if (base->in_layout_node) {
+        gst_ttmlbase_add_region (base);
+      }
       break;
     case GST_TTML_NODE_TYPE_METADATA:
       if (!base->in_metadata_node) {

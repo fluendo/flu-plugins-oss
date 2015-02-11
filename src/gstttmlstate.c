@@ -233,8 +233,8 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
     case GST_TTML_ATTR_STYLE:
       /* Nothing to do here: The style attribute is expanded
        * into multiple other attributes when set.
-       * Same happens with the region attribute, but we want the region ID
-       * to be stored. */
+       * The region attribute is also expanded elsewhere, but we want the
+       * region ID to be stored. */
       attr = gst_ttml_attribute_new_string (type, NULL);
       break;
     default:
@@ -243,7 +243,7 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
       if (curr_attr) {
         attr = gst_ttml_attribute_copy (curr_attr, TRUE);
       } else {
-        attr = gst_ttml_attribute_new_styling_default (type);
+        attr = NULL;
       }
       break;
   }
@@ -260,6 +260,7 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
 {
   GstTTMLAttribute *old_attr;
 
+  /* FIXME: SET nodes inside REGION or DIV also need this translation */
   if (new_attr->type == GST_TTML_ATTR_BACKGROUND_COLOR) {
     if (state->node_type == GST_TTML_NODE_TYPE_REGION ||
         state->node_type == GST_TTML_NODE_TYPE_DIV) {
@@ -275,13 +276,19 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
   }
 
   old_attr = gst_ttml_state_get_attribute (state, new_attr->type);
+  if (!old_attr) {
+    /* There was no previous value for this attribute. Store in the stack a
+     * special attribute which will remove this one (instead of replacing it
+     * by some default value) */
+    old_attr = gst_ttml_attribute_new_style_removal (new_attr->type);
+  }
 
   state->attribute_stack = g_list_prepend (state->attribute_stack, old_attr);
+  GST_LOG ("Pushed attribute 0x%p (type %s)", old_attr,
+      gst_ttml_utils_enum_name (old_attr->type, AttributeType));
   gst_ttml_state_merge_attribute (state, new_attr);
   gst_ttml_attribute_free (new_attr);
 
-  GST_LOG ("Pushed attribute 0x%p (type %s)", old_attr,
-      gst_ttml_utils_enum_name (old_attr->type, AttributeType));
 }
 
 /* Pops an attribute from the stack and puts in the state, overwritting the
@@ -313,6 +320,10 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
   if (prev_attr_ptr)
     *prev_attr_ptr = prev_attr;
 
+  if (type == GST_TTML_ATTR_STYLE_REMOVAL) {
+    type = attr->value.removed_attribute_type;
+  }
+
   gst_ttml_attribute_free (attr);
 
   return type;
@@ -320,14 +331,13 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
 
 /* Create a copy of the current attribute stack and store it in a hash table
  * with the specified ID string.
- * Create the hash table if necessary. Used for referential and region styling.
+ * Create the hash table if necessary. Used for referential styling.
  */
 void
 gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
     const gchar *id)
 {
-  GList *attr_link = state->attribute_stack;
-  GList *attr_stack_copy = NULL;
+  GstTTMLStyle style_copy = { 0 };
 
   if (!*table) {
     *table =
@@ -335,27 +345,13 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
         (GDestroyNotify)gst_ttml_state_free_attr_stack);
   }
 
-  while (attr_link) {
-    GstTTMLAttribute *attr = (GstTTMLAttribute *)attr_link->data;
-    if (attr->type > GST_TTML_ATTR_STYLE) {
-      GstTTMLAttribute *attr_copy =
-          gst_ttml_state_get_attribute (state, attr->type);
-      /* This must be appended, not prepended, to preserve the list direction.
-       * If the operation turns out to be too lengthy (because append must
-       * traverse the whole list) alternatives can be found (like keeping
-       * a pointer to the last link), although I do not think there will
-       * ever be that many attributes in a style... */
-      attr_stack_copy = g_list_append (attr_stack_copy, attr_copy);
-    }
+  gst_ttml_style_copy (&style_copy, &state->style, TRUE);
 
-    attr_link = attr_link->next;
-  }
-
-  if (attr_stack_copy) {
+  if (style_copy.attributes) {
     gchar *id_copy = g_strdup (id);
 
     GST_DEBUG ("Storing style or region '%s'", id);
-    g_hash_table_insert (*table, id_copy, attr_stack_copy);
+    g_hash_table_insert (*table, id_copy, style_copy.attributes);
   } else {
     GST_WARNING ("Trying to store empty style or region definition '%s'", id);
   }
@@ -442,4 +438,65 @@ gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
     *length = *(gint32*)rawdata;
     *data = rawdata + 4;
   }
+}
+
+/* Create a new region in the hash of regions of the state. The ID is taken
+ * from the style (it must be one of its attributes). The style ptr is stored
+ * in the hash, so the caller must not free it. */
+void
+gst_ttml_state_new_region (GstTTMLState *state, const gchar *id,
+    GstTTMLStyle *style)
+{
+  gchar *id_copy;
+
+  if (!state->saved_region_attr_stacks) {
+    state->saved_region_attr_stacks =
+        g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
+        (GDestroyNotify)gst_ttml_state_free_attr_stack);
+  }
+
+  id_copy = g_strdup (id);
+
+  GST_DEBUG ("Storing region '%s'", id_copy);
+  g_hash_table_insert (state->saved_region_attr_stacks, id_copy,
+      style->attributes);
+}
+
+/* Remove region from hash table */
+void
+gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id)
+{
+  gboolean res;
+  
+  if (!state->saved_region_attr_stacks) {
+    GST_WARNING ("Region list does not exist yet.");
+    return;
+  }
+
+  GST_DEBUG ("Removing region '%s'", id);
+  res = g_hash_table_remove (state->saved_region_attr_stacks, id);
+
+  if (!res) {
+    GST_WARNING ("Tried to remove region '%s', but could not find it.",
+        id);
+  }
+}
+
+/* Update the value of the specified attribute of the specified region id */
+void
+gst_ttml_state_update_region_attr (GstTTMLState *state, const gchar *id,
+    GstTTMLAttribute *attr)
+{
+  GstTTMLAttribute *prev_attr;
+  GstTTMLStyle style;
+
+  GST_DEBUG ("Updating region with id %s, attr %s", id,
+      gst_ttml_utils_enum_name (attr->type, AttributeType));
+  style.attributes = (GList *)g_hash_table_lookup (state->saved_region_attr_stacks, id);
+  if (!style.attributes) {
+    GST_WARNING ("Could not find region with id %s", id);
+    return;
+  }
+  prev_attr = gst_ttml_style_set_attr (&style, attr);
+  gst_ttml_attribute_free (prev_attr);
 }

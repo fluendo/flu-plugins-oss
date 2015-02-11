@@ -26,6 +26,20 @@ typedef struct _GstTTMLEventAttrUpdate {
   GstTTMLAttribute *attr;
 } GstTTMLEventAttrUpdate;
 
+typedef struct _GstTTMLEventRegionBegin {
+  gchar *id;
+  GstTTMLStyle style;
+} GstTTMLEventRegionBegin;
+
+typedef struct _GstTTMLEventRegionEnd {
+  gchar *id;
+} GstTTMLEventRegionEnd;
+
+typedef struct _GstTTMLEventRegionUpdate {
+  gchar *id;
+  GstTTMLAttribute *attr;
+} GstTTMLEventRegionUpdate;
+
 /* An event to be stored in the timeline. It has a type, a timestamp and
  * type-specific data. */
 struct _GstTTMLEvent
@@ -36,6 +50,9 @@ struct _GstTTMLEvent
     GstTTMLEventSpanBegin span_begin;
     GstTTMLEventSpanEnd span_end;
     GstTTMLEventAttrUpdate attr_update;
+    GstTTMLEventRegionBegin region_begin;
+    GstTTMLEventRegionEnd region_end;
+    GstTTMLEventRegionUpdate region_update;
   } data;
 };
 
@@ -47,13 +64,22 @@ typedef void (*GstTTMLEventGenBufferFunc) (GstClockTime begin,
 
 void gst_ttml_event_free (GstTTMLEvent *event);
 
-GstTTMLEvent * gst_ttml_event_new_span_begin (GstTTMLState *state,
+GstTTMLEvent *gst_ttml_event_new_span_begin (GstTTMLState *state,
     GstTTMLSpan *span);
 
 GstTTMLEvent *gst_ttml_event_new_span_end (GstTTMLState *state, guint id);
 
 GstTTMLEvent *gst_ttml_event_new_attr_update (guint id,
     GstClockTime timestamp, GstTTMLAttribute *attr);
+
+GstTTMLEvent *gst_ttml_event_new_region_begin (GstClockTime timestamp,
+    const gchar *id, GstTTMLStyle *style);
+
+GstTTMLEvent *gst_ttml_event_new_region_end (GstClockTime timestamp,
+    const gchar *id, GstTTMLStyle *style);
+
+GstTTMLEvent *gst_ttml_event_new_region_update (GstClockTime timestamp,
+    const gchar *id, GstTTMLAttribute *attr);
 
 GList *gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event);
 
