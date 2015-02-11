@@ -244,6 +244,7 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
   if (state->frame_width > 0) {
     /* Frame size is known: produce absolute lengths */
     GstTTMLAttribute *prev_attr;
+    float prev_size;
 
     switch (length->unit) {
     case GST_TTML_LENGTH_UNIT_CELLS:
@@ -284,24 +285,33 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
          * size yet. Leave them as percentages. */
         return;
       } else {
+        /* All other units are relative to current font size */
+        prev_size = state->frame_height / state->cell_resolution_y;
         prev_attr =
             gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
-        if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
-          GST_WARNING ("Current font size should be in pixels");
+        if (prev_attr) {
+            if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+              GST_WARNING ("Current font size should be in pixels");
+          }
+          prev_size = prev_attr->value.length[0].f;
         }
-        length->f *= prev_attr->value.length[0].f;
+        length->f *= prev_size;
       }
       length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     case GST_TTML_LENGTH_UNIT_EM:
       /* Retrieve current font size (which should be in pixels) and scale as
        * requested. */
+      prev_size = state->frame_height / state->cell_resolution_y;
       prev_attr =
           gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
-      if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
-        GST_WARNING ("Current font size should be in pixels");
+      if (prev_attr) {
+        if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+          GST_WARNING ("Current font size should be in pixels");
+        }
+        prev_size = prev_attr->value.length[0].f;
       }
-      length->f *= prev_attr->value.length[0].f;
+      length->f *= prev_size;
       length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     default:

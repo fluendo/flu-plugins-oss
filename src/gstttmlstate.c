@@ -290,7 +290,7 @@ GstTTMLAttributeType
 gst_ttml_state_pop_attribute (GstTTMLState *state,
     GstTTMLAttribute **prev_attr_ptr)
 {
-  GstTTMLAttribute *attr, *prev_attr;
+  GstTTMLAttribute *attr, *prev_attr = NULL;
   GstTTMLAttributeType type;
 
   if (!state->attribute_stack) {
@@ -304,7 +304,12 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
   GST_LOG ("Popped attribute 0x%p (type %s)", attr,
       gst_ttml_utils_enum_name (type, AttributeType));
 
-  prev_attr = gst_ttml_state_set_attribute (state, attr);
+  /* We do not restore restore attributes pushed by the TT node to their
+   * default values. In this way, they are still available in the state for
+   * processes that happen when parsing is complete. */
+  if (state->node_type != GST_TTML_NODE_TYPE_TT) {
+    prev_attr = gst_ttml_state_set_attribute (state, attr);
+  }
   if (prev_attr_ptr)
     *prev_attr_ptr = prev_attr;
 

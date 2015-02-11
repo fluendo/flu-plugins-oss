@@ -159,6 +159,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
       case GST_TTML_ATTR_FONT_SIZE:
         if (font_size) {
           g_free (font_size);
+          font_size = NULL;
         }
         /* FIXME: Second length ignored: it cannot be used through pango markup */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {

@@ -1,5 +1,12 @@
 2015-02-11  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
+	* src/gstttmlstate.c: (gst_ttml_state_pop_attribute):
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	Misc fixes to font size, including a segfault.
+
+2015-02-11  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts):
 	Fix default font size generation.
 
