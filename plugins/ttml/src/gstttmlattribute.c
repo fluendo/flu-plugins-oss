@@ -716,6 +716,9 @@ beach:
 void
 gst_ttml_attribute_free (GstTTMLAttribute *attr)
 {
+  if (!attr)
+    return;
+
   switch (attr->type) {
     case GST_TTML_ATTR_ID:
     case GST_TTML_ATTR_STYLE:
@@ -851,100 +854,15 @@ gst_ttml_attribute_new_fraction (GstTTMLAttributeType type, gint num, gint den)
   return attr;
 }
 
-/* Create a new styling attribute with its default value */
+/* Create a new style removal attribute, used to push attrs which have no
+ * previous value. */
 GstTTMLAttribute *
-gst_ttml_attribute_new_styling_default (GstTTMLAttributeType type)
+gst_ttml_attribute_new_style_removal (GstTTMLAttributeType removed_style)
 {
-  GstTTMLAttribute *attr = g_new0 (GstTTMLAttribute, 1);
-  attr->type = type;
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = GST_TTML_ATTR_STYLE_REMOVAL;
   attr->timeline = NULL;
-  switch (type) {
-    case GST_TTML_ATTR_COLOR:
-      attr->value.color = 0xFFFFFFFF;
-      break;
-    case GST_TTML_ATTR_BACKGROUND_COLOR:
-    case GST_TTML_ATTR_BACKGROUND_REGION_COLOR:
-      attr->value.color = 0x00000000;
-      break;
-    case GST_TTML_ATTR_DISPLAY:
-      attr->value.b = TRUE;
-      break;
-    case GST_TTML_ATTR_FONT_FAMILY:
-      attr->value.string = NULL;
-      break;
-    case GST_TTML_ATTR_FONT_SIZE:
-      attr->value.length[0].f = 1.f;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
-      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
-      break;
-    case GST_TTML_ATTR_FONT_STYLE:
-      attr->value.font_style = GST_TTML_FONT_STYLE_NORMAL;
-    case GST_TTML_ATTR_FONT_WEIGHT:
-      attr->value.font_weight = GST_TTML_FONT_WEIGHT_NORMAL;
-      break;
-    case GST_TTML_ATTR_TEXT_DECORATION:
-      attr->value.text_decoration = GST_TTML_TEXT_DECORATION_NONE;
-      break;
-    case GST_TTML_ATTR_ORIGIN:
-      attr->value.length[0].f = attr->value.length[1].f = 0.f;
-      attr->value.length[0].unit = attr->value.length[1].unit =
-          GST_TTML_LENGTH_UNIT_RELATIVE;
-      break;
-    case GST_TTML_ATTR_EXTENT:
-      attr->value.length[0].f = attr->value.length[1].f = 1.f;
-      attr->value.length[0].unit = attr->value.length[1].unit =
-          GST_TTML_LENGTH_UNIT_RELATIVE;
-      break;
-    case GST_TTML_ATTR_REGION:
-      /* The default value for REGION is "anonymous", marked with NULL */
-      attr->value.string = NULL;
-      break;
-    case GST_TTML_ATTR_TEXT_ALIGN:
-      attr->value.text_align = GST_TTML_TEXT_ALIGN_START;
-      break;
-    case GST_TTML_ATTR_DISPLAY_ALIGN:
-      attr->value.display_align = GST_TTML_DISPLAY_ALIGN_BEFORE;
-      break;
-    case GST_TTML_ATTR_OVERFLOW:
-      attr->value.b = FALSE;
-      break;
-    case GST_TTML_ATTR_TEXTOUTLINE:
-      attr->value.text_outline.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
-      break;
-    case GST_TTML_ATTR_ZINDEX:
-      attr->value.i = 0;
-      break;
-    case GST_TTML_ATTR_LINE_HEIGHT:
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
-      break;
-    case GST_TTML_ATTR_WRAP_OPTION:
-      attr->value.wrap_option = GST_TTML_WRAP_OPTION_YES;
-      break;
-    case GST_TTML_ATTR_PADDING:
-      attr->value.length[0].f = attr->value.length[1].f =
-          attr->value.length[2].f = attr->value.length[3].f = 0.f;
-      attr->value.length[0].unit = attr->value.length[1].unit =
-          attr->value.length[2].unit = attr->value.length[3].unit =
-          GST_TTML_LENGTH_UNIT_PIXELS;
-      break;
-    case GST_TTML_ATTR_SMPTE_IMAGETYPE:
-      attr->value.smpte_image_type = GST_TTML_SMPTE_IMAGE_TYPE_PNG;
-      break;
-    case GST_TTML_ATTR_SMPTE_ENCODING:
-      attr->value.smpte_encoding = GST_TTML_SMPTE_ENCODING_BASE64;
-      break;
-    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
-      attr->value.string = NULL;
-      break;
-    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
-    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
-      attr->value.length[0].f = 0.5f;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      break;
-    default:
-      GST_WARNING ("This method should only be used for Styling attributes");
-      break;
-  }
+  attr->value.removed_attribute_type = removed_style;
   return attr;
 }
 

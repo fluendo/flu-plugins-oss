@@ -172,7 +172,9 @@ gst_ttml_span_list_update_attr (GList *active_spans, guint id,
   link = g_list_find_custom (active_spans, &id,
       (GCompareFunc)gst_ttml_span_compare_id);
   if (!link) {
-    GST_WARNING ("Could not find span with id %d", id);
+    /* This is not a problem. It could be an animation on a region or
+     * parent node, which happens when this span is not valid yet. */
+    GST_DEBUG ("Could not find span with id %d", id);
     return;
   }
   span = (GstTTMLSpan *)link->data;

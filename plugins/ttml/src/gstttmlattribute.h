@@ -50,6 +50,7 @@ struct _GstTTMLAttribute {
     GstTTMLWrapOption wrap_option;
     GstTTMLSMPTEImageType smpte_image_type;
     GstTTMLSMPTEEncoding smpte_encoding;
+    GstTTMLAttributeType removed_attribute_type;
   } value;
   GList *timeline;
 };
@@ -86,8 +87,8 @@ GstTTMLAttribute *gst_ttml_attribute_new_double (GstTTMLAttributeType type,
 GstTTMLAttribute *gst_ttml_attribute_new_fraction (GstTTMLAttributeType type,
     gint num, gint den);
 
-GstTTMLAttribute *gst_ttml_attribute_new_styling_default (
-    GstTTMLAttributeType type);
+GstTTMLAttribute *gst_ttml_attribute_new_style_removal (
+    GstTTMLAttributeType removed_style);
 
 void gst_ttml_attribute_normalize_length (const GstTTMLState *state,
     GstTTMLAttributeType type, GstTTMLLength *length, int direction);

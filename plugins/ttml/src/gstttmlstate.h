@@ -82,6 +82,14 @@ void gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
 void gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
     guint8 **data, gint *length);
 
+void gst_ttml_state_new_region (GstTTMLState *state, const gchar *id,
+    GstTTMLStyle *style);
+
+void gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id);
+
+void gst_ttml_state_update_region_attr (GstTTMLState *state, const gchar *id,
+    GstTTMLAttribute *attr);
+
 G_END_DECLS
 
 #endif /* __GST_TTML_STATE_H__ */

@@ -53,6 +53,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "space", GST_TTML_ATTR_WHITESPACE_PRESERVE },
   { "timeContainer", GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER },
   { "style", GST_TTML_ATTR_STYLE },
+  { "styleRemoval", GST_TTML_ATTR_STYLE_REMOVAL },
   { "region", GST_TTML_ATTR_REGION },
   { "color", GST_TTML_ATTR_COLOR },
   { "backgroundColor", GST_TTML_ATTR_BACKGROUND_COLOR },

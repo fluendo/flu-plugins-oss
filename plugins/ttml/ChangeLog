@@ -1,5 +1,41 @@
 2015-02-11  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_free),
+	(gst_ttml_attribute_new_style_removal):
+	* src/gstttmlattribute.h:
+	* src/gstttmlbase.c: (gst_ttmlbase_parse_event),
+	(gst_ttmlbase_add_region), (gst_ttmlbase_sax2_element_start_ns),
+	(gst_ttmlbase_sax2_element_end_ns):
+	* src/gstttmlenums.h:
+	* src/gstttmlevent.c: (gst_ttml_event_free),
+	(gst_ttml_event_compare), (gst_ttml_event_new_region_begin),
+	(gst_ttml_event_new_region_end),
+	(gst_ttml_event_new_region_update), (gst_ttml_event_list_insert),
+	(gst_ttml_event_type_name):
+	* src/gstttmlevent.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts):
+	* src/gstttmlspan.c: (gst_ttml_span_list_update_attr):
+	* src/gstttmlstate.c: (gst_ttml_state_get_attribute),
+	(gst_ttml_state_push_attribute), (gst_ttml_state_pop_attribute),
+	(gst_ttml_state_save_attr_stack), (gst_ttml_state_new_region),
+	(gst_ttml_state_remove_region),
+	(gst_ttml_state_update_region_attr):
+	* src/gstttmlstate.h:
+	* src/gstttmlstyle.c: (gst_ttml_style_set_attr),
+	(gst_ttml_style_gen_region_events):
+	* src/gstttmlstyle.h:
+	* src/gstttmlutils.c:
+	Warning: Major commit.
+	Regions are no longer expanded at parse time, like styles. They are managed
+	in a timeline, with BEGIN, END and UPDATE events and are read at buffer-
+	generation time.
+	Removed Default attributes. Instead, they are removed from the style, and
+	gen_pango_markup is responsible for generating defaults. In this way,
+	default values are only present in one place, and attribute priority (e.g.
+	span over region) are easier to handle.
+
+2015-02-11  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
 	* src/gstttmlstate.c: (gst_ttml_state_pop_attribute):
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):

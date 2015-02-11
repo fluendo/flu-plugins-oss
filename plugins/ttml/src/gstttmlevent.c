@@ -29,6 +29,17 @@ gst_ttml_event_free (GstTTMLEvent *event)
       if (event->data.attr_update.attr)
         gst_ttml_attribute_free (event->data.attr_update.attr);
       break;
+    case GST_TTML_EVENT_TYPE_REGION_BEGIN:
+      g_free (event->data.region_end.id);
+      gst_ttml_style_reset (&event->data.region_begin.style);
+      break;
+    case GST_TTML_EVENT_TYPE_REGION_END:
+      g_free (event->data.region_end.id);
+      break;
+    case GST_TTML_EVENT_TYPE_REGION_ATTR_UPDATE:
+      g_free (event->data.region_end.id);
+      gst_ttml_attribute_free (event->data.region_update.attr);
+      break;
     default:
       break;
   }
@@ -39,7 +50,20 @@ gst_ttml_event_free (GstTTMLEvent *event)
 static gint
 gst_ttml_event_compare (GstTTMLEvent *a, GstTTMLEvent *b)
 {
-  return a->timestamp > b->timestamp ? 1 : -1;
+  if (a->timestamp != b->timestamp)
+    return a->timestamp > b->timestamp ? 1 : -1;
+
+  /* Special cases: We want REGIONS to enclose SPANS, even though their
+   * timestamps might be the same. */
+  if (a->type == GST_TTML_EVENT_TYPE_REGION_BEGIN)
+    return -1;
+  if (a->type == GST_TTML_EVENT_TYPE_REGION_END)
+    return 1;
+  if (b->type == GST_TTML_EVENT_TYPE_REGION_BEGIN)
+    return 1;
+  if (b->type == GST_TTML_EVENT_TYPE_REGION_END)
+    return -1;
+  return 0;
 }
 
 /* Creates a new SPAN BEGIN event */
@@ -85,11 +109,64 @@ gst_ttml_event_new_attr_update (guint id,
   return event;
 }
 
+/* Creates a new REGION BEGIN event */
+GstTTMLEvent *
+gst_ttml_event_new_region_begin (GstClockTime timestamp, const gchar *id,
+    GstTTMLStyle *style)
+{
+  GstTTMLEvent *event;
+
+  if (!GST_CLOCK_TIME_IS_VALID (timestamp))
+    timestamp = 0;
+  
+  event = g_new0 (GstTTMLEvent, 1);
+  event->timestamp = timestamp;
+  event->type = GST_TTML_EVENT_TYPE_REGION_BEGIN;
+  event->data.region_begin.id = g_strdup (id);
+  gst_ttml_style_copy (&event->data.region_begin.style, style, FALSE);
+  return event;
+}
+
+/* Creates a new REGION END event */
+GstTTMLEvent *
+gst_ttml_event_new_region_end (GstClockTime timestamp, const gchar *id,
+    GstTTMLStyle *style)
+{
+  GstTTMLEvent *event;
+
+  if (!GST_CLOCK_TIME_IS_VALID (timestamp)) {
+    GST_DEBUG ("Region '%s' has no END. It will not be closed.", id);
+    return NULL;
+  }
+
+  event = g_new0 (GstTTMLEvent, 1);
+  event->timestamp = timestamp;
+  event->type = GST_TTML_EVENT_TYPE_REGION_END;
+  event->data.region_end.id = g_strdup (id);
+  return event;
+}
+
+/* Creates a new REGION UPDATE event */
+GstTTMLEvent *
+gst_ttml_event_new_region_update (GstClockTime timestamp, const gchar *id,
+    GstTTMLAttribute *attr)
+{
+  GstTTMLEvent *event = g_new0 (GstTTMLEvent, 1);
+  event->timestamp = timestamp;
+  event->type = GST_TTML_EVENT_TYPE_REGION_ATTR_UPDATE;
+  event->data.region_update.id = g_strdup (id);
+  event->data.region_update.attr = gst_ttml_attribute_copy (attr, FALSE);
+  return event;
+}
+
 /* Insert an event into an event list (timeline), ordered by timestamp.
  * You lose ownership of the event. */
 GList *
 gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event)
 {
+  if (!event)
+    return timeline;
+
   GST_DEBUG ("Inserting event %s at %" GST_TIME_FORMAT,
       gst_ttml_event_type_name (event->type),
       GST_TIME_ARGS (event->timestamp));
@@ -169,6 +246,12 @@ gst_ttml_event_type_name (GstTTMLEventType type)
       return "SPAN_END";
     case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
       return "ATTRIBUTE_UPDATE";
+    case GST_TTML_EVENT_TYPE_REGION_BEGIN:
+      return "REGION_BEGIN";
+    case GST_TTML_EVENT_TYPE_REGION_END:
+      return "REGION_END";
+    case GST_TTML_EVENT_TYPE_REGION_ATTR_UPDATE:
+      return "REGION_UPDATE";
     default:
       break;
   }

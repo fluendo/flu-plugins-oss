@@ -55,24 +55,48 @@ gst_ttml_style_get_attr (const GstTTMLStyle *style, GstTTMLAttributeType type)
 }
 
 /* Put the given attribute into the list (making a copy). If that type
- * already exists, it is replaced. The previous value is returned, or a new
- * default styling value. Do not forget to free them! */
+ * already exists, it is replaced. The previous value is returned, do not
+ * forget to free it! */
 GstTTMLAttribute *
 gst_ttml_style_set_attr (GstTTMLStyle *style, const GstTTMLAttribute *attr)
 {
   GstTTMLAttribute *ret_attr;
+  GstTTMLAttribute *new_attr;
+  GList *prev_link;
 
-  GList *prev_link = g_list_find_custom (style->attributes,
+  /* Special attribute: It does not represent an actual attr. It is a command
+   * to remove another attr, hence restoring it to its default value. */
+  if (attr->type == GST_TTML_ATTR_STYLE_REMOVAL) {
+    prev_link = g_list_find_custom (style->attributes,
+        (gconstpointer)attr->value.removed_attribute_type,
+        (GCompareFunc)gst_ttml_attribute_compare_type_func);
+
+    if (!prev_link) {
+      GST_WARNING ("Cannot remove style %s: not present",
+        gst_ttml_utils_enum_name (attr->value.removed_attribute_type,
+        AttributeType));
+      return NULL;
+    }
+    /* Remove attribute from style */
+    GST_DEBUG ("Removing attribute '%s'",
+        gst_ttml_utils_enum_name (attr->value.removed_attribute_type,
+        AttributeType));
+    gst_ttml_attribute_free ((GstTTMLAttribute *)prev_link->data);
+    style->attributes = g_list_delete_link (style->attributes, prev_link);
+    return NULL;
+  }
+
+  prev_link = g_list_find_custom (style->attributes,
       (gconstpointer)attr->type,
       (GCompareFunc)gst_ttml_attribute_compare_type_func);
 
-  GstTTMLAttribute *new_attr = gst_ttml_attribute_copy (attr, TRUE);
+  new_attr = gst_ttml_attribute_copy (attr, TRUE);
 
   if (prev_link) {
     ret_attr = (GstTTMLAttribute *)prev_link->data;
     prev_link->data = new_attr;
   } else {
-    ret_attr = gst_ttml_attribute_new_styling_default (attr->type);
+    ret_attr = NULL;
     style->attributes = g_list_prepend (style->attributes, new_attr);
   }
 
@@ -249,7 +273,8 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
   g_free (attrs);
 }
 
-/* Generate events for each animated attribute, and add them to the timeline */
+/* Generate events for each animated attribute in a span,
+ * and add them to the timeline */
 GList *
 gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle *style,
     GList *timeline)
@@ -264,6 +289,31 @@ gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle *style,
       GstTTMLEvent *new_event =
           gst_ttml_event_new_attr_update (span_id, event->timestamp,
           event->attr);
+      timeline = gst_ttml_event_list_insert (timeline, new_event);
+
+      event_link = event_link->next;
+    }
+
+    attr_link = attr_link->next;
+  }
+  return timeline;
+}
+
+/* Generate events for each animated attribute in a region,
+ * and add them to the timeline */
+GList *
+gst_ttml_style_gen_region_events (const gchar *id, GstTTMLStyle *style,
+    GList *timeline)
+{
+  GList *attr_link = style->attributes;
+
+  while (attr_link) {
+    GstTTMLAttribute *attr = (GstTTMLAttribute *)attr_link->data;
+    GList *event_link = attr->timeline;
+    while (event_link) {
+      GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *)event_link->data;
+      GstTTMLEvent *new_event =
+          gst_ttml_event_new_region_update (event->timestamp, id, event->attr);
       timeline = gst_ttml_event_list_insert (timeline, new_event);
 
       event_link = event_link->next;
