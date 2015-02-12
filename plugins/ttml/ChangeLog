@@ -1,3 +1,9 @@
+2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstyle.c: (gst_ttml_style_set_attr):
+	Return previous value when removing an attribute from the stack.
+	This is not used yet, but makes more sense in this way.
+
 2015-02-11  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_free),
