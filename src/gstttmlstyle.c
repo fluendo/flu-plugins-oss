@@ -81,9 +81,9 @@ gst_ttml_style_set_attr (GstTTMLStyle *style, const GstTTMLAttribute *attr)
     GST_DEBUG ("Removing attribute '%s'",
         gst_ttml_utils_enum_name (attr->value.removed_attribute_type,
         AttributeType));
-    gst_ttml_attribute_free ((GstTTMLAttribute *)prev_link->data);
+    ret_attr = (GstTTMLAttribute *)prev_link->data;
     style->attributes = g_list_delete_link (style->attributes, prev_link);
-    return NULL;
+    return ret_attr;
   }
 
   prev_link = g_list_find_custom (style->attributes,
