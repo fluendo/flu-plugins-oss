@@ -17,7 +17,7 @@
       <layout>
 	<region xml:id="default" tts:textAlign='center' tts:backgroundColor="black" tts:color="white" tts:padding='2px'  />
 	<region xml:id="overlay" tts:textAlign='center' tts:origin="0px 0px" tts:extent="320px 240px" tts:opacity='0.9'
-		tts:backgroundColor="white"  tts:color='black' tts:fontSize='150%'/>
+		tts:backgroundColor="white"  tts:color='black' tts:fontSize='150%' showBackground='whenActive'/>
 	<region xml:id="tick1" style='s1' tts:origin="100px 150px" tts:fontSize='24pt'
 		tts:color="red"  />
 	<region xml:id="tick2" style='s1' tts:origin="200px 100px" tts:fontSize='20pt'
