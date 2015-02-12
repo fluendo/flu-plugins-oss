@@ -641,6 +641,16 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         attr->value.length[3].f,
         gst_ttml_utils_enum_name (attr->value.length[3].unit, LengthUnit));
     break;
+  case GST_TTML_ATTR_SHOW_BACKGROUND:
+    attr->value.show_background = gst_ttml_utils_enum_parse (value, ShowBackground);
+    if (attr->value.show_background == GST_TTML_SHOW_BACKGROUND_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' showBackground", value);
+      attr->value.show_background = GST_TTML_SHOW_BACKGROUND_ALWAYS;
+    }
+    GST_LOG ("Parsed '%s' show background into %d (%s)", value,
+        attr->value.show_background,
+        gst_ttml_utils_enum_name (attr->value.show_background, ShowBackground));
+    break;
   case GST_TTML_ATTR_SMPTE_IMAGETYPE:
     attr->value.smpte_image_type = gst_ttml_utils_enum_parse (value, SMPTEImageType);
     if (attr->value.smpte_image_type == GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN) {
@@ -802,6 +812,18 @@ gst_ttml_attribute_new_boolean (GstTTMLAttributeType type, gboolean b)
   attr->type = type;
   attr->timeline = NULL;
   attr->value.b = b;
+  return attr;
+}
+
+/* Create a new int attribute. Typically, attributes are
+ * created in the _attribute_parse() method above. */
+GstTTMLAttribute *
+gst_ttml_attribute_new_int (GstTTMLAttributeType type, gint i)
+{
+  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  attr->type = type;
+  attr->timeline = NULL;
+  attr->value.i = i;
   return attr;
 }
 

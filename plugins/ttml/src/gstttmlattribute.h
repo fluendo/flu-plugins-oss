@@ -48,6 +48,7 @@ struct _GstTTMLAttribute {
     GstTTMLDisplayAlign display_align;
     GstTTMLTextOutline text_outline;
     GstTTMLWrapOption wrap_option;
+    GstTTMLShowBackground show_background;
     GstTTMLSMPTEImageType smpte_image_type;
     GstTTMLSMPTEEncoding smpte_encoding;
     GstTTMLAttributeType removed_attribute_type;
@@ -74,6 +75,9 @@ GstTTMLAttribute *gst_ttml_attribute_new_node (GstTTMLNodeType node_type);
 
 GstTTMLAttribute *gst_ttml_attribute_new_boolean (GstTTMLAttributeType type,
     gboolean b);
+
+GstTTMLAttribute *gst_ttml_attribute_new_int (GstTTMLAttributeType type,
+    gint i);
 
 GstTTMLAttribute *gst_ttml_attribute_new_time (GstTTMLAttributeType type,
     GstClockTime time);

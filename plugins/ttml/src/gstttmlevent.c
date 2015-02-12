@@ -129,8 +129,7 @@ gst_ttml_event_new_region_begin (GstClockTime timestamp, const gchar *id,
 
 /* Creates a new REGION END event */
 GstTTMLEvent *
-gst_ttml_event_new_region_end (GstClockTime timestamp, const gchar *id,
-    GstTTMLStyle *style)
+gst_ttml_event_new_region_end (GstClockTime timestamp, const gchar *id)
 {
   GstTTMLEvent *event;
 

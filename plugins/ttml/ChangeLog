@@ -1,5 +1,24 @@
 2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
+	(gst_ttml_attribute_new_boolean), (gst_ttml_attribute_new_int):
+	* src/gstttmlattribute.h:
+	* src/gstttmlbase.c: (gst_ttmlbase_add_region):
+	* src/gstttmlenums.h:
+	* src/gstttmlevent.c: (gst_ttml_event_new_region_end):
+	* src/gstttmlevent.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_new_region),
+	(gst_ttmlrender_setup_region_attrs),
+	(gst_ttmlrender_build_layouts),
+	(gst_ttmlrender_build_background_layout),
+	(gst_ttmlrender_gen_buffer):
+	* src/gstttmlutils.c:
+	* src/gstttmlutils.h:
+	Add support for the ShowBackground attribute.
+	Use lexical order when regions do not set their zIndex.
+
+2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_set_attr):
 	Return previous value when removing an attribute from the stack.
 	This is not used yet, but makes more sense in this way.

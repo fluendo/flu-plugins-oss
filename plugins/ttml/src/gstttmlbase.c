@@ -282,12 +282,26 @@ gst_ttmlbase_add_region (GstTTMLBase *base)
 {
   GstTTMLEvent *event;
   GstClockTime timestamp = 0;
+  GstTTMLAttribute *attr;
+
   if (GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
       base->state.begin >= base->state.end) {
     GST_DEBUG ("Region with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
         ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (base->state.begin),
         GST_TIME_ARGS (base->state.end));
     return;
+  }
+
+  attr = gst_ttml_style_get_attr (&base->state.style, GST_TTML_ATTR_ZINDEX);
+  if (!attr) {
+    /* Insert a manual "0" zIndex attribute with its ever-increasing 1e-3 index.
+     * See gst_ttml_attribute_parse() for GST_TTML_ATTR_ZINDEX.
+     * This forces lexical order of rendering on overlapping regions without
+     * explicit zIndex. */
+    attr = gst_ttml_attribute_new_int (GST_TTML_ATTR_ZINDEX,
+        base->state.last_zindex_micro);
+    base->state.last_zindex_micro++;
+    gst_ttml_state_push_attribute (&base->state, attr);
   }
 
   /* Insert BEGIN and END events in the timeline */
@@ -297,8 +311,7 @@ gst_ttmlbase_add_region (GstTTMLBase *base)
   if (event)
     timestamp = event->timestamp;
 
-  event = gst_ttml_event_new_region_end (base->state.end, base->state.id,
-      &base->state.style);
+  event = gst_ttml_event_new_region_end (base->state.end, base->state.id);
   base->timeline = gst_ttml_event_list_insert (base->timeline, event);
   if (event)
     timestamp = event->timestamp;
@@ -307,7 +320,15 @@ gst_ttmlbase_add_region (GstTTMLBase *base)
       gst_ttml_style_gen_region_events (base->state.id, &base->state.style,
           base->timeline);
 
+  if (attr) {
+    /* We keep the attr pointer, but its content does not belong to us, there
+     * is no harm in overwritting it here. */
+    gst_ttml_state_pop_attribute (&base->state, &attr);
+    gst_ttml_attribute_free (attr);
+  }
+
   base->last_event_timestamp = timestamp;
+
 }
 
 /* Adds the found chars to the embedded data string being constructed.

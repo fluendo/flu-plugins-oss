@@ -74,6 +74,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "lineHeight", GST_TTML_ATTR_LINE_HEIGHT },
   { "wrapOption", GST_TTML_ATTR_WRAP_OPTION },
   { "padding", GST_TTML_ATTR_PADDING },
+  { "showBackground", GST_TTML_ATTR_SHOW_BACKGROUND },
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   { "imagetype", GST_TTML_ATTR_SMPTE_IMAGETYPE },
@@ -152,6 +153,14 @@ const GstTTMLToken GstTTMLUtilsTokensWrapOptionInternal[] = {
 };
 const GstTTMLToken *GstTTMLUtilsTokensWrapOption =
     GstTTMLUtilsTokensWrapOptionInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensShowBackgroundInternal[] = {
+  { "always", GST_TTML_SHOW_BACKGROUND_ALWAYS },
+  { "whenActive", GST_TTML_SHOW_BACKGROUND_WHEN_ACTIVE },
+  { NULL, GST_TTML_SHOW_BACKGROUND_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensShowBackground =
+    GstTTMLUtilsTokensShowBackgroundInternal;
 
 const GstTTMLToken GstTTMLUtilsTokensSMPTEImageTypeInternal[] = {
   { "PNG", GST_TTML_SMPTE_IMAGE_TYPE_PNG },
