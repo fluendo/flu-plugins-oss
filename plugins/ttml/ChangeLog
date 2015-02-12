@@ -1,5 +1,11 @@
 2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/ThisIsCoffee1961_captions.xml:
+	Fix the ThisIsCoffe test. There is nobody in the world that knows
+	how to write a proper TTML file but me, seriously.
+
+2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse),
 	(gst_ttml_attribute_new_boolean), (gst_ttml_attribute_new_int):
 	* src/gstttmlattribute.h:
