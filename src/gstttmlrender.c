@@ -215,6 +215,8 @@ gst_ttmlrender_decode_image_from_buffer (const gchar *id, GstTTMLDataBuffer *buf
   return surface;
 }
 
+/* Retrieve, either from cache, embedded, file or the internet the image with
+ * the given id. The returned pointer is not yours, do not free. */
 static cairo_surface_t *
 gst_ttmlrender_retrieve_image (GstTTMLRender *render, const gchar *id)
 {
@@ -292,15 +294,24 @@ beach:
   return surface;
 }
 
+/* Create a new empty region, with only the ID. */
 static GstTTMLRegion *
-gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
-    GstTTMLStyle *style)
+gst_ttmlrender_new_region (const gchar *id)
 {
-  GstTTMLAttribute *attr;
   GstTTMLRegion *region;
 
   region = g_new0 (GstTTMLRegion, 1);
   region->id = g_strdup (id);
+
+  return region;
+}
+
+/* Fill in region attributes from the given style, overriding previous ones */
+static void
+gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
+    GstTTMLStyle *style)
+{
+  GstTTMLAttribute *attr;
 
   /* Fill-in region attributes. It does not matter from which span we read
    * them, since all spans going into the same region will have the same
@@ -390,8 +401,6 @@ gst_ttmlrender_new_region (GstTTMLRender *render, const gchar *id,
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_OVERFLOW);
   region->overflow_visible = attr ? attr->value.b : FALSE;
-
-  return region;
 }
 
 /* Adds this span to the current paragraph of the appropriate region.
@@ -450,8 +459,17 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       (GCompareFunc)gst_ttmlrender_region_compare_id);
   if (region_link) {
     region = (GstTTMLRegion *)region_link->data;
+    if (!region->layouts && !region->current_par_content) {
+      /* Only update the region attributes if we are the first layout in the
+       * region. This does not matter for attributes which really belong to
+       * the region, but we have some span attrs (like TextOutline) which
+       * we are currently treating as region attrs, and this fixes the
+       * Padding testsuite. */
+      gst_ttmlrender_setup_region_attrs (render, region, &final_style);
+    }
   } else {
-    region = gst_ttmlrender_new_region (render, region_id, &final_style);
+    region = gst_ttmlrender_new_region (region_id);
+    gst_ttmlrender_setup_region_attrs (render, region, &final_style);
 
     render->regions = g_list_insert_sorted (render->regions, region,
         (GCompareFunc)gst_ttmlrender_region_compare_zindex);
@@ -746,6 +764,35 @@ gst_ttmlrender_free_region (GstTTMLRegion *region)
   g_free (region);
 }
 
+/* Creates an empty layout for those regions with showBackground=Always, so
+ * the background is rendered even when empty. */
+static void
+gst_ttmlrender_build_background_layout (const gchar *id, GList *attr_list,
+    GstTTMLRender *render)
+{
+  GstTTMLStyle style;
+  GstTTMLAttribute *attr;
+  GList *region_link;
+
+  style.attributes = attr_list;
+  attr = gst_ttml_style_get_attr (&style, GST_TTML_ATTR_SHOW_BACKGROUND);
+  if (attr && attr->value.show_background != GST_TTML_SHOW_BACKGROUND_ALWAYS)
+    return;
+
+  /* Find or create region struct */
+  region_link = g_list_find_custom (render->regions, id,
+      (GCompareFunc)gst_ttmlrender_region_compare_id);
+  if (!region_link) {
+    /* Create a new empty region, without any layout */
+    GstTTMLRegion *region;
+
+    region = gst_ttmlrender_new_region (id);
+    gst_ttmlrender_setup_region_attrs (render, region, &style);
+    render->regions = g_list_insert_sorted (render->regions, region,
+        (GCompareFunc)gst_ttmlrender_region_compare_zindex);
+  }
+}
+
 static GstBuffer *
 gst_ttmlrender_gen_buffer (GstTTMLBase *base)
 {
@@ -765,15 +812,17 @@ gst_ttmlrender_gen_buffer (GstTTMLBase *base)
   cairo_paint (render->cairo);
   cairo_set_operator (render->cairo, CAIRO_OPERATOR_OVER);
 
-  if (base->active_spans == NULL) {
-    /* Empty span list: Generate empty frame so previous text is cleared from
-     * renderers which do not respect frame durations. */
-    goto beach;
+  /* Prepare empty layout for regions requiring background even when they have
+   * no spans. */
+  if (base->state.saved_region_attr_stacks) {
+    g_hash_table_foreach (base->state.saved_region_attr_stacks,
+        (GHFunc)gst_ttmlrender_build_background_layout, render);
   }
 
   /* Build a ZIndex-sorted list of Regions, each with a list of PangoLayouts */
   g_list_foreach (base->active_spans, (GFunc)gst_ttmlrender_build_layouts, render);
 
+  /* Render all generated regions */
   g_list_foreach (render->regions, (GFunc)gst_ttmlrender_show_regions, render);
 
   /* We are done processing the regions, destroy the temp structures */
@@ -781,7 +830,6 @@ gst_ttmlrender_gen_buffer (GstTTMLBase *base)
       (GDestroyNotify)gst_ttmlrender_free_region);
   render->regions = NULL;
 
-beach:
   gst_buffer_unmap (buffer, &map_info);
   cairo_surface_destroy (render->surface);
   cairo_destroy (render->cairo);

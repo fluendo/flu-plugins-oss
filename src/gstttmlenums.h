@@ -65,6 +65,7 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_LINE_HEIGHT,
   GST_TTML_ATTR_WRAP_OPTION,
   GST_TTML_ATTR_PADDING,
+  GST_TTML_ATTR_SHOW_BACKGROUND,
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   GST_TTML_ATTR_SMPTE_IMAGETYPE,
@@ -141,19 +142,26 @@ typedef enum _GstTTMLDisplayAlign {
 typedef enum _GstTTMLWrapOption {
   GST_TTML_WRAP_OPTION_YES,
   GST_TTML_WRAP_OPTION_NO,
-  GST_TTML_WRAP_OPTION_UNKNOWN,
+  GST_TTML_WRAP_OPTION_UNKNOWN
 } GstTTMLWrapOption;
+
+/* Show background */
+typedef enum _GstTTMLShowBackground {
+  GST_TTML_SHOW_BACKGROUND_ALWAYS,
+  GST_TTML_SHOW_BACKGROUND_WHEN_ACTIVE,
+  GST_TTML_SHOW_BACKGROUND_UNKNOWN
+} GstTTMLShowBackground;
 
 /* SMPTE-TT Image types */
 typedef enum _GstTTMLSMPTEImageType {
   GST_TTML_SMPTE_IMAGE_TYPE_PNG,
-  GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN,
+  GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN
 } GstTTMLSMPTEImageType;
 
 /* SMPTE-TT Encodings */
 typedef enum _GstTTMLSMPTEEncoding {
   GST_TTML_SMPTE_ENCODING_BASE64,
-  GST_TTML_SMPTE_ENCODING_UNKNOWN,
+  GST_TTML_SMPTE_ENCODING_UNKNOWN
 } GstTTMLSMPTEEncoding;
 
 G_END_DECLS

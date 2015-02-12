@@ -76,7 +76,7 @@ GstTTMLEvent *gst_ttml_event_new_region_begin (GstClockTime timestamp,
     const gchar *id, GstTTMLStyle *style);
 
 GstTTMLEvent *gst_ttml_event_new_region_end (GstClockTime timestamp,
-    const gchar *id, GstTTMLStyle *style);
+    const gchar *id);
 
 GstTTMLEvent *gst_ttml_event_new_region_update (GstClockTime timestamp,
     const gchar *id, GstTTMLAttribute *attr);
