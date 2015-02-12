@@ -1,7 +1,13 @@
 2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/ThisIsCoffee.sh:
 	* testsuite/ThisIsCoffee1961_captions.xml:
-	Fix the ThisIsCoffe test. There is nobody in the world that knows
+	Fix again the ThisIsCoffee, and provide a pipeline to play it.
+
+2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
+
+	* testsuite/ThisIsCoffee1961_captions.xml:
+	Fix the ThisIsCoffee test. There is nobody in the world that knows
 	how to write a proper TTML file but me, seriously.
 
 2015-02-12  Xavi Artigas  <xartigas@fluendo.com>

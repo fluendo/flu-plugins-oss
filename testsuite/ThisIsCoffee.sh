@@ -1,0 +1,1 @@
+gst-launch-0.10 filesrc location=ThisIsCoffee1961_captions.xml ! ttmlrender force-buffer-clear=1 ! video/x-raw-rgb,width=320,height=240 ! videomixer name=m ! queue ! ffmpegcolorspace ! xvimagesink filesrc location=ThisIsCoffee1961_tiny.ogv ! oggdemux ! theoradec ! queue ! ffmpegcolorspace ! m.
