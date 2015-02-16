@@ -61,9 +61,13 @@ typedef struct _GstTTMLRegion {
   /* List of PangoLayouts, already filled with text and attributes */
   GList *layouts;
 
-  /* Paragraph currently being filled */
+  /* Paragraph currently being filled. Attributes which can be expressed in
+   * Pango markup are stored in the GstTTMLStyle, the others are stored in
+   * the PangoAttrList, using custom attributes.*/
   gchar *current_par_content;
   GstTTMLStyle current_par_style;
+  PangoAttrList *current_par_pango_attrs;
+  int current_par_content_plain_length; /* # of chars without markup */
 } GstTTMLRegion;
 
 #if GST_CHECK_VERSION (1,0,0)
@@ -88,12 +92,67 @@ static GstStaticPadTemplate ttmlrender_src_template =
 G_DEFINE_TYPE (GstTTMLRender, gst_ttmlrender, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlrender_parent_class
 
+/* Some Pango bureaucracy needed to register a new type.
+ * Pango already has these methods, but they are private. */
+static PangoAttribute *
+gst_ttmlrender_pango_attr_int_new (const PangoAttrClass *klass,
+    int value)
+{
+  PangoAttrInt *result = g_slice_new (PangoAttrInt);
+  pango_attribute_init (&result->attr, klass);
+  result->value = value;
+
+  return (PangoAttribute *)result;
+}
+
+static PangoAttribute *
+gst_ttmlrender_pango_attr_int_copy (const PangoAttribute *attr)
+{
+  const PangoAttrInt *int_attr = (PangoAttrInt *)attr;
+
+  return gst_ttmlrender_pango_attr_int_new (attr->klass, int_attr->value);
+}
+
+static void
+gst_ttmlrender_pango_attr_int_destroy (PangoAttribute *attr)
+{
+  PangoAttrInt *iattr = (PangoAttrInt *)attr;
+
+  g_slice_free (PangoAttrInt, iattr);
+}
+
+static gboolean
+gst_ttmlrender_pango_attr_int_equal (const PangoAttribute *attr1,
+    const PangoAttribute *attr2)
+{
+  const PangoAttrInt *int_attr1 = (const PangoAttrInt *)attr1;
+  const PangoAttrInt *int_attr2 = (const PangoAttrInt *)attr2;
+
+  return (int_attr1->value == int_attr2->value);
+}
+
+static PangoAttrClass gst_ttmlrender_pango_attr_overline_klass = {
+  PANGO_ATTR_STRIKETHROUGH,
+  gst_ttmlrender_pango_attr_int_copy,
+  gst_ttmlrender_pango_attr_int_destroy,
+  gst_ttmlrender_pango_attr_int_equal
+};
+
+PangoAttribute *
+gst_ttmlrender_pango_attr_overline_new (gboolean overline)
+{
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_overline_klass, (int)overline);
+}
+
+/* Region compare function: Z index */
 static gint
 gst_ttmlrender_region_compare_zindex (GstTTMLRegion *region1, GstTTMLRegion *region2)
 {
   return region1->zindex - region2->zindex;
 }
 
+/* Region compare function: ID */
 static gint
 gst_ttmlrender_region_compare_id (GstTTMLRegion *region, gchar *id)
 {
@@ -159,10 +218,32 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
 
   pango_layout_set_markup (layout, region->current_par_content, -1);
 
+  if (region->current_par_pango_attrs) {
+    /* Merge manual Pango attributes with the ones generated through markup */
+    PangoAttrList *dst_list = pango_layout_get_attributes (layout);
+    PangoAttrIterator *iter =
+        pango_attr_list_get_iterator (region->current_par_pango_attrs);
+    do {
+      GSList *src_list = pango_attr_iterator_get_attrs (iter);
+      GSList *org = src_list;
+      while (src_list) {
+        PangoAttribute *a = (PangoAttribute *)src_list->data;
+        pango_attr_list_change (dst_list, a);
+        src_list = src_list->next;
+      }
+      g_slist_free(org);
+    } while (pango_attr_iterator_next (iter));
+    pango_attr_iterator_destroy (iter);
+    pango_layout_set_attributes (layout, dst_list);
+  }
+
   region->layouts = g_list_append (region->layouts, layout);
 
   g_free (region->current_par_content);
   region->current_par_content = NULL;
+  region->current_par_content_plain_length = 0;
+  pango_attr_list_unref (region->current_par_pango_attrs);
+  region->current_par_pango_attrs = NULL;
   gst_ttml_style_reset (&region->current_par_style);
 }
 
@@ -528,6 +609,18 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       gst_ttml_style_copy (&region->current_par_style, &final_style, FALSE);
     }
 
+    attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_TEXT_DECORATION);
+    if (attr && (attr->value.text_decoration & GST_TTML_TEXT_DECORATION_OVERLINE)) {
+      PangoAttribute *pattr = gst_ttmlrender_pango_attr_overline_new (TRUE);
+      pattr->start_index = region->current_par_content_plain_length;
+      pattr->end_index = region->current_par_content_plain_length + frag_len;
+      if (!region->current_par_pango_attrs) {
+        region->current_par_pango_attrs = pango_attr_list_new ();
+      }
+      pango_attr_list_change (region->current_par_pango_attrs, pattr);
+    }
+
+    region->current_par_content_plain_length += frag_len;
     chars_left -= frag_len;
     frag_start += frag_len;
 
@@ -632,7 +725,7 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
               cairo_stroke (cairo);
             } else {
               cairo_fill (cairo);
-            }       
+            }
           }
           break;
         case PANGO_ATTR_STRIKETHROUGH: {
@@ -653,6 +746,24 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
           }
           break;
         default:
+          if (attr->klass == &gst_ttmlrender_pango_attr_overline_klass) {
+            PangoFontMetrics *metrics =
+                pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
+            double overline_thickness =
+                pango_font_metrics_get_underline_thickness (metrics);
+            double overline_position =
+                pango_font_metrics_get_ascent (metrics);
+            pango_font_metrics_unref (metrics);
+            cairo_rectangle (cairo, 0, -overline_position / PANGO_SCALE,
+                width, overline_thickness / PANGO_SCALE);
+            if (!render) {
+              cairo_stroke (cairo);
+            } else {
+              cairo_fill (cairo);
+            }
+          }
+          break;
+
           break;
         }
         extra_attrs = extra_attrs->next;
@@ -839,6 +950,8 @@ static void
 gst_ttmlrender_free_region (GstTTMLRegion *region)
 {
   g_free (region->current_par_content);
+  if (region->current_par_pango_attrs)
+    pango_attr_list_unref (region->current_par_pango_attrs);
   g_list_free_full (region->layouts, g_object_unref);
   g_free (region->id);
   g_free (region);
@@ -1116,6 +1229,9 @@ gst_ttmlrender_init (GstTTMLRender * render)
 {
   render->pango_context =
       pango_font_map_create_context (pango_cairo_font_map_get_default ());
+
+  gst_ttmlrender_pango_attr_overline_klass.type =
+      pango_attr_type_register ("Overline");
 
   render->default_font_family = g_strdup ("default");
   render->default_font_size = NULL;
