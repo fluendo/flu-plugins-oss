@@ -566,6 +566,7 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
   }
   for (ndx = 0; ndx < num_lines; ndx++) {
     PangoLayoutLine *line = pango_layout_get_line_readonly (layout, ndx);
+    GSList *runs = line->runs;
     int pre_space, post_space;
     int *ranges, n_ranges;
     pango_layout_line_get_x_ranges (line, line->start_index,
@@ -584,11 +585,90 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
     }
 
     cairo_translate (cairo, xoffset + ranges[0] / PANGO_SCALE, pre_space);
-    if (render) {
-      pango_cairo_show_layout_line (cairo, line);
-    } else {
-      pango_cairo_layout_line_path (cairo, line);
+    cairo_save (cairo);
+    while (runs) {
+      int width = 0, i;
+      PangoGlyphItem *glyph_item = (PangoGlyphItem *)runs->data;
+      GSList *extra_attrs = glyph_item->item->analysis.extra_attrs;
+      for (i = 0; i < glyph_item->glyphs->num_glyphs; i++) {
+        width += glyph_item->glyphs->glyphs[i].geometry.width;
+      }
+      width /= (double)PANGO_SCALE;
+      cairo_save (cairo);
+      while (extra_attrs) {
+        PangoAttribute *attr = (PangoAttribute *)extra_attrs->data;
+        switch (attr->klass->type) {
+        case PANGO_ATTR_FOREGROUND: {
+            PangoAttrColor *color = (PangoAttrColor *)attr;
+            cairo_set_source_rgb (cairo, color->color.red / 65535.0,
+                                  color->color.green / 65535.0,
+                                  color->color.blue / 65535.0);
+          }
+          break;
+        case PANGO_ATTR_BACKGROUND: {
+            PangoAttrColor *color = (PangoAttrColor *)attr;
+            if (!render)
+              break;
+            cairo_save (cairo);
+            cairo_set_source_rgb (cairo, color->color.red / 65535.0,
+                                  color->color.green / 65535.0,
+                                  color->color.blue / 65535.0);
+            cairo_rectangle (cairo, 0, -pre_space, width, pre_space + post_space);
+            cairo_fill (cairo);
+            cairo_restore (cairo);
+          }
+          break;
+        case PANGO_ATTR_UNDERLINE: {
+            PangoFontMetrics *metrics =
+                pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
+            double underline_thickness =
+                pango_font_metrics_get_underline_thickness (metrics);
+            double underline_position =
+                pango_font_metrics_get_underline_position (metrics);
+            pango_font_metrics_unref (metrics);
+            cairo_rectangle (cairo, 0, -underline_position / PANGO_SCALE,
+                width, underline_thickness / PANGO_SCALE);
+            if (!render) {
+              cairo_stroke (cairo);
+            } else {
+              cairo_fill (cairo);
+            }       
+          }
+          break;
+        case PANGO_ATTR_STRIKETHROUGH: {
+            PangoFontMetrics *metrics =
+                pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
+            double strikethrough_thickness =
+                pango_font_metrics_get_strikethrough_thickness (metrics);
+            double strikethrough_position =
+                pango_font_metrics_get_strikethrough_position (metrics);
+            pango_font_metrics_unref (metrics);
+            cairo_rectangle (cairo, 0, -strikethrough_position / PANGO_SCALE,
+                width, strikethrough_thickness / PANGO_SCALE);
+            if (!render) {
+              cairo_stroke (cairo);
+            } else {
+              cairo_fill (cairo);
+            }
+          }
+          break;
+        default:
+          break;
+        }
+        extra_attrs = extra_attrs->next;
+      }
+      if (render) {
+        pango_cairo_show_glyph_string (cairo, glyph_item->item->analysis.font,
+            glyph_item->glyphs);
+      } else {
+        pango_cairo_glyph_string_path (cairo, glyph_item->item->analysis.font,
+            glyph_item->glyphs);
+      }
+      cairo_restore (cairo);
+      cairo_translate (cairo, width, 0);
+      runs = runs->next;
     }
+    cairo_restore (cairo);
     cairo_translate (cairo, -xoffset - ranges[0] / PANGO_SCALE, post_space);
 
     g_free (ranges);
