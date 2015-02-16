@@ -1,3 +1,11 @@
+2015-02-16  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
+	Draw glyphs one at a time instead of letting Pango draw whole lines.
+	This will allow us to introduce custom attributes and draw them in
+	whatever way we want, so we can implement things not supported by
+	Pango (like Overline, Invisibility, etc)
+
 2015-02-12  Xavi Artigas  <xartigas@fluendo.com>
 
 	* testsuite/ThisIsCoffee.sh:
