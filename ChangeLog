@@ -1,5 +1,17 @@
 2015-02-16  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_pango_attr_int_new),
+	(gst_ttmlrender_pango_attr_int_copy),
+	(gst_ttmlrender_pango_attr_int_destroy),
+	(gst_ttmlrender_pango_attr_int_equal),
+	(gst_ttmlrender_pango_attr_overline_new),
+	(gst_ttmlrender_store_layout), (gst_ttmlrender_build_layouts),
+	(gst_ttmlrender_show_layout), (gst_ttmlrender_free_region),
+	(gst_ttmlrender_init):
+	Add support for the Overline TextDecoration attribute.
+
+2015-02-16  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
 	Draw glyphs one at a time instead of letting Pango draw whole lines.
 	This will allow us to introduce custom attributes and draw them in
