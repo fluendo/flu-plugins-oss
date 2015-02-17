@@ -132,7 +132,14 @@ gst_ttmlrender_pango_attr_int_equal (const PangoAttribute *attr1,
 }
 
 static PangoAttrClass gst_ttmlrender_pango_attr_overline_klass = {
-  PANGO_ATTR_STRIKETHROUGH,
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
+  gst_ttmlrender_pango_attr_int_copy,
+  gst_ttmlrender_pango_attr_int_destroy,
+  gst_ttmlrender_pango_attr_int_equal
+};
+
+static PangoAttrClass gst_ttmlrender_pango_attr_invisibility_klass = {
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
   gst_ttmlrender_pango_attr_int_copy,
   gst_ttmlrender_pango_attr_int_destroy,
   gst_ttmlrender_pango_attr_int_equal
@@ -143,6 +150,13 @@ gst_ttmlrender_pango_attr_overline_new (gboolean overline)
 {
   return gst_ttmlrender_pango_attr_int_new (
       &gst_ttmlrender_pango_attr_overline_klass, (int)overline);
+}
+
+PangoAttribute *
+gst_ttmlrender_pango_attr_invisibility_new (gboolean invisibility)
+{
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_invisibility_klass, (int)invisibility);
 }
 
 /* Region compare function: Z index */
@@ -619,6 +633,19 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       }
       pango_attr_list_change (region->current_par_pango_attrs, pattr);
     }
+    attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_VISIBILITY);
+    if (attr && (attr->value.b == FALSE)) {
+      /* The TTML attribute is Visibility=visible|hidden, but for convenience,
+       * I definde the Pango attribute as Invisibility, so it only appears when
+       * text is invisible. */
+      PangoAttribute *pattr = gst_ttmlrender_pango_attr_invisibility_new (FALSE);
+      pattr->start_index = region->current_par_content_plain_length;
+      pattr->end_index = region->current_par_content_plain_length + frag_len;
+      if (!region->current_par_pango_attrs) {
+        region->current_par_pango_attrs = pango_attr_list_new ();
+      }
+      pango_attr_list_change (region->current_par_pango_attrs, pattr);
+    }
 
     region->current_par_content_plain_length += frag_len;
     chars_left -= frag_len;
@@ -681,6 +708,7 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
     cairo_save (cairo);
     while (runs) {
       int width = 0, i;
+      gboolean skip_run = FALSE;
       PangoGlyphItem *glyph_item = (PangoGlyphItem *)runs->data;
       GSList *extra_attrs = glyph_item->item->analysis.extra_attrs;
       for (i = 0; i < glyph_item->glyphs->num_glyphs; i++) {
@@ -761,6 +789,9 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
             } else {
               cairo_fill (cairo);
             }
+          } else
+          if (attr->klass == &gst_ttmlrender_pango_attr_invisibility_klass) {
+            skip_run = TRUE;
           }
           break;
 
@@ -768,12 +799,14 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
         }
         extra_attrs = extra_attrs->next;
       }
-      if (render) {
-        pango_cairo_show_glyph_string (cairo, glyph_item->item->analysis.font,
-            glyph_item->glyphs);
-      } else {
-        pango_cairo_glyph_string_path (cairo, glyph_item->item->analysis.font,
-            glyph_item->glyphs);
+      if (!skip_run) {
+        if (render) {
+          pango_cairo_show_glyph_string (cairo, glyph_item->item->analysis.font,
+              glyph_item->glyphs);
+        } else {
+          pango_cairo_glyph_string_path (cairo, glyph_item->item->analysis.font,
+              glyph_item->glyphs);
+        }
       }
       cairo_restore (cairo);
       cairo_translate (cairo, width, 0);
@@ -1232,6 +1265,8 @@ gst_ttmlrender_init (GstTTMLRender * render)
 
   gst_ttmlrender_pango_attr_overline_klass.type =
       pango_attr_type_register ("Overline");
+  gst_ttmlrender_pango_attr_invisibility_klass.type =
+      pango_attr_type_register ("Invisibility");
 
   render->default_font_family = g_strdup ("default");
   render->default_font_size = NULL;

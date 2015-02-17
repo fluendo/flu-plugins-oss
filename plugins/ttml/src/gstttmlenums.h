@@ -66,6 +66,7 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_WRAP_OPTION,
   GST_TTML_ATTR_PADDING,
   GST_TTML_ATTR_SHOW_BACKGROUND,
+  GST_TTML_ATTR_VISIBILITY,
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   GST_TTML_ATTR_SMPTE_IMAGETYPE,
