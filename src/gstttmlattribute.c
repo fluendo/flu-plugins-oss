@@ -651,6 +651,10 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         attr->value.show_background,
         gst_ttml_utils_enum_name (attr->value.show_background, ShowBackground));
     break;
+  case GST_TTML_ATTR_VISIBILITY:
+    attr->value.b = gst_ttml_utils_attr_value_is (value, "visible");
+    GST_LOG ("Parsed '%s' visibility into visibility=%d", value, attr->value.b);
+    break;
   case GST_TTML_ATTR_SMPTE_IMAGETYPE:
     attr->value.smpte_image_type = gst_ttml_utils_enum_parse (value, SMPTEImageType);
     if (attr->value.smpte_image_type == GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN) {

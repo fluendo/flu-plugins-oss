@@ -75,6 +75,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "wrapOption", GST_TTML_ATTR_WRAP_OPTION },
   { "padding", GST_TTML_ATTR_PADDING },
   { "showBackground", GST_TTML_ATTR_SHOW_BACKGROUND },
+  { "visibility", GST_TTML_ATTR_VISIBILITY },
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   { "imagetype", GST_TTML_ATTR_SMPTE_IMAGETYPE },
