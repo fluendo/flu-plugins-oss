@@ -1,3 +1,13 @@
+2015-02-18  Xavi Artigas  <xartigas@fluendo.com>
+
+	* lib/fludownloader.c: (_write_function), (_header_function),
+	(_thread_function):
+	Release lock when calling curl_multi_perform and re-acquire it when
+	the callbacks get called. In this way, we allow other threads to use
+	the API. For example, when reading large file:// URLs,
+	curl_multi_perform would not return until the whole file is read.
+	Also, fix a misleading comment.
+
 2015-02-02  Release Maker <nomail@fluendo.com>
 
 	* configure.ac: Back to TRUNK.

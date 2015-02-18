@@ -118,10 +118,12 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 {
   size_t total_size = size * nmemb;
 
+  g_mutex_lock (task->context->mutex);
   task->downloaded_size += total_size;
 
   if (task->abort) {
     /* The task has been signalled to abort. Return 0 so libCurl stops it. */
+    g_mutex_unlock (task->context->mutex);
     return 0;
   }
 
@@ -143,10 +145,13 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
-    if (!cb (buffer, total_size, task->user_data, task))
+    if (!cb (buffer, total_size, task->user_data, task)) {
+      g_mutex_unlock (task->context->mutex);
       return 0;
+    }
   }
 
+  g_mutex_unlock (task->context->mutex);
   return total_size;
 }
 
@@ -156,6 +161,8 @@ _header_function (const char *line, size_t size, size_t nmemb,
     FluDownloaderTask *task)
 {
   size_t total_size = size * nmemb;
+ 
+  g_mutex_lock (task->context->mutex);
 
   if (task->first_header_line) {
     /* This is the status line */
@@ -175,6 +182,8 @@ _header_function (const char *line, size_t size, size_t nmemb,
 
   task->first_header_line =
       (total_size > 1 && line[0] == 13 && line[1] == 10);
+
+  g_mutex_unlock (task->context->mutex);
 
   return total_size;
 }
@@ -302,7 +311,6 @@ _thread_function (FluDownloader *context)
       /* There is nothing happening: wait a bit (and release the mutex) */
       g_mutex_unlock (context->mutex);
       g_usleep (context->polling_period);
-      g_mutex_lock (context->mutex);
     } else if (max_fd > 0) {
       /* There are some active fd's: wait for them (and release the mutex) */
       struct timeval tv;
@@ -311,13 +319,14 @@ _thread_function (FluDownloader *context)
       tv.tv_usec = TIMEOUT;
       g_mutex_unlock (context->mutex);
       select (max_fd + 1, &rfds, NULL, NULL, &tv);
-      g_mutex_lock (context->mutex);
     } else {
-      /* There are some fd requiring immediate action! */
+      /* max_fd should never be 0, but better be safe than sorry. */
+      g_mutex_unlock (context->mutex);
     }
 
     /* Perform transfers */
     curl_multi_perform (context->handle, &num_queued_tasks);
+    g_mutex_lock (context->mutex);
 
     /* Keep an eye on possible finished tasks */
     _process_curl_messages (context);
