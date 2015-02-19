@@ -794,7 +794,7 @@ skip_font_size:
 
 static void
 gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
-    gboolean render, int right_edge)
+    gboolean render, int right_edge, gboolean show_background)
 {
   int ndx, num_lines, spacing, baseline;
   int xoffset = 0;
@@ -862,8 +862,10 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
           break;
         case PANGO_ATTR_BACKGROUND: {
             PangoAttrColor *color = (PangoAttrColor *)attr;
-            if (!render)
+            if (!show_background)
               break;
+            if (!render)
+              cairo_stroke (cairo);
             cairo_save (cairo);
             cairo_set_source_rgb (cairo, color->color.red / 65535.0,
                                   color->color.green / 65535.0,
@@ -1015,15 +1017,13 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
     dest_surface = render->surface;
   }
 
-  /* FIXME: This adds outline to the bounding box if a backgroundColor
-    * tag is present in the markup! */
   cairo_set_source_rgba (dest_cairo,
       GET_CAIRO_COMP (color, 24),
       GET_CAIRO_COMP (color, 16),
       GET_CAIRO_COMP (color,  8),
       GET_CAIRO_COMP (color,  0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
-  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE, right_edge);
+  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE, right_edge, TRUE);
   cairo_stroke (dest_cairo);
 
   if (outline->length[1].unit !=
@@ -1135,7 +1135,9 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         1.0 - GET_CAIRO_COMP (region->background_color, 16),
         1.0 - GET_CAIRO_COMP (region->background_color,  8));
     gst_ttmlrender_show_layout (render->cairo, layout, TRUE,
-        region->padded_extentx);
+        region->padded_extentx,
+        region->text_outline.length[0].unit ==
+        GST_TTML_LENGTH_UNIT_NOT_PRESENT);
 
     link = g_list_next (link);
   }
