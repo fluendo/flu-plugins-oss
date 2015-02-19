@@ -1,5 +1,14 @@
 2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_setup_region_attrs),
+	(gst_ttmlrender_show_regions):
+	* src/gstttmlutils.c:
+	Add support for the Opacity attribute.
+
+2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_init):
 	Revert font size change mistakenly committed before.
 

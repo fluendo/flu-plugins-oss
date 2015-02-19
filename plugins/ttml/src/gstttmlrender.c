@@ -48,6 +48,7 @@ typedef struct _GstTTMLRegion {
   gint padded_originx, padded_originy;
   gint padded_extentx, padded_extenty;
   guint32 background_color;
+  gdouble opacity;
   cairo_surface_t *smpte_background_image;
   gint smpte_background_image_posx;
   gint smpte_background_image_posy;
@@ -413,6 +414,9 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
    * REGION attributes. */
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ZINDEX);
   region->zindex = attr ? attr->value.i : 0;
+
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_OPACITY);
+  region->opacity = attr ? attr->value.d : 1.0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
   region->originx = attr ? attr->value.length[0].f : 0;
@@ -1054,6 +1058,8 @@ static void
 gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 {
   GList *link;
+  cairo_t *original_cairo = NULL;
+  cairo_surface_t *region_surface;
 
   /* Flush any pending fragment */
   if (region->current_par_content != NULL) {
@@ -1061,6 +1067,14 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
   }
 
   cairo_save (render->cairo);
+
+  if (region->opacity < 1.0) {
+    region_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
+        region->extentx, region->extenty);
+    original_cairo = render->cairo;
+    render->cairo = cairo_create (region_surface);
+    cairo_translate (render->cairo, -region->originx, -region->originy);
+  }
 
   /* Show background color, if required */
   if (region->background_color != 0x00000000) {
@@ -1140,6 +1154,14 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
         GST_TTML_LENGTH_UNIT_NOT_PRESENT);
 
     link = g_list_next (link);
+  }
+
+  if (original_cairo) {
+    cairo_destroy (render->cairo);
+    render->cairo = original_cairo;
+    cairo_set_source_surface (render->cairo, region_surface, region->originx, region->originy);
+    cairo_paint_with_alpha (render->cairo, region->opacity);
+    cairo_surface_destroy (region_surface);
   }
 
   cairo_restore (render->cairo);
