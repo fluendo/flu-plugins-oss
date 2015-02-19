@@ -1,5 +1,11 @@
 2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_show_layout),
+	(gst_ttmlrender_render_outline), (gst_ttmlrender_show_regions):
+	Fix Outline-behind-Background problem.
+
+2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_shape_attr_data_copy),
 	(gst_ttmlrender_shape_attr_data_free),
 	(gst_ttmlrender_build_layouts), (gst_ttmlrender_show_layout),
