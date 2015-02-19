@@ -1,5 +1,10 @@
 2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_init):
+	Revert font size change mistakenly committed before.
+
+2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_show_layout),
 	(gst_ttmlrender_render_outline), (gst_ttmlrender_show_regions):
 	Fix Outline-behind-Background problem.

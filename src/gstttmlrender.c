@@ -1435,7 +1435,7 @@ gst_ttmlrender_init (GstTTMLRender * render)
       pango_attr_type_register ("Invisibility");
 
   render->default_font_family = g_strdup ("Sans");
-  render->default_font_size = g_strdup ("medium");
+  render->default_font_size = NULL;
   render->cached_images = NULL;
 
   render->downloader = gst_ttml_downloader_new ();
