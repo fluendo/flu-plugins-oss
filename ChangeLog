@@ -1,3 +1,19 @@
+2015-02-19  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_shape_attr_data_copy),
+	(gst_ttmlrender_shape_attr_data_free),
+	(gst_ttmlrender_build_layouts), (gst_ttmlrender_show_layout),
+	(gst_ttmlrender_show_regions), (gst_ttmlrender_class_init),
+	(gst_ttmlrender_init):
+	* src/gstttmlstyle.c: (gst_ttml_style_translate_generic_font_name),
+	(gst_ttml_style_gen_pango_markup):
+	Add support for Anamorphic font scaling (different X and Y scale).
+	Some font leaks are detected, but they are all traced back to
+	FontConfig, which is known to leak.
+	Make the default font family something that Pango understands,
+	so it does not complain when no family is specified and the new
+	anamorphic font scaling is present.
+
 2015-02-17  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):

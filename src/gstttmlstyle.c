@@ -122,14 +122,9 @@ gst_ttml_style_translate_generic_font_name (gchar *org_name)
 {
   gchar *new_name = NULL;
   /* FIXME: Map generic TTML font names to actual system fonts, discovered
-   * during initialization, for example.
-   * For now, simply remove the "default" tag to avoid having Pango-WARNINGs
-   * in the most usual case. */
-  if (strcmp (org_name, "default") == 0) {
-    new_name = NULL;
-  } else {
-    new_name = org_name;
-  }
+   * during initialization, for example. */
+
+  new_name = org_name;
 
   if (new_name != org_name) {
     g_free (org_name);
@@ -185,9 +180,11 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
           g_free (font_size);
           font_size = NULL;
         }
-        /* FIXME: Second length ignored: it cannot be used through pango markup */
         if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
-          font_size = g_strdup_printf (" %gpx", attr->value.length[0].f);
+          float max = attr->value.length[0].f;
+          if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_PIXELS)
+            max = attr->value.length[1].f;
+          font_size = g_strdup_printf (" %gpx", max);
           font_size_is_relative = FALSE;
         } else if (attr->value.length[0].f != 1.f) {
           font_size = g_strdup (attr->value.length[0].f>1 ? "large" : "small");

@@ -498,6 +498,28 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
   region->overflow_visible = attr ? attr->value.b : FALSE;
 }
 
+/* Structure (and associated helpers) needed for anamorphic text rendering */
+typedef struct _GstTTMLRenderShapeAttrData {
+  unsigned long wc;
+  double hscale;
+  cairo_scaled_font_t *cairo_font;
+} GstTTMLRenderShapeAttrData;
+
+gpointer
+gst_ttmlrender_shape_attr_data_copy (GstTTMLRenderShapeAttrData *data) {
+  GstTTMLRenderShapeAttrData *new_data = g_new0 (GstTTMLRenderShapeAttrData, 1);
+  new_data->wc = data->wc;
+  new_data->hscale = data->hscale;
+  new_data->cairo_font = cairo_scaled_font_reference (data->cairo_font);
+  return new_data;
+}
+
+void
+gst_ttmlrender_shape_attr_data_free (GstTTMLRenderShapeAttrData *data) {
+  cairo_scaled_font_destroy (data->cairo_font);
+  g_free (data);
+}
+
 /* Adds this span to the current paragraph of the appropriate region.
  * When a line-break char is found, a new PangoLayout is created. */
 static void
@@ -647,6 +669,114 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       pango_attr_list_change (region->current_par_pango_attrs, pattr);
     }
 
+    attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_FONT_SIZE);
+    if (attr && (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_PIXELS)) {
+      /* Anamorphic font scaling attribute generation:
+       * Found a non-uniformly-scaled (anamorphic) font size.
+       * We replace each char by a Pango Shape of the scaled size, and later,
+       * manually draw the scaled glyphs. We cannot register a custom Pango
+       * shape renderer because they are not called when we draw glyphs one by
+       * one :(
+       * One problem with this approach is that we need to calculate the scaled
+       * glyph size here, when generating the layouts, and Pango has not even
+       * chosen a font. We make our own selection, but might not match the one
+       * used by Pango later on. */
+      PangoAttrList *pango_attr_list;
+      PangoAttrIterator *pango_attr_iter;
+      PangoAttribute *pango_attr;
+      PangoFontset *pango_fontset;
+      gchar *tmp1, *tmp2;
+      int ndx;
+      gint start = 0, end = 0;
+      double hscale = attr->value.length[0].f / attr->value.length[1].f;
+
+      /* Get the Pango attrs applying to the current paragraph content */
+      pango_parse_markup (region->current_par_content, -1, 0, &pango_attr_list,
+          NULL, NULL, NULL);
+      /* Locate the portion we have just added */
+      pango_attr_iter = pango_attr_list_get_iterator (pango_attr_list);
+      while (end < region->current_par_content_plain_length) {
+        pango_attr_iterator_next (pango_attr_iter);
+        pango_attr_iterator_range (pango_attr_iter, &start, &end);
+      }
+      /* And retrieve the font description (this is what we were after) */
+      pango_attr = pango_attr_iterator_get (pango_attr_iter, PANGO_ATTR_FONT_DESC);
+      if (!pango_attr) {
+        goto skip_font_size;
+      }
+
+      /* Load a fontset that matches the font description */
+      pango_fontset = pango_font_map_load_fontset (
+          pango_cairo_font_map_get_default (), render->pango_context,
+          ((PangoAttrFontDesc *)pango_attr)->desc, NULL);
+
+      ndx = 0;
+      tmp1 = frag_start;
+      /* Iterate over all glyphs */
+      while (ndx < frag_len) {
+        PangoRectangle ink_rect, logical_rect;
+        PangoFont *pango_font;
+        PangoAttribute *pango_shape_attr;
+        cairo_glyph_t *glyph = NULL;
+        int num_glyphs = 0;
+        GstTTMLRenderShapeAttrData *shape_data;
+        cairo_scaled_font_t *cairo_font;
+        gunichar wc = g_utf8_get_char (tmp1);
+        tmp2 = g_utf8_next_char (tmp1);
+
+        /* Choose a font that can represent this particular unicode point */
+        pango_font = pango_fontset_get_font (pango_fontset, wc);
+        cairo_font = pango_cairo_font_get_scaled_font (
+            (PangoCairoFont *)pango_font);
+
+        /* Get the glyph index inside this font corresponding to the unicode */
+        cairo_scaled_font_text_to_glyphs (cairo_font, 0, 0, tmp1, tmp2 - tmp1,
+            &glyph, &num_glyphs, NULL, NULL, NULL);
+
+        /* Find the glyph size and scale it (finally !) */
+        pango_font_get_glyph_extents (pango_font, glyph->index,
+            &ink_rect, &logical_rect);
+        logical_rect.width *= hscale;
+        ink_rect.width *= hscale;
+        logical_rect.x *= hscale;
+        ink_rect.x *= hscale;
+
+        /* Create the data structure that we will pass along with the Pango
+         * Shape Attribute to the rendering code */
+        shape_data = g_new0 (GstTTMLRenderShapeAttrData, 1);
+        shape_data->wc = glyph->index;
+        shape_data->hscale = hscale;
+        shape_data->cairo_font = cairo_scaled_font_reference (cairo_font);
+
+        cairo_glyph_free (glyph);
+        g_object_unref (pango_font);
+
+        /* Create the Pango Shape Attribute */
+        pango_shape_attr = pango_attr_shape_new_with_data (
+            &ink_rect, &logical_rect,
+            (gpointer)shape_data,
+            (PangoAttrDataCopyFunc)gst_ttmlrender_shape_attr_data_copy,
+            (GDestroyNotify)gst_ttmlrender_shape_attr_data_free);
+        pango_shape_attr->start_index = region->current_par_content_plain_length + tmp1 - frag_start;
+        pango_shape_attr->end_index = region->current_par_content_plain_length + tmp2 - frag_start;
+
+        /* Insert attribute and keep iterating */
+        if (!region->current_par_pango_attrs) {
+          region->current_par_pango_attrs = pango_attr_list_new ();
+        }
+        pango_attr_list_insert (region->current_par_pango_attrs, pango_shape_attr);
+
+        ndx += (tmp2 - tmp1);
+        tmp1 = tmp2;
+      }
+
+      g_object_unref (pango_fontset);
+
+skip_font_size:
+      pango_attr_iterator_destroy (pango_attr_iter);
+      pango_attr_list_unref (pango_attr_list);
+    }
+
     region->current_par_content_plain_length += frag_len;
     chars_left -= frag_len;
     frag_start += frag_len;
@@ -707,15 +837,19 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
     cairo_translate (cairo, xoffset + ranges[0] / PANGO_SCALE, pre_space);
     cairo_save (cairo);
     while (runs) {
-      int width = 0, i;
+      double width = 0.0;
+      int i;
       gboolean skip_run = FALSE;
       PangoGlyphItem *glyph_item = (PangoGlyphItem *)runs->data;
-      GSList *extra_attrs = glyph_item->item->analysis.extra_attrs;
+      GSList *extra_attrs;
       for (i = 0; i < glyph_item->glyphs->num_glyphs; i++) {
         width += glyph_item->glyphs->glyphs[i].geometry.width;
       }
-      width /= (double)PANGO_SCALE;
+      width /= PANGO_SCALE;
       cairo_save (cairo);
+
+      /* Attributes that we want to process first */
+      extra_attrs = glyph_item->item->analysis.extra_attrs;
       while (extra_attrs) {
         PangoAttribute *attr = (PangoAttribute *)extra_attrs->data;
         switch (attr->klass->type) {
@@ -739,6 +873,17 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
             cairo_restore (cairo);
           }
           break;
+        default:
+          break;
+        }
+        extra_attrs = extra_attrs->next;
+      }
+
+      /* Attributes that we want to process afterwards */
+      extra_attrs = glyph_item->item->analysis.extra_attrs;
+      while (extra_attrs) {
+        PangoAttribute *attr = (PangoAttribute *)extra_attrs->data;
+        switch (attr->klass->type) {
         case PANGO_ATTR_UNDERLINE: {
             PangoFontMetrics *metrics =
                 pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
@@ -774,6 +919,7 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
           }
           break;
         default:
+          /* Overline */
           if (attr->klass == &gst_ttmlrender_pango_attr_overline_klass) {
             PangoFontMetrics *metrics =
                 pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
@@ -790,15 +936,36 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
               cairo_fill (cairo);
             }
           } else
+          /* Invisibility */
           if (attr->klass == &gst_ttmlrender_pango_attr_invisibility_klass) {
             skip_run = TRUE;
           }
-          break;
+          /* Anamorphic text rendering */
+          if (attr->klass->type == PANGO_ATTR_SHAPE) {
+            PangoAttrShape *shape = (PangoAttrShape *)attr;
+            GstTTMLRenderShapeAttrData *shape_data =
+                (GstTTMLRenderShapeAttrData *)shape->data;
+            cairo_glyph_t glyph = { shape_data->wc, 0, 0 };
 
+            /* Set the previously selected font and the scale matrix */
+            cairo_save (cairo);
+            cairo_scale (cairo, shape_data->hscale, 1.0);
+            cairo_set_scaled_font (cairo, shape_data->cairo_font);
+            cairo_glyph_path (cairo, &glyph, 1);
+            cairo_restore (cairo);
+
+            if (!render) {
+              cairo_stroke (cairo);
+            } else {
+              cairo_fill (cairo);
+            }
+            skip_run = TRUE;
+          }
           break;
         }
         extra_attrs = extra_attrs->next;
       }
+
       if (!skip_run) {
         if (render) {
           pango_cairo_show_glyph_string (cairo, glyph_item->item->analysis.font,
@@ -887,9 +1054,6 @@ static void
 gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 {
   GList *link;
-
-  cairo_matrix_t m;
-  cairo_get_matrix (render->cairo, &m);
 
   /* Flush any pending fragment */
   if (region->current_par_content != NULL) {
@@ -1223,7 +1387,7 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
   g_object_class_install_property (gobject_class, PROP_DEFAULT_FONT_FAMILY,
       g_param_spec_string ("default_font_family", "Default font family",
         "Font family to use when the TTML file does not explicitly set one",
-        "default", G_PARAM_READWRITE));
+        "Sans", G_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_DEFAULT_FONT_SIZE,
       g_param_spec_string ("default_font_size", "Default font size",
@@ -1268,8 +1432,8 @@ gst_ttmlrender_init (GstTTMLRender * render)
   gst_ttmlrender_pango_attr_invisibility_klass.type =
       pango_attr_type_register ("Invisibility");
 
-  render->default_font_family = g_strdup ("default");
-  render->default_font_size = NULL;
+  render->default_font_family = g_strdup ("Sans");
+  render->default_font_size = g_strdup ("medium");
   render->cached_images = NULL;
 
   render->downloader = gst_ttml_downloader_new ();
