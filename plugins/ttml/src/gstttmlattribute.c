@@ -13,6 +13,7 @@
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
 #include <stdio.h>
+#include <time.h>
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
@@ -94,7 +95,40 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
   }
   setlocale (LC_NUMERIC, previous_locale);
   g_free (previous_locale);
-  GST_LOG ("Parsed %s into %" GST_TIME_FORMAT, expr, GST_TIME_ARGS (res));
+
+  if (state->time_base == GST_TTML_TIME_BASE_CLOCK) {
+    GstClockTime tmp = res / GST_SECOND;
+    time_t current_rawtime, read_rawtime;
+    struct tm *current_timeinfo;
+    struct tm read_timeinfo;
+    double diff;
+
+    time (&current_rawtime);
+    current_timeinfo = localtime (&current_rawtime);
+
+    read_timeinfo = *current_timeinfo;
+    if (tmp > 0) { read_timeinfo.tm_sec = tmp % 60; tmp /= 60; }
+    if (tmp > 0) { read_timeinfo.tm_min = tmp % 60; tmp /= 60; }
+    if (tmp > 0) { read_timeinfo.tm_hour = tmp % 24; tmp /= 24; }
+    read_rawtime = mktime (&read_timeinfo);
+
+    diff = difftime (read_rawtime, current_rawtime);
+    if (diff < 0) {
+      /* Timestamp is in the past, advance to next day */
+      diff += 24 * 60 * 60;
+    }
+    res = diff * GST_SECOND;
+
+    GST_LOG ("Parsed %s into %" GST_TIME_FORMAT
+        " (timeBase is '%s' and local time is %d:%02d:%02d)", expr,
+        GST_TIME_ARGS (res),
+        gst_ttml_utils_enum_name (state->time_base, TimeBase),
+        current_timeinfo->tm_hour, current_timeinfo->tm_min,
+        current_timeinfo->tm_sec);
+  } else {
+    GST_LOG ("Parsed %s into %" GST_TIME_FORMAT, expr, GST_TIME_ARGS (res));
+  }
+
   return res;
 }
 
@@ -400,6 +434,20 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     attr->value.b = gst_ttml_utils_attr_value_is (value, "seq");
     GST_LOG ("Parsed '%s' timeContainer into sequential=%d", value,
         attr->value.b);
+    break;
+  case GST_TTML_ATTR_TIME_BASE:
+    attr->value.time_base = gst_ttml_utils_enum_parse (value, TimeBase);
+    if (attr->value.time_base == GST_TTML_TIME_BASE_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' time base", value);
+      attr->value.time_base = GST_TTML_TIME_BASE_MEDIA;
+    }
+    if (attr->value.time_base == GST_TTML_TIME_BASE_SMPTE) {
+      GST_WARNING ("SMPTE time base not implemented yet.", value);
+      attr->value.time_base = GST_TTML_TIME_BASE_MEDIA;
+    }
+    GST_LOG ("Parsed '%s' time base into %d (%s)", value,
+        attr->value.time_base,
+        gst_ttml_utils_enum_name (attr->value.time_base, TimeBase));
     break;
   case GST_TTML_ATTR_COLOR:
     if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,

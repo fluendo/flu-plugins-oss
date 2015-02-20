@@ -52,6 +52,7 @@ struct _GstTTMLAttribute {
     GstTTMLSMPTEImageType smpte_image_type;
     GstTTMLSMPTEEncoding smpte_encoding;
     GstTTMLAttributeType removed_attribute_type;
+    GstTTMLTimeBase time_base;
   } value;
   GList *timeline;
 };

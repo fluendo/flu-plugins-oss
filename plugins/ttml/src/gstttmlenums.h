@@ -42,6 +42,7 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_CELLRESOLUTION,
   GST_TTML_ATTR_WHITESPACE_PRESERVE,
   GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER,
+  GST_TTML_ATTR_TIME_BASE,
   /* Only Styling attributes beyond this point! */
   GST_TTML_ATTR_STYLE,
   GST_TTML_ATTR_STYLE_REMOVAL,
@@ -153,6 +154,14 @@ typedef enum _GstTTMLShowBackground {
   GST_TTML_SHOW_BACKGROUND_WHEN_ACTIVE,
   GST_TTML_SHOW_BACKGROUND_UNKNOWN
 } GstTTMLShowBackground;
+
+/* Time base */
+typedef enum _GstTTMLTimeBase {
+  GST_TTML_TIME_BASE_MEDIA,
+  GST_TTML_TIME_BASE_SMPTE,
+  GST_TTML_TIME_BASE_CLOCK,
+  GST_TTML_TIME_BASE_UNKNOWN,
+} GstTTMLTimeBase;
 
 /* SMPTE-TT Image types */
 typedef enum _GstTTMLSMPTEImageType {

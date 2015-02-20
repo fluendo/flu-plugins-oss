@@ -131,6 +131,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
       state->sequential_time_container = attr->value.b;
       break;
+    case GST_TTML_ATTR_TIME_BASE:
+      state->time_base = attr->value.time_base;
+      break;
     case GST_TTML_ATTR_STYLE:
       gst_ttml_state_restore_attr_stack (state,
           state->saved_styling_attr_stacks, attr->value.string);
@@ -229,6 +232,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
     case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
       attr = gst_ttml_attribute_new_boolean (type,
           state->sequential_time_container);
+      break;
+    case GST_TTML_ATTR_TIME_BASE:
+      attr = gst_ttml_attribute_new_int (type, state->time_base);
       break;
     case GST_TTML_ATTR_STYLE:
       /* Nothing to do here: The style attribute is expanded

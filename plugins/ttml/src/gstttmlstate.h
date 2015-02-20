@@ -33,6 +33,7 @@ struct _GstTTMLState {
   gint cell_resolution_y;
   gboolean whitespace_preserve;
   gboolean sequential_time_container;
+  GstTTMLTimeBase time_base;
 
   /* This is the current style. It contains ALL possible attributes, even if
    * they are all set to the default values. */
