@@ -53,6 +53,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "space", GST_TTML_ATTR_WHITESPACE_PRESERVE },
   { "timeContainer", GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER },
   { "timeBase", GST_TTML_ATTR_TIME_BASE },
+  { "clockMode", GST_TTML_ATTR_CLOCK_MODE },
   { "style", GST_TTML_ATTR_STYLE },
   { "styleRemoval", GST_TTML_ATTR_STYLE_REMOVAL },
   { "region", GST_TTML_ATTR_REGION },
@@ -173,6 +174,15 @@ const GstTTMLToken GstTTMLUtilsTokensTimeBaseInternal[] = {
 };
 const GstTTMLToken *GstTTMLUtilsTokensTimeBase =
     GstTTMLUtilsTokensTimeBaseInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensClockModeInternal[] = {
+  { "local", GST_TTML_CLOCK_MODE_LOCAL },
+  { "gps", GST_TTML_CLOCK_MODE_GPS },
+  { "utc", GST_TTML_CLOCK_MODE_UTC },
+  { NULL, GST_TTML_CLOCK_MODE_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensClockMode =
+    GstTTMLUtilsTokensClockModeInternal;
 
 const GstTTMLToken GstTTMLUtilsTokensSMPTEImageTypeInternal[] = {
   { "PNG", GST_TTML_SMPTE_IMAGE_TYPE_PNG },

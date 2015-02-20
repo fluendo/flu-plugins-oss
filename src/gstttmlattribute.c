@@ -104,7 +104,17 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
     double diff;
 
     time (&current_rawtime);
-    current_timeinfo = localtime (&current_rawtime);
+    switch (state->clock_mode) {
+    case GST_TTML_CLOCK_MODE_LOCAL:
+      current_timeinfo = localtime (&current_rawtime);
+      break;
+    case GST_TTML_CLOCK_MODE_UTC:
+    case GST_TTML_CLOCK_MODE_GPS:
+    default:
+      current_timeinfo = gmtime (&current_rawtime);
+      break;
+    }
+    current_rawtime = mktime (current_timeinfo);
 
     read_timeinfo = *current_timeinfo;
     if (tmp > 0) { read_timeinfo.tm_sec = tmp % 60; tmp /= 60; }
@@ -113,16 +123,23 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
     read_rawtime = mktime (&read_timeinfo);
 
     diff = difftime (read_rawtime, current_rawtime);
+    if (state->clock_mode == GST_TTML_CLOCK_MODE_GPS) {
+      /* UTC - GPS offset seconds as of Feb-2015
+       * This is subject to change in the future. */
+      diff += 16;
+    }
     if (diff < 0) {
-      /* Timestamp is in the past, advance to next day */
-      diff += 24 * 60 * 60;
+      /* Timestamp is in the past, set it to 0, in case this is a BEGIN
+       * and there is an END in the future. */
+      diff = 0;
     }
     res = diff * GST_SECOND;
 
     GST_LOG ("Parsed %s into %" GST_TIME_FORMAT
-        " (timeBase is '%s' and local time is %d:%02d:%02d)", expr,
+        " (timeBase is '%s' and '%s' time is %d:%02d:%02d)", expr,
         GST_TIME_ARGS (res),
         gst_ttml_utils_enum_name (state->time_base, TimeBase),
+        gst_ttml_utils_enum_name (state->clock_mode, ClockMode),
         current_timeinfo->tm_hour, current_timeinfo->tm_min,
         current_timeinfo->tm_sec);
   } else {
@@ -442,12 +459,22 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       attr->value.time_base = GST_TTML_TIME_BASE_MEDIA;
     }
     if (attr->value.time_base == GST_TTML_TIME_BASE_SMPTE) {
-      GST_WARNING ("SMPTE time base not implemented yet.", value);
+      GST_WARNING ("SMPTE time base not implemented yet.");
       attr->value.time_base = GST_TTML_TIME_BASE_MEDIA;
     }
     GST_LOG ("Parsed '%s' time base into %d (%s)", value,
         attr->value.time_base,
         gst_ttml_utils_enum_name (attr->value.time_base, TimeBase));
+    break;
+  case GST_TTML_ATTR_CLOCK_MODE:
+    attr->value.clock_mode = gst_ttml_utils_enum_parse (value, ClockMode);
+    if (attr->value.clock_mode == GST_TTML_CLOCK_MODE_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' clock mode", value);
+      attr->value.clock_mode = GST_TTML_CLOCK_MODE_UTC;
+    }
+    GST_LOG ("Parsed '%s' clode mode into %d (%s)", value,
+        attr->value.clock_mode,
+        gst_ttml_utils_enum_name (attr->value.clock_mode, ClockMode));
     break;
   case GST_TTML_ATTR_COLOR:
     if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,

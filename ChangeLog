@@ -6,6 +6,18 @@
 	* src\gstttmlstate.c:
 	* src\gstttmlstate.h:
 	* src\gstttmlutils.c:
+	* src\gstttmlutils.h:
+	Add support for the clockMode attribute. This allows specifying wall clock
+	timestamps (timeBase=clock) in local, UTC or GPS coordinates.
+
+2015-02-20  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src\gstttmlattribute.c:
+	* src\gstttmlattribute.h:
+	* src\gstttmlenums.h:
+	* src\gstttmlstate.c:
+	* src\gstttmlstate.h:
+	* src\gstttmlutils.c:
 	Initial support for the timeBase attribute (only 'media' and 'clock') values
 	are accepted, and 'clock' assumes 'local' clockMode.
 
