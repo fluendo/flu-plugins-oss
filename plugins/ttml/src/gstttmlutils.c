@@ -52,6 +52,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "cellResolution", GST_TTML_ATTR_CELLRESOLUTION },
   { "space", GST_TTML_ATTR_WHITESPACE_PRESERVE },
   { "timeContainer", GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER },
+  { "timeBase", GST_TTML_ATTR_TIME_BASE },
   { "style", GST_TTML_ATTR_STYLE },
   { "styleRemoval", GST_TTML_ATTR_STYLE_REMOVAL },
   { "region", GST_TTML_ATTR_REGION },
@@ -163,6 +164,15 @@ const GstTTMLToken GstTTMLUtilsTokensShowBackgroundInternal[] = {
 };
 const GstTTMLToken *GstTTMLUtilsTokensShowBackground =
     GstTTMLUtilsTokensShowBackgroundInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensTimeBaseInternal[] = {
+  { "media", GST_TTML_TIME_BASE_MEDIA },
+  { "smpte", GST_TTML_TIME_BASE_SMPTE },
+  { "clock", GST_TTML_TIME_BASE_CLOCK },
+  { NULL, GST_TTML_TIME_BASE_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensTimeBase =
+    GstTTMLUtilsTokensTimeBaseInternal;
 
 const GstTTMLToken GstTTMLUtilsTokensSMPTEImageTypeInternal[] = {
   { "PNG", GST_TTML_SMPTE_IMAGE_TYPE_PNG },
