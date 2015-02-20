@@ -950,7 +950,7 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
     next_buffer_data = g_strstr_len (buffer_data, buffer_len, "</tt>");
 
     /* If one was detected, this might be a concatenated XML file (multiple
-     * XML files inside the same buffer) and we need to base them one by one
+     * XML files inside the same buffer) and we need to parse them one by one
      */
     if (next_buffer_data) {
       next_buffer_data += 5;
