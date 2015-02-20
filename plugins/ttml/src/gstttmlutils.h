@@ -24,6 +24,7 @@ extern const GstTTMLToken *GstTTMLUtilsTokensDisplayAlign;
 extern const GstTTMLToken *GstTTMLUtilsTokensWrapOption;
 extern const GstTTMLToken *GstTTMLUtilsTokensShowBackground;
 extern const GstTTMLToken *GstTTMLUtilsTokensTimeBase;
+extern const GstTTMLToken *GstTTMLUtilsTokensClockMode;
 extern const GstTTMLToken *GstTTMLUtilsTokensSMPTEImageType;
 extern const GstTTMLToken *GstTTMLUtilsTokensSMPTEEncoding;
 

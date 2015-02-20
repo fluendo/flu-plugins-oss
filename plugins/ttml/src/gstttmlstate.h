@@ -34,6 +34,7 @@ struct _GstTTMLState {
   gboolean whitespace_preserve;
   gboolean sequential_time_container;
   GstTTMLTimeBase time_base;
+  GstTTMLClockMode clock_mode;
 
   /* This is the current style. It contains ALL possible attributes, even if
    * they are all set to the default values. */

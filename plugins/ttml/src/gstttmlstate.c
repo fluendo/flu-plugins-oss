@@ -134,6 +134,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_TIME_BASE:
       state->time_base = attr->value.time_base;
       break;
+    case GST_TTML_ATTR_CLOCK_MODE:
+      state->clock_mode = attr->value.clock_mode;
+      break;
     case GST_TTML_ATTR_STYLE:
       gst_ttml_state_restore_attr_stack (state,
           state->saved_styling_attr_stacks, attr->value.string);
@@ -235,6 +238,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_TIME_BASE:
       attr = gst_ttml_attribute_new_int (type, state->time_base);
+      break;
+    case GST_TTML_ATTR_CLOCK_MODE:
+      attr = gst_ttml_attribute_new_int (type, state->clock_mode);
       break;
     case GST_TTML_ATTR_STYLE:
       /* Nothing to do here: The style attribute is expanded
