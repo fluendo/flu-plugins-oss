@@ -80,6 +80,8 @@ void gst_segment_set_newsegment (GstSegment *segment, gboolean update,
 
 #endif
 
+static gboolean gst_ttmlbase_downstream_negotiation (GstTTMLBase *base);
+
 /* Generate and Pad push a buffer, using the correct timestamps and clipping */
 static void
 gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
@@ -93,6 +95,15 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
 #else
   gint64 clip_start = 0, clip_stop = 0;
 #endif
+
+  /* Last chance to set the src pad's caps. It can happen (when linking with
+   * a filesrc, for example) that the 0.10 set_caps function is never called.
+   * Same thing happens with the 1.0 GST_EVENT_CAPS.
+   */
+  if (!gst_ttmlbase_downstream_negotiation (base)) {
+    base->current_gst_status = GST_FLOW_NOT_NEGOTIATED;
+    return;
+  }
 
   /* Do not try to push anything if we have not recovered from previous
    * errors yet */
@@ -113,6 +124,13 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     return;
   }
 
+  if (!base->segment) {
+    /* We have not received any newsegment from upstream, make our own */
+    base->segment = gst_segment_new ();
+    gst_segment_set_newsegment (base->segment, FALSE, 1.0, GST_FORMAT_TIME,
+        base->base_time, -1, 0);
+  }
+
   in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
       base->base_time + begin, base->base_time + end,
       &clip_start, &clip_stop);
@@ -120,10 +138,12 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   if (in_seg) {
     if (G_UNLIKELY (base->newsegment_needed)) {
       GstEvent *event;
-
-      event = gst_event_new_new_segment (FALSE, 1.0, GST_FORMAT_TIME,
-          base->base_time, -1, 0);
-      GST_DEBUG_OBJECT (base, "Pushing default newsegment");
+      event = gst_event_new_new_segment (FALSE, base->segment->rate,
+          base->segment->format, base->segment->start, base->segment->stop,
+          0);
+      GST_DEBUG_OBJECT (base, "Pushing newsegment start:%" GST_TIME_FORMAT
+        " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
+        GST_TIME_ARGS (base->segment->stop));
       gst_pad_push_event (base->srcpad, event);
       base->newsegment_needed = FALSE;
     }
@@ -853,8 +873,14 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
 
   src_pad_template = gst_element_class_get_pad_template (
       GST_ELEMENT_GET_CLASS (base), "src");
-  template_caps = gst_pad_template_get_caps (src_pad_template);
-  gst_caps_ref (template_caps);
+  template_caps = gst_caps_copy (
+      gst_pad_template_get_caps (src_pad_template));
+
+  /* Allow derived class to add last-minute restrictions, like PAR, which
+   * is only found during parsing. */
+  if (klass->complete_caps) {
+    klass->complete_caps (base, template_caps);
+  }
 
 #if GST_CHECK_VERSION (1,0,0)
   src_caps = gst_pad_peer_query_caps (base->srcpad, template_caps);
@@ -915,15 +941,6 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 
   base = GST_TTMLBASE (gst_pad_get_parent (pad));
   base->current_gst_status = GST_FLOW_OK;
-
-  /* Last chance to set the src pad's caps. It can happen (when linking with
-   * a filesrc, for example) that the 0.10 set_caps function is never called.
-   * Same thing happens with the 1.0 GST_EVENT_CAPS.
-   */
-  if (!gst_ttmlbase_downstream_negotiation (base)) {
-    base->current_gst_status = GST_FLOW_NOT_NEGOTIATED;
-    goto negotiation_error;
-  }
 
   GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT,
       (guint)gst_buffer_get_size (buffer), GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)));
@@ -1015,7 +1032,6 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 
 beach:
   gst_buffer_unmap (buffer, &map);
-negotiation_error:
   gst_buffer_unref (buffer);
 
   gst_object_unref (base);
@@ -1075,17 +1091,27 @@ gst_ttmlbase_uri_get (GstPad * pad)
       }
     } else {
       GstPad *sink_pad;
-      GstIterator *iter;
+      GstPad *peer;
+      GstIterator *iter = gst_element_iterate_sink_pads (GST_ELEMENT (parent));
 
       /* iterate over the sink pads */
-      iter = gst_element_iterate_sink_pads (GST_ELEMENT (parent));
+#if !GST_CHECK_VERSION (1,0,0)
       while (gst_iterator_next (iter,
               (gpointer*) &sink_pad) != GST_ITERATOR_DONE) {
-        GstPad *peer;
+#else
+      GValue sink_pad_value = G_VALUE_INIT;
+      while (gst_iterator_next (iter,
+              &sink_pad_value) != GST_ITERATOR_DONE) {
+        sink_pad = (GstPad *)g_value_get_object (&sink_pad_value);
+#endif
 
         peer = gst_pad_get_peer (sink_pad);
         uri = gst_ttmlbase_uri_get (peer);
+#if !GST_CHECK_VERSION (1,0,0)
         gst_object_unref (sink_pad);
+#else
+        g_value_reset (&sink_pad_value);
+#endif
         gst_object_unref (peer);
         if (uri)
           break;
@@ -1157,10 +1183,6 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
 
       GST_DEBUG_OBJECT (base, "our segment now is %" GST_SEGMENT_FORMAT,
           base->segment);
-
-      base->newsegment_needed = FALSE;
-      ret = gst_pad_push_event (base->srcpad, event);
-      event = NULL;
       break;
     }
     case GST_EVENT_FLUSH_STOP:
@@ -1169,13 +1191,6 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
       ret = gst_pad_push_event (base->srcpad, event);
       event = NULL;
       break;
-#if GST_CHECK_VERSION (1,0,0)
-    case GST_EVENT_CAPS:
-    {
-      gst_ttmlbase_downstream_negotiation (base);
-      break;
-    }
-#endif
     default:
       ret = gst_pad_push_event (base->srcpad, event);
       event = NULL;
@@ -1379,7 +1394,7 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   gst_element_add_pad (GST_ELEMENT (base), base->sinkpad);
   gst_element_add_pad (GST_ELEMENT (base), base->srcpad);
 
-  base->segment = gst_segment_new ();
+  base->segment = NULL;
   base->newsegment_needed = TRUE;
 
   base->xml_parser = NULL;

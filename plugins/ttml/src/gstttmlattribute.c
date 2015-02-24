@@ -476,6 +476,12 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         attr->value.clock_mode,
         gst_ttml_utils_enum_name (attr->value.clock_mode, ClockMode));
     break;
+  case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
+    sscanf (value, "%d %d",
+        &attr->value.fraction.num, &attr->value.fraction.den);
+    GST_LOG ("Parsed '%s' pixelAspectRatio into num=%d den=%d", value,
+        attr->value.fraction.num, attr->value.fraction.den);
+    break;
   case GST_TTML_ATTR_COLOR:
     if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,
         NULL))

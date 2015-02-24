@@ -54,6 +54,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "timeContainer", GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER },
   { "timeBase", GST_TTML_ATTR_TIME_BASE },
   { "clockMode", GST_TTML_ATTR_CLOCK_MODE },
+  { "pixelAspectRatio", GST_TTML_ATTR_PIXEL_ASPECT_RATIO },
   { "style", GST_TTML_ATTR_STYLE },
   { "styleRemoval", GST_TTML_ATTR_STYLE_REMOVAL },
   { "region", GST_TTML_ATTR_REGION },
