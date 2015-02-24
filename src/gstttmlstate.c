@@ -57,6 +57,8 @@ gst_ttml_state_reset (GstTTMLState *state)
   state->cell_resolution_y = 15;
   state->whitespace_preserve = FALSE;
   state->sequential_time_container = FALSE;
+  state->par_num = 1;
+  state->par_den = 1;
 
   gst_ttml_style_reset (&state->style);
 
@@ -136,6 +138,10 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       break;
     case GST_TTML_ATTR_CLOCK_MODE:
       state->clock_mode = attr->value.clock_mode;
+      break;
+    case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
+      state->par_num = attr->value.fraction.num;
+      state->par_den = attr->value.fraction.den;
       break;
     case GST_TTML_ATTR_STYLE:
       gst_ttml_state_restore_attr_stack (state,
@@ -218,7 +224,7 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
       attr = gst_ttml_attribute_new_double (type, state->frame_rate);
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      attr = gst_ttml_attribute_new_fraction (type, state->frame_rate_den,
+      attr = gst_ttml_attribute_new_fraction (type, state->frame_rate_num,
           state->frame_rate_den);
       break;
     case GST_TTML_ATTR_CELLRESOLUTION:
@@ -241,6 +247,10 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
       break;
     case GST_TTML_ATTR_CLOCK_MODE:
       attr = gst_ttml_attribute_new_int (type, state->clock_mode);
+      break;
+    case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
+      attr = gst_ttml_attribute_new_fraction (type, state->par_num,
+          state->par_den);
       break;
     case GST_TTML_ATTR_STYLE:
       /* Nothing to do here: The style attribute is expanded

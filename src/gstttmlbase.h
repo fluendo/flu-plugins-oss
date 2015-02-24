@@ -69,6 +69,11 @@ typedef struct _GstTTMLBaseClass {
    * for example. */
   void (*fixate_caps)(GstTTMLBase *base, GstCaps *caps);
 
+  /* Before downstream negotiation, derived classes can use this method to
+   * complete the caps they advertised in the pad template, to add info
+   * found during parsing which was not present in class_init. */
+  void (*complete_caps)(GstTTMLBase *base, GstCaps *caps);
+
   /* Inform the derived class of the final negotiated caps on its srcpad */
   void (*src_setcaps)(GstTTMLBase *base, GstCaps *caps);
 

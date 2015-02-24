@@ -1,3 +1,24 @@
+2015-02-24  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	* src/gstttmlbase.c: (gst_ttmlbase_gen_buffer),
+	(gst_ttmlbase_downstream_negotiation),
+	(gst_ttmlbase_handle_buffer):
+	* src/gstttmlbase.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_fixate_caps),
+	(gst_ttmlrender_complete_caps), (gst_ttmlrender_class_init):
+	* src/gstttmlstate.c: (gst_ttml_state_reset),
+	(gst_ttml_state_set_attribute), (gst_ttml_state_get_attribute):
+	* src/gstttmlstate.h:
+	* src/gstttmlutils.c:
+	Add support for pixelAspectRatio.
+	This is a somewhat intrusive commit, since caps nego happens later in
+	time (at the first pad_push, instead of the first chain), which means
+	that the newseg is also delayed. No negative effects have been observed
+	neither in 0.10 nor 1.0, but muxed media is hard to find...
+	Fix build for 1.0, broken some commits ago.
+
 2015-02-20  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src\gstttmlattribute.c:

@@ -74,13 +74,14 @@ typedef struct _GstTTMLRegion {
 #if GST_CHECK_VERSION (1,0,0)
 #define GST_TTMLRENDER_SRC_CAPS \
     "video/x-raw, format=BGRA, width=(int)[1,MAX], height=(int)[1,MAX], " \
-    "framerate=(fraction)0/1"
+    "framerate=(fraction)0/1, pixel-aspect-ratio=(fraction)[0/1, MAX]"
 #else
 #define GST_TTMLRENDER_SRC_CAPS \
     "video/x-raw-rgb, width=(int)[1,MAX], height=(int)[1,MAX], " \
     "framerate=(fraction)0/1, bpp=(int)32, depth=(int)32, " \
     "endianness=(int)4321, red_mask=(int)65280, green_mask=(int)16711680, " \
-    "blue_mask=(int)-16777216, alpha_mask=(int)255"
+    "blue_mask=(int)-16777216, alpha_mask=(int)255, " \
+    "pixel-aspect-ratio=(fraction)[0/1, MAX]"
 #endif
 
 static GstStaticPadTemplate ttmlrender_src_template =
@@ -1269,8 +1270,16 @@ gst_ttmlrender_fixate_caps (GstTTMLBase *base, GstCaps * caps)
    * in the template caps) */
   GST_DEBUG_OBJECT (render, "Fixating caps %" GST_PTR_FORMAT, caps);
   gst_structure_fixate_field_nearest_int (s, "width", DEFAULT_RENDER_WIDTH);
-  gst_structure_fixate_field_nearest_int (s, "height",DEFAULT_RENDER_HEIGHT);
+  gst_structure_fixate_field_nearest_int (s, "height", DEFAULT_RENDER_HEIGHT);
   GST_DEBUG_OBJECT (render, "Fixated to    %" GST_PTR_FORMAT, caps);
+}
+
+static void
+gst_ttmlrender_complete_caps (GstTTMLBase *base, GstCaps * caps)
+{
+  GstStructure *s = gst_caps_get_structure (caps, 0);
+  gst_structure_fixate_field_nearest_fraction (s, "pixel-aspect-ratio",
+      base->state.par_num, base->state.par_den);
 }
 
 static void
@@ -1441,6 +1450,7 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
 
   base_klass->gen_buffer = GST_DEBUG_FUNCPTR (gst_ttmlrender_gen_buffer);
   base_klass->fixate_caps = GST_DEBUG_FUNCPTR (gst_ttmlrender_fixate_caps);
+  base_klass->complete_caps = GST_DEBUG_FUNCPTR (gst_ttmlrender_complete_caps);
   base_klass->src_setcaps = GST_DEBUG_FUNCPTR (gst_ttmlrender_setcaps);
   base_klass->reset = GST_DEBUG_FUNCPTR (gst_ttmlrender_reset);
 }
