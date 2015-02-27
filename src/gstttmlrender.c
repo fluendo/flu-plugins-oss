@@ -221,11 +221,13 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
 
   attr = gst_ttml_style_get_attr (&region->current_par_style,
       GST_TTML_ATTR_LINE_HEIGHT);
-  if (attr && attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+  if (attr && gst_ttml_attribute_is_length_present (attr, 0)) {
     /* Since we are drawing the layout lines one by one, Pango will not use
      * this parameter. We use it to send the lineHeight to the drawing
      * routine, though. */
-    pango_layout_set_spacing (layout, attr->value.length[0].f);
+    pango_layout_set_spacing (layout,
+        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
+            attr, 0, 1, NULL));
   } else {
     /* This means we want to use Pango's default line height, but is not
      * a valid Pango spacing... */
@@ -420,17 +422,17 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
   region->opacity = attr ? attr->value.d : 1.0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
-  region->originx = attr ? attr->value.length[0].f : 0;
-  region->originy = attr ? attr->value.length[1].f : 0;
+  region->originx = attr ? gst_ttml_attribute_get_normalized_length (
+      &render->base.state, NULL, attr, 0, 0, NULL) : 0;
+  region->originy = attr ? gst_ttml_attribute_get_normalized_length (
+      &render->base.state, NULL, attr, 1, 1, NULL) : 0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
   if (attr) {
-    gst_ttml_attribute_normalize_length (&render->base.state, attr->type,
-        &attr->value.length[0], 0);
-    region->extentx = attr->value.length[0].f;
-    gst_ttml_attribute_normalize_length (&render->base.state, attr->type,
-        &attr->value.length[1], 1);
-    region->extenty = attr->value.length[1].f;
+    region->extentx = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 0, 0, NULL);
+    region->extenty = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 1, 1, NULL);
   } else {
     region->extentx = render->base.state.frame_width;
     region->extenty = render->base.state.frame_height;
@@ -442,10 +444,18 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
   region->padded_extenty = region->extenty;
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_PADDING);
   if (attr) {
-    region->padded_originx += attr->value.length[3].f;
-    region->padded_originy += attr->value.length[0].f;
-    region->padded_extentx -= attr->value.length[3].f + attr->value.length[1].f;
-    region->padded_extenty -= attr->value.length[0].f + attr->value.length[2].f;
+    gfloat pad_org_x = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 3, 0, NULL);
+    gfloat pad_org_y = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 0, 1, NULL);
+    region->padded_originx += pad_org_x;
+    region->padded_originy += pad_org_y;
+    region->padded_extentx -= pad_org_x +
+        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
+            attr, 1, 0, NULL);
+    region->padded_extenty -= pad_org_y +
+        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
+            attr, 2, 1, NULL);
   }
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
@@ -463,28 +473,36 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
     gint width = cairo_image_surface_get_width (region->smpte_background_image);
     gint height = cairo_image_surface_get_height (region->smpte_background_image);
 
-    attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL);
+    attr = gst_ttml_style_get_attr (style,
+        GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL);
     if (attr) {
-      if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
-        region->smpte_background_image_posx = region->padded_originx + (region->padded_extentx - width) * attr->value.length[0].f;
+      if (attr->value.raw_length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
+        region->smpte_background_image_posx = region->padded_originx +
+            (region->padded_extentx - width) * attr->value.raw_length[0].f;
       } else {
-        region->smpte_background_image_posx = region->padded_originx + attr->value.length[0].f;
+        region->smpte_background_image_posx = region->padded_originx +
+            attr->value.raw_length[0].f;
       }
     } else {
       /* CENTER is the default */
-      region->smpte_background_image_posx = region->padded_originx + (region->padded_extentx - width) / 2;
+      region->smpte_background_image_posx = region->padded_originx +
+          (region->padded_extentx - width) / 2;
     }
 
-    attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL);
+    attr = gst_ttml_style_get_attr (style,
+        GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL);
     if (attr) {
-      if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
-        region->smpte_background_image_posy = region->padded_originy + (region->padded_extenty - height) * attr->value.length[0].f;
+      if (attr->value.raw_length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
+        region->smpte_background_image_posy = region->padded_originy +
+            (region->padded_extenty - height) * attr->value.raw_length[0].f;
       } else {
-        region->smpte_background_image_posy = region->padded_originy + attr->value.length[0].f;
+        region->smpte_background_image_posy = region->padded_originy +
+            attr->value.raw_length[0].f;
       }
     } else {
       /* CENTER is the default */
-      region->smpte_background_image_posy = region->padded_originy + (region->padded_extenty - height) / 2;
+      region->smpte_background_image_posy = region->padded_originy +
+          (region->padded_extenty - height) / 2;
     }
   }
 
@@ -622,8 +640,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
           render->base.state.frame_height / (float)render->base.state.cell_resolution_y);
     }
 
-    gst_ttml_style_gen_pango_markup (&final_style, &markup_head, &markup_tail,
-        render->default_font_family, default_font_size);
+    gst_ttml_style_gen_pango_markup (&render->base.state, &final_style,
+        &markup_head, &markup_tail, render->default_font_family, default_font_size);
     markup_head_len = strlen (markup_head);
     markup_tail_len = strlen (markup_tail);
 
@@ -675,7 +693,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
     }
 
     attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_FONT_SIZE);
-    if (attr && (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_PIXELS)) {
+    if (attr && (gst_ttml_attribute_is_length_present (attr, 1))) {
       /* Anamorphic font scaling attribute generation:
        * Found a non-uniformly-scaled (anamorphic) font size.
        * We replace each char by a Pango Shape of the scaled size, and later,
@@ -693,7 +711,11 @@ gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
       gchar *tmp1, *tmp2;
       int ndx;
       gint start = 0, end = 0;
-      double hscale = attr->value.length[0].f / attr->value.length[1].f;
+      double hscale =
+          gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
+              attr, 0, 0, NULL) / 
+          gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
+              attr, 1, 1, NULL);
 
       /* Get the Pango attrs applying to the current paragraph content */
       pango_parse_markup (region->current_par_content, -1, 0, &pango_attr_list,

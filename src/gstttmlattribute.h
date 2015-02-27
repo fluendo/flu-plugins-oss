@@ -41,7 +41,7 @@ struct _GstTTMLAttribute {
     gchar *string;
     guint32 color;
     GstTTMLFontStyle font_style;
-    GstTTMLLength length[4];
+    GstTTMLLength raw_length[4];
     GstTTMLFontWeight font_weight;
     GstTTMLTextDecoration text_decoration;
     GstTTMLTextAlign text_align;
@@ -96,8 +96,12 @@ GstTTMLAttribute *gst_ttml_attribute_new_fraction (GstTTMLAttributeType type,
 GstTTMLAttribute *gst_ttml_attribute_new_style_removal (
     GstTTMLAttributeType removed_style);
 
-void gst_ttml_attribute_normalize_length (const GstTTMLState *state,
-    GstTTMLAttributeType type, GstTTMLLength *length, int direction);
+gfloat gst_ttml_attribute_get_normalized_length (const GstTTMLState *state,
+    const GstTTMLStyle *style_override, const GstTTMLAttribute *attr, int index,
+    int direction, GstTTMLLengthUnit *unit);
+
+gboolean gst_ttml_attribute_is_length_present (const GstTTMLAttribute *attr,
+    int index);
 
 gint gst_ttml_attribute_compare_type_func (GstTTMLAttribute *attr,
     GstTTMLAttributeType type);

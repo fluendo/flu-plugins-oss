@@ -28,7 +28,8 @@ GstTTMLAttribute *gst_ttml_style_get_attr (const GstTTMLStyle *style,
 GstTTMLAttribute *gst_ttml_style_set_attr (GstTTMLStyle *style,
     const GstTTMLAttribute *attr);
 
-void gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
+void gst_ttml_style_gen_pango_markup (const GstTTMLState *state,
+    const GstTTMLStyle *style_override,
     gchar **head, gchar **tail,
     const gchar *default_font_family,
     const gchar *default_font_size);
