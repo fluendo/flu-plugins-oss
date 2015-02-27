@@ -286,106 +286,110 @@ gst_ttml_attribute_parse_lengths_list (const gchar *expr,
 }
 
 /* Turns as many relative units as possible into absolute pixel units.
- * This must be done here because we only know the cellResolution during the
- * parsing process (It is lost once the TT node is popped) */
-void
+ * Either state or style_override can be NULL. Not both. */
+static void
 gst_ttml_attribute_normalize_length (const GstTTMLState *state,
-    GstTTMLAttributeType type, GstTTMLLength *length, int direction)
+    const GstTTMLStyle *style_override, GstTTMLAttributeType type,
+    GstTTMLLength *length, int direction)
 {
-  if (state->frame_width > 0) {
-    /* Frame size is known: produce absolute lengths */
-    GstTTMLAttribute *prev_attr;
-    float prev_size;
+  GstTTMLAttribute *prev_attr;
+  float prev_size;
 
-    switch (length->unit) {
-    case GST_TTML_LENGTH_UNIT_CELLS:
-      if (direction == 0) {
-        length->f = length->f *
-            state->frame_width / state->cell_resolution_x;
-      } else {
-        length->f = length->f *
-            state->frame_height / state->cell_resolution_y;
-      }
-      length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
-      break;
-    case GST_TTML_LENGTH_UNIT_RELATIVE:
-      /* This is relative to different things, depending on the type of attr. */
-      if (type == GST_TTML_ATTR_ORIGIN ||
-          type == GST_TTML_ATTR_EXTENT) {
-        if (direction == 0)
-          length->f *= state->frame_width;
-        else
-          length->f *= state->frame_height;
-      } else if (type == GST_TTML_ATTR_PADDING) {
-        gint parent_length;
-        /* FIXME We should make sure EXTENT attr is parsed before PADDING */
-        prev_attr =
-            gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_EXTENT);
-        if (prev_attr) {
-          if (prev_attr->value.length[direction].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
-            GST_WARNING ("Region extent should be in pixels");
-          }
-          parent_length = prev_attr->value.length[direction].f;
-        } else {
-          parent_length = direction == 0 ? state->frame_width : state->frame_height;
-        }
-        length->f *= parent_length;
-      } else if (type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ||
-                 type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL) {
-        /* Do not try to convert these to pixels, since we do not know the image
-         * size yet. Leave them as percentages. */
+  switch (length->unit) {
+  case GST_TTML_LENGTH_UNIT_CELLS:
+    if (!state || state->frame_width == 0)
+      /* Frame size is unknown */
+      return;
+    if (direction == 0) {
+      length->f = length->f *
+          state->frame_width / state->cell_resolution_x;
+    } else {
+      length->f = length->f *
+          state->frame_height / state->cell_resolution_y;
+    }
+    length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    break;
+  case GST_TTML_LENGTH_UNIT_RELATIVE:
+    /* This is relative to different things, depending on the type of attr. */
+    if (type == GST_TTML_ATTR_ORIGIN ||
+        type == GST_TTML_ATTR_EXTENT) {
+      if (!state || state->frame_width == 0)
+        /* Frame size is unknown */
         return;
-      } else {
-        /* All other units are relative to current font size */
-        prev_size = state->frame_height / state->cell_resolution_y;
-        prev_attr =
-            gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
-        if (prev_attr) {
-            if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
-              GST_WARNING ("Current font size should be in pixels");
-          }
-          prev_size = prev_attr->value.length[0].f;
-        }
-        length->f *= prev_size;
-      }
+      if (direction == 0)
+        length->f *= state->frame_width;
+      else
+        length->f *= state->frame_height;
       length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
-      break;
-    case GST_TTML_LENGTH_UNIT_EM:
-      /* Retrieve current font size (which should be in pixels) and scale as
-       * requested. */
-      prev_size = state->frame_height / state->cell_resolution_y;
+      return;
+    } else if (type == GST_TTML_ATTR_PADDING) {
+      gint parent_length;
+      /* FIXME We should make sure EXTENT attr is parsed before PADDING */
       prev_attr =
-          gst_ttml_style_get_attr (&state->style, GST_TTML_ATTR_FONT_SIZE);
+          gst_ttml_style_get_attr (style_override ? style_override : &state->style, GST_TTML_ATTR_EXTENT);
       if (prev_attr) {
-        if (prev_attr->value.length[0].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
-          GST_WARNING ("Current font size should be in pixels");
+        if (prev_attr->value.raw_length[direction].unit != GST_TTML_LENGTH_UNIT_PIXELS) {
+          GST_WARNING ("Region extent should be in pixels");
         }
-        prev_size = prev_attr->value.length[0].f;
+        parent_length = prev_attr->value.raw_length[direction].f;
+      } else {
+        if (!state || state->frame_width == 0)
+          /* Frame size is unknown */
+          return;
+        parent_length = direction == 0 ? state->frame_width : state->frame_height;
       }
-      length->f *= prev_size;
+      length->f *= parent_length;
       length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
-      break;
-    default:
-      break;
+      return;
+    } else if (type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ||
+                type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL) {
+      /* Do not try to convert these to pixels, since we do not know the image
+        * size yet. Leave them as percentages. */
+      return;
     }
-  } else {
-    /* Frame size unknown: this means we are in ttmlparse, and therefore
-     * region measures are meaningless, and we can use relative font sizes
-     * in the pango markup */
-
-    switch (length->unit) {
-    case GST_TTML_LENGTH_UNIT_CELLS:
-      length->unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      break;
-    case GST_TTML_LENGTH_UNIT_RELATIVE:
-      break;
-    case GST_TTML_LENGTH_UNIT_EM:
-      length->unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      break;
-    default:
-      break;
+    /* All other units are relative to current font size:
+     * Deliverate fall-through */
+  case GST_TTML_LENGTH_UNIT_EM:
+    /* Retrieve current font size (which should be in pixels) and scale as
+      * requested. */
+    prev_attr =
+        gst_ttml_style_get_attr (style_override ? style_override : &state->style, GST_TTML_ATTR_FONT_SIZE);
+    if (prev_attr) {
+      length->f *= prev_attr->value.raw_length[0].f;
+      length->unit = prev_attr->value.raw_length[0].unit;
+      return;
     }
+    if (!state || state->frame_height == 0) {
+      length->unit = GST_TTML_LENGTH_UNIT_CELLS;
+    } else {
+      length->f *=  state->frame_height / state->cell_resolution_y;
+      length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
+    }
+    break;
+  default:
+    break;
   }
+}
+
+gfloat
+gst_ttml_attribute_get_normalized_length (const GstTTMLState *state,
+    const GstTTMLStyle *style_override, const GstTTMLAttribute *attr, int index,
+    int direction, GstTTMLLengthUnit *unit)
+{
+  GstTTMLLength length = attr->value.raw_length[index];
+  gst_ttml_attribute_normalize_length (state, style_override, attr->type, &length,
+      direction);
+  if (unit != NULL) {
+    *unit = length.unit;
+  }
+  return length.f;
+}
+
+gboolean
+gst_ttml_attribute_is_length_present (const GstTTMLAttribute *attr,
+    int index)
+{
+  return attr->value.raw_length[index].unit != GST_TTML_LENGTH_UNIT_NOT_PRESENT;
 }
 
 /* Read a name-value pair of strings and produce a new GstTTMLattribute.
@@ -504,14 +508,14 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     GST_LOG ("Parsed '%s' font family", value);
     break;
   case GST_TTML_ATTR_FONT_SIZE:
-    gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 2);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
+    gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length, 2);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[0], 0);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[1], 1);
     GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
-        attr->value.length[0].f,
-        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-        attr->value.length[1].f,
-        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
+        attr->value.raw_length[0].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+        attr->value.raw_length[1].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[1].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_FONT_STYLE:
     attr->value.font_style = gst_ttml_utils_enum_parse (value, FontStyle);
@@ -556,43 +560,43 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
   case GST_TTML_ATTR_ORIGIN:
     if (gst_ttml_utils_attr_value_is (value, "auto")) {
       /* 0 length means: use the container's origin */
-      attr->value.length[0].f = 0.f;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      attr->value.length[1].f = 0.f;
-      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.raw_length[0].f = 0.f;
+      attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.raw_length[1].f = 0.f;
+      attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
     } else {
-      gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 2);
-      if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+      gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length, 2);
+      if (attr->value.raw_length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' origin", value);
       }
     }
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[0], 0);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[1], 1);
     GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
-        attr->value.length[0].f,
-        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-        attr->value.length[1].f,
-        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
+        attr->value.raw_length[0].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+        attr->value.raw_length[1].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[1].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_EXTENT:
     if (gst_ttml_utils_attr_value_is (value, "auto")) {
-      attr->value.length[0].f = 1.f;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
-      attr->value.length[1].f = 1.f;
-      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.raw_length[0].f = 1.f;
+      attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+      attr->value.raw_length[1].f = 1.f;
+      attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
     } else {
-      gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 2);
-      if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+      gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length, 2);
+      if (attr->value.raw_length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
         GST_WARNING ("Could not understand '%s' extent", value);
       }
     }
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 0);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 1);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[0], 0);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[1], 1);
     GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
-        attr->value.length[0].f,
-        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-        attr->value.length[1].f,
-        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit));
+        attr->value.raw_length[0].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+        attr->value.raw_length[1].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[1].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_TEXT_ALIGN:
     attr->value.text_align = gst_ttml_utils_enum_parse (value, TextAlign);
@@ -624,10 +628,10 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       if (sscanf (value, "%d %d", &numx, &numy) != 2) {
         GST_WARNING ("Could not understand '%s' cellResolution", value);
       }
-      attr->value.length[0].f = numx;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
-      attr->value.length[1].f = numy;
-      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
+      attr->value.raw_length[0].f = numx;
+      attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
+      attr->value.raw_length[1].f = numy;
+      attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
       GST_LOG ("Parsed '%s' cellResolution into numx=%d numy=%d", value,
           numx, numy);
     }
@@ -643,9 +647,9 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       gst_ttml_attribute_parse_lengths_list (ptr,
           attr->value.text_outline.length, 2);
       /* Relative measures are relative to the block progression direction */
-      gst_ttml_attribute_normalize_length (state, attr->type,
+      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
           &attr->value.text_outline.length[0], 1);
-      gst_ttml_attribute_normalize_length (state, attr->type,
+      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
           &attr->value.text_outline.length[1], 1);
     }
     GST_LOG ("Parsed '%s' textOutline into color=#%08X use_current_color=%d "
@@ -670,16 +674,16 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_LINE_HEIGHT:
     if (gst_ttml_utils_attr_value_is (value, "normal")) {
-      attr->value.length[0].f = 0.f;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+      attr->value.raw_length[0].f = 0.f;
+      attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_NOT_PRESENT;
     } else {
-      gst_ttml_attribute_parse_length_expression (value, &attr->value.length[0].f,
-          &attr->value.length[0].unit, NULL);
+      gst_ttml_attribute_parse_length_expression (value, &attr->value.raw_length[0].f,
+          &attr->value.raw_length[0].unit, NULL);
     }
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 1);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[0], 1);
     GST_LOG ("Parsed '%s' line height into %g (%s)", value,
-        attr->value.length[0].f,
-        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
+        attr->value.raw_length[0].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_WRAP_OPTION:
     attr->value.wrap_option = gst_ttml_utils_enum_parse (value, WrapOption);
@@ -698,29 +702,29 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
           {0, 0, 0}, {1, 0, 1}, {1, 2, 1}, {1, 2, 3} };
 
       num_elements =
-          gst_ttml_attribute_parse_lengths_list (value, attr->value.length, 4);
+          gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length, 4);
       if (num_elements > 0) {
         for (i = 3; i > 0; i--) {
-          attr->value.length [i] =
-              attr->value.length [padding_map [num_elements - 1][i - 1]];
+          attr->value.raw_length [i] =
+              attr->value.raw_length [padding_map [num_elements - 1][i - 1]];
         }
       } else {
         GST_WARNING ("Could not understand '%s' padding", value);
       }
     }
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0], 1);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[1], 0);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[2], 1);
-    gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[3], 0);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[0], 1);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[1], 0);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[2], 1);
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[3], 0);
     GST_LOG ("Parsed '%s' padding into %g (%s), %g (%s), %g (%s), %g (%s)", value,
-        attr->value.length[0].f,
-        gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit),
-        attr->value.length[1].f,
-        gst_ttml_utils_enum_name (attr->value.length[1].unit, LengthUnit),
-        attr->value.length[2].f,
-        gst_ttml_utils_enum_name (attr->value.length[2].unit, LengthUnit),
-        attr->value.length[3].f,
-        gst_ttml_utils_enum_name (attr->value.length[3].unit, LengthUnit));
+        attr->value.raw_length[0].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+        attr->value.raw_length[1].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[1].unit, LengthUnit),
+        attr->value.raw_length[2].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[2].unit, LengthUnit),
+        attr->value.raw_length[3].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[3].unit, LengthUnit));
     break;
   case GST_TTML_ATTR_SHOW_BACKGROUND:
     attr->value.show_background = gst_ttml_utils_enum_parse (value, ShowBackground);
@@ -771,29 +775,27 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     break;
   case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
   case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
-    attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
+    attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
     if (gst_ttml_utils_attr_value_is (value, "left")  ||
         gst_ttml_utils_attr_value_is (value, "top")) {
-      attr->value.length[0].f = 0.f;
+      attr->value.raw_length[0].f = 0.f;
     } else if (gst_ttml_utils_attr_value_is (value, "center") ||
                gst_ttml_utils_attr_value_is (value, "inherit")) {
       /* FIXME: On animations, "inherit" should revert to parent's value.
        * Assuming this will always be "center" is a quick and dirty fix. */
-      attr->value.length[0].f = 0.5f;
+      attr->value.raw_length[0].f = 0.5f;
     } else if (gst_ttml_utils_attr_value_is (value, "right") ||
                gst_ttml_utils_attr_value_is (value, "bottom")) {
-      attr->value.length[0].f = 1.f;
+      attr->value.raw_length[0].f = 1.f;
     } else {
-      gst_ttml_attribute_parse_length_expression (value, &attr->value.length[0].f,
-          &attr->value.length[0].unit, NULL);
+      gst_ttml_attribute_parse_length_expression (value, &attr->value.raw_length[0].f,
+          &attr->value.raw_length[0].unit, NULL);
     }
-    if (attr) {
-      gst_ttml_attribute_normalize_length (state, attr->type, &attr->value.length[0],
-          attr->type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ? 0 : 1);
-      GST_LOG ("Parsed '%s' %s into %g (%s)", value, name,
-          attr->value.length[0].f,
-          gst_ttml_utils_enum_name (attr->value.length[0].unit, LengthUnit));
-    }
+    gst_ttml_attribute_normalize_length (state, NULL, attr->type, &attr->value.raw_length[0],
+        attr->type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ? 0 : 1);
+    GST_LOG ("Parsed '%s' %s into %g (%s)", value, name,
+        attr->value.raw_length[0].f,
+        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit));
     break;
   default:
     GST_WARNING ("Attribute not implemented");

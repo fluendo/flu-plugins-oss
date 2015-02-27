@@ -124,8 +124,8 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       state->frame_rate_den = attr->value.fraction.den;
       break;
     case GST_TTML_ATTR_CELLRESOLUTION:
-      state->cell_resolution_x = (int)attr->value.length[0].f;
-      state->cell_resolution_y = (int)attr->value.length[1].f;
+      state->cell_resolution_x = (int)attr->value.raw_length[0].f;
+      state->cell_resolution_y = (int)attr->value.raw_length[1].f;
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       state->whitespace_preserve = attr->value.b;
@@ -230,10 +230,10 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
     case GST_TTML_ATTR_CELLRESOLUTION:
       attr = g_new0 (GstTTMLAttribute, 1);
       attr->type = type;
-      attr->value.length[0].f = (float)state->cell_resolution_x;
-      attr->value.length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
-      attr->value.length[1].f = (float)state->cell_resolution_y;
-      attr->value.length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
+      attr->value.raw_length[0].f = (float)state->cell_resolution_x;
+      attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
+      attr->value.raw_length[1].f = (float)state->cell_resolution_y;
+      attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       attr = gst_ttml_attribute_new_boolean (type, state->whitespace_preserve);

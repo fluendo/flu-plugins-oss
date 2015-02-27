@@ -1,3 +1,19 @@
+2015-02-28  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src\gstttmlattribute.c:
+	* src\gstttmlattribute.h:
+	* src\gstttmlrender.c:
+	* src\gstttmlspan.c:
+	* src\gstttmlstate.c:
+	* src\gstttmlstyle.c:
+	* src\gstttmlstyle.h:
+	Another VERY INTRUSIVE commit. In the previous commit caps nego was delayed
+	to buffer-generation time. This means that length normalization cannot
+	happen at parse-time anymore, for most of the lengths need to know the frame
+	size, for example.
+	Now normalization happens BOTH during parsing and rendering, and is resolved
+	when possible. This fixes many broken tests by the previous commit.
+
 2015-02-24  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
