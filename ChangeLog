@@ -1,5 +1,11 @@
 2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts),
+	(gst_ttmlrender_show_layout):
+	Add support for Alpha in foreground and background colors.
+
+2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
 	Missed file in previous commit. Doh!
 
