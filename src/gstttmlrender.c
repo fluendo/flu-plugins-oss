@@ -810,8 +810,8 @@ skip_font_size:
        * component (hack alert!). We will pickup these attrs later and render
        * them manually. */
       PangoAttribute *pattr = pango_attr_background_new (
-          (attr->value.color >> 16) & 0xFF00 |
-          (attr->value.color >>  0) & 0x00FF,
+          ((attr->value.color >> 16) & 0xFF00) |
+          ((attr->value.color >>  0) & 0x00FF),
           (attr->value.color >>  8) & 0xFF00,
           (attr->value.color >>  0) & 0xFF00);
       pattr->start_index = region->current_par_content_plain_length;
@@ -829,8 +829,8 @@ skip_font_size:
        * component (hack alert!). We will pickup these attrs later and render
        * them manually. */
       PangoAttribute *pattr = pango_attr_foreground_new (
-          (attr->value.color >> 16) & 0xFF00 |
-          (attr->value.color >>  0) & 0x00FF,
+          ((attr->value.color >> 16) & 0xFF00) |
+          ((attr->value.color >>  0) & 0x00FF),
           (attr->value.color >>  8) & 0xFF00,
           (attr->value.color >>  0) & 0xFF00);
       pattr->start_index = region->current_par_content_plain_length;

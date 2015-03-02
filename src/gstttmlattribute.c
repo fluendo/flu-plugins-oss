@@ -293,7 +293,6 @@ gst_ttml_attribute_normalize_length (const GstTTMLState *state,
     GstTTMLLength *length, int direction)
 {
   GstTTMLAttribute *prev_attr;
-  float prev_size;
 
   switch (length->unit) {
   case GST_TTML_LENGTH_UNIT_CELLS:
