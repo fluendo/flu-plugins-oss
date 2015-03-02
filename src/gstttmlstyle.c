@@ -9,6 +9,7 @@
 
 #include <string.h>
 #include "gstttmlstyle.h"
+#include "gstttmlstate.h"
 #include "gstttmlattribute.h"
 #include "gstttmlevent.h"
 #include "gstttmlutils.h"
@@ -136,16 +137,19 @@ gst_ttml_style_translate_generic_font_name (gchar *org_name)
 /* Generate Pango Markup for the style.
  * default_font_* can be NULL. */
 void
-gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
+gst_ttml_style_gen_pango_markup (const GstTTMLState *state,
+    const GstTTMLStyle *style_override,
     gchar **head, gchar **tail,
     const gchar *default_font_family,
     const gchar *default_font_size)
 {
   gchar *attrs = g_strdup ("");
-  GList *link = style->attributes;
+  GList *link = style_override ? style_override->attributes : state->style.attributes;
   gchar *font_family = g_strdup (default_font_family);
   gchar *font_size = g_strdup (default_font_size);
   gboolean font_size_is_relative = FALSE;
+  gfloat size1, size2;
+  GstTTMLLengthUnit unit;
 
   /* Only add attributes which are different from the default Pango values.
    * Transparency is lost in the Pango Markup.
@@ -180,14 +184,17 @@ gst_ttml_style_gen_pango_markup (const GstTTMLStyle *style,
           g_free (font_size);
           font_size = NULL;
         }
-        if (attr->value.length[0].unit == GST_TTML_LENGTH_UNIT_PIXELS) {
-          float max = attr->value.length[0].f;
-          if (attr->value.length[1].unit == GST_TTML_LENGTH_UNIT_PIXELS)
-            max = attr->value.length[1].f;
-          font_size = g_strdup_printf (" %gpx", max);
+        size1 = gst_ttml_attribute_get_normalized_length (state, style_override,
+            attr, 0, 1, &unit);
+        if (unit == GST_TTML_LENGTH_UNIT_PIXELS) {
+          size2 = gst_ttml_attribute_get_normalized_length (state, style_override,
+              attr, 1, 1, &unit);
+          if (unit == GST_TTML_LENGTH_UNIT_PIXELS)
+            size1 = size2;
+          font_size = g_strdup_printf (" %gpx", size1);
           font_size_is_relative = FALSE;
-        } else if (attr->value.length[0].f != 1.f) {
-          font_size = g_strdup (attr->value.length[0].f>1 ? "large" : "small");
+        } else if (size1 != 1.f) {
+          font_size = g_strdup (size1 > 1 ? "large" : "small");
           font_size_is_relative = TRUE;
         }
         break;
