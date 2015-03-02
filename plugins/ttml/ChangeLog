@@ -1,5 +1,11 @@
 2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
 
+	* testsuite/ttmlrender-play-0.10.sh:
+	* testsuite/ttmlrender-record.sh:
+	New tesuite scripts for more significant tests.
+
+2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_init):
 	Set default font family to Serif instead of Sans so my tesuite gold
 	files are still valid. The spec does not say anything abot this,
