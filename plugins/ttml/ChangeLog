@@ -1,3 +1,8 @@
+2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlstyle.c: (gst_ttml_style_gen_pango_markup):
+	Missed file in previous commit. Doh!
+
 2015-02-28  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src\gstttmlattribute.c:
