@@ -1,5 +1,11 @@
 2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
+	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts):
+	Fix build with gcc.
+
+2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts),
 	(gst_ttmlrender_show_layout):
 	Add support for Alpha in foreground and background colors.
