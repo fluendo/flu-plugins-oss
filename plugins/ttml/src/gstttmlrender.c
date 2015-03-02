@@ -1528,7 +1528,7 @@ gst_ttmlrender_init (GstTTMLRender * render)
   gst_ttmlrender_pango_attr_invisibility_klass.type =
       pango_attr_type_register ("Invisibility");
 
-  render->default_font_family = g_strdup ("Sans");
+  render->default_font_family = g_strdup ("Serif");
   render->default_font_size = NULL;
   render->cached_images = NULL;
 

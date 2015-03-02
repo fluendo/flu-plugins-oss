@@ -1,5 +1,12 @@
 2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlrender.c: (gst_ttmlrender_init):
+	Set default font family to Serif instead of Sans so my tesuite gold
+	files are still valid. The spec does not say anything abot this,
+	and any font family set in the TTML file is still respected.
+
+2015-03-02  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_normalize_length):
 	* src/gstttmlrender.c: (gst_ttmlrender_build_layouts):
 	Fix build with gcc.
