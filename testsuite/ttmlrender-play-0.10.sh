@@ -1,1 +1,1 @@
-gst-launch-0.10 filesrc location=$1 ! ttmlrender ! ffmpegcolorspace ! timeoverlay ! autovideosink
+gst-launch-0.10 filesrc location=$1 ! ttmlrender force-buffer-clear=1 ! video/x-raw-rgb,width=320,height=240 ! ffmpegcolorspace ! timeoverlay font-desc=\"24px\" halignment=right valignment=bottom ! autovideosink
