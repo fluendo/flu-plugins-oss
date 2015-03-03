@@ -49,6 +49,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "tickRate", GST_TTML_ATTR_TICK_RATE },
   { "frameRate", GST_TTML_ATTR_FRAME_RATE },
   { "frameRateMultiplier", GST_TTML_ATTR_FRAME_RATE_MULTIPLIER },
+  { "subFrameRate", GST_TTML_ATTR_SUB_FRAME_RATE },
   { "cellResolution", GST_TTML_ATTR_CELLRESOLUTION },
   { "space", GST_TTML_ATTR_WHITESPACE_PRESERVE },
   { "timeContainer", GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER },
