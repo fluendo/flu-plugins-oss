@@ -54,6 +54,8 @@ struct _GstTTMLAttribute {
     GstTTMLAttributeType removed_attribute_type;
     GstTTMLTimeBase time_base;
     GstTTMLClockMode clock_mode;
+    GstTTMLUnicodeBIDI unicode_bidi;
+    GstTTMLDirection direction;
   } value;
   GList *timeline;
 };
