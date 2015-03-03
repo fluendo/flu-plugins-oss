@@ -1042,6 +1042,10 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
         PangoGlyphInfo *gi = glyph_item->glyphs->glyphs;
         glyph_item->glyphs->num_glyphs = 1;
         for (i = 0; i < n; i++) {
+          cairo_save (cairo);
+          cairo_translate (cairo,
+              glyph_item->glyphs->glyphs->geometry.x_offset / (double)PANGO_SCALE,
+              glyph_item->glyphs->glyphs->geometry.y_offset / (double)PANGO_SCALE);
           if (render) {
             pango_cairo_show_glyph_string (cairo, glyph_item->item->analysis.font,
                   glyph_item->glyphs);
@@ -1049,8 +1053,9 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
             pango_cairo_glyph_string_path (cairo, glyph_item->item->analysis.font,
                 glyph_item->glyphs);
           }
+          cairo_restore (cairo);
           cairo_translate (cairo,
-              glyph_item->glyphs->glyphs->geometry.width / (float)PANGO_SCALE, 0);
+              glyph_item->glyphs->glyphs->geometry.width / (double)PANGO_SCALE, 0);
           glyph_item->glyphs->glyphs++;
         }
         /* Restore glyph_item to original values */

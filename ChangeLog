@@ -1,6 +1,11 @@
 2015-03-03  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
+	Take the possible individual offset of each glyph into account.
+
+2015-03-03  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlrender.c: (gst_ttmlrender_show_layout):
 	Render glyphs one by one (previously we did it in groups, for
 	simplicity). This will allow rendering them backwards.
 
