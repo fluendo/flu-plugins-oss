@@ -71,6 +71,8 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_SHOW_BACKGROUND,
   GST_TTML_ATTR_VISIBILITY,
   GST_TTML_ATTR_OPACITY,
+  GST_TTML_ATTR_UNICODE_BIDI,
+  GST_TTML_ATTR_DIRECTION,
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   GST_TTML_ATTR_SMPTE_IMAGETYPE,
@@ -172,6 +174,21 @@ typedef enum _GstTTMLClockMode {
   GST_TTML_CLOCK_MODE_UTC,
   GST_TTML_CLOCK_MODE_UNKNOWN
 } GstTTMLClockMode;
+
+/* Unicode BIDI */
+typedef enum _GstTTMLUnicodeBIDI {
+  GST_TTML_UNICODE_BIDI_NORMAL,
+  GST_TTML_UNICODE_BIDI_EMBED,
+  GST_TTML_UNICODE_BIDI_OVERRIDE,
+  GST_TTML_UNICODE_BIDI_UNKNOWN
+} GstTTMLUnicodeBIDI;
+
+/* Direction */
+typedef enum _GstTTMLDirection {
+  GST_TTML_DIRECTION_LTR,
+  GST_TTML_DIRECTION_RTL,
+  GST_TTML_DIRECTION_UNKNOWN
+} GstTTMLDirection;
 
 /* SMPTE-TT Image types */
 typedef enum _GstTTMLSMPTEImageType {

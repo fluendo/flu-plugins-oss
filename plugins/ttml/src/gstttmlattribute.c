@@ -743,6 +743,26 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
     attr->value.d = g_ascii_strtod (value, NULL);
     GST_LOG ("Parsed '%s' opacity into %g", value, attr->value.d);
     break;
+  case GST_TTML_ATTR_UNICODE_BIDI:
+    attr->value.unicode_bidi = gst_ttml_utils_enum_parse (value, UnicodeBIDI);
+    if (attr->value.unicode_bidi == GST_TTML_UNICODE_BIDI_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' unicodeBidi", value);
+      attr->value.unicode_bidi = GST_TTML_UNICODE_BIDI_NORMAL;
+    }
+    GST_LOG ("Parsed '%s' unicodeBidi into %d (%s)", value,
+        attr->value.unicode_bidi,
+        gst_ttml_utils_enum_name (attr->value.unicode_bidi, UnicodeBIDI));
+    break;
+  case GST_TTML_ATTR_DIRECTION:
+    attr->value.direction = gst_ttml_utils_enum_parse (value, Direction);
+    if (attr->value.direction == GST_TTML_DIRECTION_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' direction", value);
+      attr->value.direction = GST_TTML_DIRECTION_LTR;
+    }
+    GST_LOG ("Parsed '%s' direction into %d (%s)", value,
+        attr->value.direction,
+        gst_ttml_utils_enum_name (attr->value.direction, Direction));
+    break;
   case GST_TTML_ATTR_SMPTE_IMAGETYPE:
     attr->value.smpte_image_type = gst_ttml_utils_enum_parse (value, SMPTEImageType);
     if (attr->value.smpte_image_type == GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN) {

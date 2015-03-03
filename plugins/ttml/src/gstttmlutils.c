@@ -80,6 +80,8 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "showBackground", GST_TTML_ATTR_SHOW_BACKGROUND },
   { "visibility", GST_TTML_ATTR_VISIBILITY },
   { "opacity", GST_TTML_ATTR_OPACITY },
+  { "unicodeBidi", GST_TTML_ATTR_UNICODE_BIDI },
+  { "direction", GST_TTML_ATTR_DIRECTION },
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   { "imagetype", GST_TTML_ATTR_SMPTE_IMAGETYPE },
@@ -184,6 +186,23 @@ const GstTTMLToken GstTTMLUtilsTokensClockModeInternal[] = {
 };
 const GstTTMLToken *GstTTMLUtilsTokensClockMode =
     GstTTMLUtilsTokensClockModeInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensUnicodeBIDIInternal[] = {
+  { "normal", GST_TTML_UNICODE_BIDI_NORMAL },
+  { "embed", GST_TTML_UNICODE_BIDI_EMBED },
+  { "bidiOverride", GST_TTML_UNICODE_BIDI_OVERRIDE },
+  { NULL, GST_TTML_UNICODE_BIDI_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensUnicodeBIDI =
+    GstTTMLUtilsTokensUnicodeBIDIInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensDirectionInternal[] = {
+  { "ltr", GST_TTML_DIRECTION_LTR },
+  { "rtl", GST_TTML_DIRECTION_RTL },
+  { NULL, GST_TTML_DIRECTION_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensDirection =
+    GstTTMLUtilsTokensDirectionInternal;
 
 const GstTTMLToken GstTTMLUtilsTokensSMPTEImageTypeInternal[] = {
   { "PNG", GST_TTML_SMPTE_IMAGE_TYPE_PNG },
