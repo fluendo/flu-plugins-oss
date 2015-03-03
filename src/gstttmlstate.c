@@ -53,6 +53,7 @@ gst_ttml_state_reset (GstTTMLState *state)
   state->frame_rate = 30.0;
   state->frame_rate_num = 1;
   state->frame_rate_den = 1;
+  state->sub_frame_rate = 1;
   state->cell_resolution_x = 32;
   state->cell_resolution_y = 15;
   state->whitespace_preserve = FALSE;
@@ -122,6 +123,9 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
       state->frame_rate_num = attr->value.fraction.num;
       state->frame_rate_den = attr->value.fraction.den;
+      break;
+    case GST_TTML_ATTR_SUB_FRAME_RATE:
+      state->sub_frame_rate = attr->value.i;
       break;
     case GST_TTML_ATTR_CELLRESOLUTION:
       state->cell_resolution_x = (int)attr->value.raw_length[0].f;
@@ -226,6 +230,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
       attr = gst_ttml_attribute_new_fraction (type, state->frame_rate_num,
           state->frame_rate_den);
+      break;
+    case GST_TTML_ATTR_SUB_FRAME_RATE:
+      attr = gst_ttml_attribute_new_int (type, state->sub_frame_rate);
       break;
     case GST_TTML_ATTR_CELLRESOLUTION:
       attr = g_new0 (GstTTMLAttribute, 1);

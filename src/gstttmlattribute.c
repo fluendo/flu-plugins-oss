@@ -52,13 +52,18 @@ static GstClockTime
 gst_ttml_attribute_parse_time_expression (const GstTTMLState *state,
     const gchar *expr)
 {
-  gdouble h, m, s, f, count;
+  gdouble h, m, s, count;
+  int f, subf;
   char metric[3] = "\0\0";
   GstClockTime res = GST_CLOCK_TIME_NONE;
   char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
 
   setlocale (LC_NUMERIC, "C");
-  if (sscanf (expr, "%lf:%lf:%lf:%lf", &h, &m, &s, &f) == 4) {
+  if (sscanf (expr, "%lf:%lf:%lf:%d.%d", &h, &m, &s, &f, &subf) == 5) {
+    res = (GstClockTime)((h * 3600 + m * 60 + s +
+        (f + subf / (gdouble)state->sub_frame_rate) * state->frame_rate_den /
+        (state->frame_rate * state->frame_rate_num)) * GST_SECOND);
+  } else if (sscanf (expr, "%lf:%lf:%lf:%d", &h, &m, &s, &f) == 4) {
     res = (GstClockTime)((h * 3600 + m * 60 + s + f * state->frame_rate_den /
         (state->frame_rate * state->frame_rate_num)) * GST_SECOND);
   } else if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
@@ -445,6 +450,10 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         &attr->value.fraction.num, &attr->value.fraction.den);
     GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
         attr->value.fraction.num, attr->value.fraction.den);
+    break;
+  case GST_TTML_ATTR_SUB_FRAME_RATE:
+    attr->value.i = (int)g_ascii_strtod (value, NULL);
+    GST_LOG ("Parsed '%s' subFrameRate into %d", value, attr->value.i);
     break;
   case GST_TTML_ATTR_WHITESPACE_PRESERVE:
     attr->value.b = gst_ttml_utils_attr_value_is (value, "preserve");
