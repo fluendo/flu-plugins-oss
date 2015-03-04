@@ -154,6 +154,13 @@ static PangoAttrClass gst_ttmlrender_pango_attr_reverse_klass = {
   gst_ttmlrender_pango_attr_int_equal
 };
 
+static PangoAttrClass gst_ttmlrender_pango_attr_reverse_oblique_klass = {
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
+  gst_ttmlrender_pango_attr_int_copy,
+  gst_ttmlrender_pango_attr_int_destroy,
+  gst_ttmlrender_pango_attr_int_equal
+};
+
 PangoAttribute *
 gst_ttmlrender_pango_attr_overline_new (gboolean overline)
 {
@@ -173,6 +180,13 @@ gst_ttmlrender_pango_attr_reverse_new (gboolean reverse)
 {
   return gst_ttmlrender_pango_attr_int_new (
       &gst_ttmlrender_pango_attr_reverse_klass, (int)reverse);
+}
+
+PangoAttribute *
+gst_ttmlrender_pango_attr_reverse_oblique_new (gboolean reverseOblique)
+{
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_reverse_oblique_klass, (int)reverseOblique);
 }
 
 /* Region compare function: Z index */
@@ -872,6 +886,17 @@ skip_font_size:
         pango_attr_list_change (region->current_par_pango_attrs, pattr);
       }
     }
+    attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_FONT_STYLE);
+    if (attr && ((attr->value.font_style == GST_TTML_FONT_STYLE_REVERSE_OBLIQUE) != 0)) {
+      /* Pango markup does not support reverse oblique. We use our own attr. */
+      PangoAttribute *pattr = gst_ttmlrender_pango_attr_reverse_oblique_new (TRUE);
+      pattr->start_index = region->current_par_content_plain_length;
+      pattr->end_index = region->current_par_content_plain_length + frag_len;
+      if (!region->current_par_pango_attrs) {
+        region->current_par_pango_attrs = pango_attr_list_new ();
+      }
+      pango_attr_list_change (region->current_par_pango_attrs, pattr);
+    }
 
     region->current_par_content_plain_length += frag_len;
     chars_left -= frag_len;
@@ -937,6 +962,8 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
       int i;
       gboolean skip_run = FALSE;
       gboolean reverse = FALSE;
+      gboolean reverseOblique = FALSE;
+      cairo_matrix_t transform;
       PangoGlyphItem *glyph_item = (PangoGlyphItem *)runs->data;
       GSList *extra_attrs;
       for (i = 0; i < glyph_item->glyphs->num_glyphs; i++) {
@@ -1066,6 +1093,11 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
             }
             skip_run = TRUE;
           }
+          /* Reverse Oblique */
+          if (attr->klass == &gst_ttmlrender_pango_attr_reverse_oblique_klass) {
+            reverseOblique = TRUE;
+            cairo_matrix_init (&transform, 1, 0, 0.25, 1, 0, 0);
+          }
           break;
         }
         extra_attrs = extra_attrs->next;
@@ -1080,6 +1112,9 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
         for (i = 0; i < n; i++) {
           glyph_item->glyphs->glyphs = gi_original + (reverse ? n - 1 - i : i);
           cairo_save (cairo);
+          if (reverseOblique) {
+            cairo_transform (cairo, &transform);
+          }
           cairo_translate (cairo,
               glyph_item->glyphs->glyphs->geometry.x_offset / (double)PANGO_SCALE,
               glyph_item->glyphs->glyphs->geometry.y_offset / (double)PANGO_SCALE);
@@ -1583,6 +1618,8 @@ gst_ttmlrender_init (GstTTMLRender * render)
       pango_attr_type_register ("Invisibility");
   gst_ttmlrender_pango_attr_reverse_klass.type =
       pango_attr_type_register ("Reverse");
+  gst_ttmlrender_pango_attr_reverse_oblique_klass.type =
+      pango_attr_type_register ("ReverseOblique");
 
   render->default_font_family = g_strdup ("Serif");
   render->default_font_size = NULL;
