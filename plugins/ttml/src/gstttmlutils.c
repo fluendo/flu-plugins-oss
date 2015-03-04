@@ -111,6 +111,7 @@ const GstTTMLToken GstTTMLUtilsTokensFontStyleInternal[] = {
   { "normal", GST_TTML_FONT_STYLE_NORMAL } ,
   { "italic", GST_TTML_FONT_STYLE_ITALIC } ,
   { "oblique", GST_TTML_FONT_STYLE_OBLIQUE },
+  { "reverseOblique", GST_TTML_FONT_STYLE_REVERSE_OBLIQUE },
   { NULL, GST_TTML_FONT_STYLE_UNKNOWN }
 };
 const GstTTMLToken *GstTTMLUtilsTokensFontStyle =

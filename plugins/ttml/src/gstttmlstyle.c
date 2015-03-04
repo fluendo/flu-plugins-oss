@@ -200,7 +200,10 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState *state,
         break;
 
       case GST_TTML_ATTR_FONT_STYLE:
-        if (attr->value.font_style != GST_TTML_FONT_STYLE_NORMAL)
+        if (attr->value.font_style != GST_TTML_FONT_STYLE_NORMAL &&
+            attr->value.font_style != GST_TTML_FONT_STYLE_REVERSE_OBLIQUE)
+          /* Do not try pro generate pango markup for reverseOblique. We do
+           * that with our own pango attr. */
           attrs = gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" font_style=\"%s\"",
                   gst_ttml_utils_enum_name (
