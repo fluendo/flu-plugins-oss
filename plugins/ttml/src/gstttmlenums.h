@@ -74,6 +74,7 @@ typedef enum _GstTTMLAttributeType {
   GST_TTML_ATTR_OPACITY,
   GST_TTML_ATTR_UNICODE_BIDI,
   GST_TTML_ATTR_DIRECTION,
+  GST_TTML_ATTR_WRITING_MODE,
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   GST_TTML_ATTR_SMPTE_IMAGETYPE,
@@ -191,6 +192,16 @@ typedef enum _GstTTMLDirection {
   GST_TTML_DIRECTION_RTL,
   GST_TTML_DIRECTION_UNKNOWN
 } GstTTMLDirection;
+
+/* Writing Mode */
+typedef enum _GstTTMLWritingMode {
+  GST_TTML_WRITING_MODE_LRTB,
+  GST_TTML_WRITING_MODE_RLTB,
+  /* Modes which rotate the layout must appear last */
+  GST_TTML_WRITING_MODE_TBRL,
+  GST_TTML_WRITING_MODE_TBLR,
+  GST_TTML_WRITING_MODE_UNKNOWN
+} GstTTMLWritingMode;
 
 /* SMPTE-TT Image types */
 typedef enum _GstTTMLSMPTEImageType {

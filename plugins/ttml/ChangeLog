@@ -1,3 +1,15 @@
+2015-03-06  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	* src/gstttmlattribute.h:
+	* src/gstttmlenums.h:
+	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
+	(gst_ttmlrender_setup_region_attrs), (gst_ttmlrender_show_layout),
+	(gst_ttmlrender_render_outline), (gst_ttmlrender_show_regions):
+	* src/gstttmlutils.c:
+	* src/gstttmlutils.h:
+	Add support for writingMode.
+
 2015-03-04  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlenums.h:

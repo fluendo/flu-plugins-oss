@@ -54,6 +54,7 @@ typedef struct _GstTTMLRegion {
   gint smpte_background_image_posy;
   GstTTMLDisplayAlign display_align;
   gboolean overflow_visible;
+  GstTTMLWritingMode writing_mode;
 
   /* FIXME: textOutline is a CHARACTER attribute, not a REGION one.
    * This is just a first step. */
@@ -214,8 +215,15 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
   GstTTMLAttribute *attr;
   PangoAlignment pango_align = PANGO_ALIGN_LEFT;
   GstTTMLWrapOption wrap = GST_TTML_WRAP_OPTION_YES;
+  int padded_extentx = region->padded_extentx;
+  int padded_extenty = region->padded_extenty;
 
   PangoLayout *layout = pango_layout_new (render->pango_context);
+
+  if (region->writing_mode > GST_TTML_WRITING_MODE_RLTB) {
+    padded_extentx = region->padded_extenty;
+    padded_extenty = region->padded_extentx;
+  }
 
   attr = gst_ttml_style_get_attr (&region->current_par_style,
       GST_TTML_ATTR_WRAP_OPTION);
@@ -224,9 +232,9 @@ gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
   }
 
   if (wrap == GST_TTML_WRAP_OPTION_YES) {
-    pango_layout_set_width (layout, region->padded_extentx * PANGO_SCALE);
+    pango_layout_set_width (layout, padded_extentx * PANGO_SCALE);
   }
-  pango_layout_set_height (layout, region->padded_extenty * PANGO_SCALE);
+  pango_layout_set_height (layout, padded_extenty * PANGO_SCALE);
 
   attr = gst_ttml_style_get_attr (&region->current_par_style,
       GST_TTML_ATTR_TEXT_ALIGN);
@@ -547,6 +555,9 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender *render, GstTTMLRegion *region,
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_OVERFLOW);
   region->overflow_visible = attr ? attr->value.b : FALSE;
+
+  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_WRITING_MODE);
+  region->writing_mode = attr ? attr->value.writing_mode : GST_TTML_WRITING_MODE_LRTB;
 }
 
 /* Structure (and associated helpers) needed for anamorphic text rendering */
@@ -915,7 +926,8 @@ skip_font_size:
 
 static void
 gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
-    gboolean render, int right_edge, gboolean show_background)
+    gboolean render, int right_edge, gboolean show_background,
+    GstTTMLWritingMode writing_mode)
 {
   int ndx, num_lines, spacing, baseline;
   int xoffset = 0;
@@ -955,13 +967,14 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
       post_space = spacing - baseline;
     }
 
-    cairo_translate (cairo, xoffset + ranges[0] / PANGO_SCALE, pre_space);
+    cairo_translate (cairo, xoffset + ranges[0] / PANGO_SCALE,
+        writing_mode != GST_TTML_WRITING_MODE_TBLR ? pre_space : -post_space);
     cairo_save (cairo);
     while (runs) {
       double width = 0.0;
       int i;
       gboolean skip_run = FALSE;
-      gboolean reverse = FALSE;
+      gboolean reverse = writing_mode == GST_TTML_WRITING_MODE_RLTB;
       gboolean reverseOblique = FALSE;
       cairo_matrix_t transform;
       PangoGlyphItem *glyph_item = (PangoGlyphItem *)runs->data;
@@ -1138,7 +1151,8 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
       runs = runs->next;
     }
     cairo_restore (cairo);
-    cairo_translate (cairo, -xoffset - ranges[0] / PANGO_SCALE, post_space);
+    cairo_translate (cairo, -xoffset - ranges[0] / PANGO_SCALE,
+        writing_mode != GST_TTML_WRITING_MODE_TBLR ? post_space : -pre_space);
 
     g_free (ranges);
   }
@@ -1148,7 +1162,8 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
 
 static void
 gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outline,
-    PangoLayout *layout, PangoRectangle *rect, int right_edge)
+    PangoLayout *layout, PangoRectangle *rect, int right_edge,
+    GstTTMLWritingMode writing_mode)
 {
   /* Draw the text outline */
   guint32 color = outline->use_current_color ?
@@ -1179,7 +1194,8 @@ gst_ttmlrender_render_outline (GstTTMLRender *render, GstTTMLTextOutline *outlin
       GET_CAIRO_COMP (color,  8),
       GET_CAIRO_COMP (color,  0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
-  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE, right_edge, TRUE);
+  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE, right_edge, TRUE,
+      writing_mode);
   cairo_stroke (dest_cairo);
 
   if (outline->length[1].unit !=
@@ -1212,6 +1228,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
   GList *link;
   cairo_t *original_cairo = NULL;
   cairo_surface_t *region_surface;
+  cairo_matrix_t orientation_matrix;
 
   /* Flush any pending fragment */
   if (region->current_par_content != NULL) {
@@ -1278,19 +1295,44 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     cairo_translate (render->cairo, 0, posy);
   }
 
+  cairo_save (render->cairo);
+
+  switch (region->writing_mode) {
+    case GST_TTML_WRITING_MODE_TBRL:
+      cairo_matrix_init_rotate (&orientation_matrix, G_PI / 2);
+      cairo_matrix_translate (&orientation_matrix, region->padded_originx, -region->padded_extentx);
+      cairo_set_matrix (render->cairo, &orientation_matrix);
+  
+      pango_context_set_base_gravity (render->pango_context, PANGO_GRAVITY_EAST);
+      pango_context_set_gravity_hint (render->pango_context, PANGO_GRAVITY_HINT_STRONG);
+      pango_cairo_update_context (render->cairo, render->pango_context);
+      break;
+    case GST_TTML_WRITING_MODE_TBLR:
+      cairo_matrix_init_rotate (&orientation_matrix, G_PI / 2);
+      cairo_matrix_translate (&orientation_matrix, region->padded_originx, -region->padded_originy);
+      cairo_set_matrix (render->cairo, &orientation_matrix);
+  
+      pango_context_set_base_gravity (render->pango_context, PANGO_GRAVITY_EAST);
+      pango_context_set_gravity_hint (render->pango_context, PANGO_GRAVITY_HINT_STRONG);
+      pango_cairo_update_context (render->cairo, render->pango_context);
+      break;
+    default:
+      break;
+  }
+
   /* Show all layouts */
   link = region->layouts;
   while (link) {
     PangoLayout *layout = (PangoLayout *)link->data;
-    PangoRectangle logical_rect;
-
-    pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
 
     /* Show outline if required */
     if (region->text_outline.length[0].unit !=
         GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+      PangoRectangle logical_rect;
+      pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
+      /* FIXME Outline does not work on rotated writing modes */
       gst_ttmlrender_render_outline (render, &region->text_outline,
-          layout, &logical_rect, region->padded_extentx);
+          layout, &logical_rect, region->padded_extentx, region->writing_mode);
     }
 
     /* Show text */
@@ -1303,10 +1345,13 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
     gst_ttmlrender_show_layout (render->cairo, layout, TRUE,
         region->padded_extentx,
         region->text_outline.length[0].unit ==
-        GST_TTML_LENGTH_UNIT_NOT_PRESENT);
+        GST_TTML_LENGTH_UNIT_NOT_PRESENT,
+        region->writing_mode);
 
     link = g_list_next (link);
   }
+
+  cairo_restore (render->cairo);
 
   if (original_cairo) {
     cairo_destroy (render->cairo);
