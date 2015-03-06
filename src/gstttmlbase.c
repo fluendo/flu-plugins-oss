@@ -659,11 +659,16 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar *name,
        * couple of entries in that attribute's timeline in the parent style */
       GstTTMLAttribute *attr;
       attr = gst_ttml_style_get_attr (&base->state.style, type);
-      /* Just make sure this was actually an attribute */
-      if (attr) {
-        gst_ttml_attribute_add_event (attr, current_begin, prev_attr);
-        gst_ttml_attribute_add_event (attr, current_end - 1, attr);
+      /* We are changing an attr which has not been defined yet */
+      if (!attr) {
+        /* FIXME: This can be certainly improved */
+        attr = g_new0 (GstTTMLAttribute, 1);
+        attr->type = type;
+        base->state.style.attributes =
+            g_list_append (base->state.style.attributes, attr);
       }
+      gst_ttml_attribute_add_event (attr, current_begin, prev_attr);
+      gst_ttml_attribute_add_event (attr, current_end - 1, attr);
     }
     if (prev_attr)
       gst_ttml_attribute_free (prev_attr);
