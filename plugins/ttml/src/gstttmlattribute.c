@@ -470,10 +470,6 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
       GST_WARNING ("Could not understand '%s' time base", value);
       attr->value.time_base = GST_TTML_TIME_BASE_MEDIA;
     }
-    if (attr->value.time_base == GST_TTML_TIME_BASE_SMPTE) {
-      GST_WARNING ("SMPTE time base not implemented yet.");
-      attr->value.time_base = GST_TTML_TIME_BASE_MEDIA;
-    }
     GST_LOG ("Parsed '%s' time base into %d (%s)", value,
         attr->value.time_base,
         gst_ttml_utils_enum_name (attr->value.time_base, TimeBase));
