@@ -1,5 +1,11 @@
 2015-03-06  Xavi Artigas  <xartigas@fluendo.com>
 
+	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_end_ns):
+	Handle case where a SET node changes an attribute which has not been
+	defined yet.
+
+2015-03-06  Xavi Artigas  <xartigas@fluendo.com>
+
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
 	Remove bogus warning.
 
