@@ -1,6 +1,11 @@
 2015-03-06  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
+	Remove bogus warning.
+
+2015-03-06  Xavi Artigas  <xartigas@fluendo.com>
+
+	* src/gstttmlattribute.c: (gst_ttml_attribute_parse):
 	* src/gstttmlattribute.h:
 	* src/gstttmlenums.h:
 	* src/gstttmlrender.c: (gst_ttmlrender_store_layout),
