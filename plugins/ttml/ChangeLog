@@ -1,3 +1,5 @@
+=== release 0.10.17 ===
+
 2015-03-06  Xavi Artigas  <xartigas@fluendo.com>
 
 	* src/gstttmlbase.c: (gst_ttmlbase_sax2_element_end_ns):
