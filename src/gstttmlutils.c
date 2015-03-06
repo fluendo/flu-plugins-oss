@@ -83,6 +83,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   { "opacity", GST_TTML_ATTR_OPACITY },
   { "unicodeBidi", GST_TTML_ATTR_UNICODE_BIDI },
   { "direction", GST_TTML_ATTR_DIRECTION },
+  { "writingMode", GST_TTML_ATTR_WRITING_MODE },
   /* SMPTE-TT attributes. They are totally overlapped with the TTML namespace,
    * let's hope there is no collision in the future */
   { "imagetype", GST_TTML_ATTR_SMPTE_IMAGETYPE },
@@ -205,6 +206,19 @@ const GstTTMLToken GstTTMLUtilsTokensDirectionInternal[] = {
 };
 const GstTTMLToken *GstTTMLUtilsTokensDirection =
     GstTTMLUtilsTokensDirectionInternal;
+
+const GstTTMLToken GstTTMLUtilsTokensWritingModeInternal[] = {
+  { "lrtb", GST_TTML_WRITING_MODE_LRTB },
+  { "rltb", GST_TTML_WRITING_MODE_RLTB },
+  { "tbrl", GST_TTML_WRITING_MODE_TBRL },
+  { "tblr", GST_TTML_WRITING_MODE_TBLR },
+  { "lr", GST_TTML_WRITING_MODE_LRTB }, /* The three below are aliases */
+  { "rl", GST_TTML_WRITING_MODE_RLTB },
+  { "tb", GST_TTML_WRITING_MODE_TBRL },
+  { NULL, GST_TTML_WRITING_MODE_UNKNOWN }
+};
+const GstTTMLToken *GstTTMLUtilsTokensWritingMode =
+    GstTTMLUtilsTokensWritingModeInternal;
 
 const GstTTMLToken GstTTMLUtilsTokensSMPTEImageTypeInternal[] = {
   { "PNG", GST_TTML_SMPTE_IMAGE_TYPE_PNG },

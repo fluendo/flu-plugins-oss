@@ -772,6 +772,16 @@ gst_ttml_attribute_parse (GstTTMLState *state, const char *ns,
         attr->value.direction,
         gst_ttml_utils_enum_name (attr->value.direction, Direction));
     break;
+  case GST_TTML_ATTR_WRITING_MODE:
+    attr->value.writing_mode = gst_ttml_utils_enum_parse (value, WritingMode);
+    if (attr->value.writing_mode == GST_TTML_WRITING_MODE_UNKNOWN) {
+      GST_WARNING ("Could not understand '%s' writing mode", value);
+      attr->value.writing_mode = GST_TTML_WRITING_MODE_LRTB;
+    }
+    GST_LOG ("Parsed '%s' writing mode into %d (%s)", value,
+        attr->value.writing_mode,
+        gst_ttml_utils_enum_name (attr->value.writing_mode, WritingMode));
+    break;
   case GST_TTML_ATTR_SMPTE_IMAGETYPE:
     attr->value.smpte_image_type = gst_ttml_utils_enum_parse (value, SMPTEImageType);
     if (attr->value.smpte_image_type == GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN) {
