@@ -1227,7 +1227,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 {
   GList *link;
   cairo_t *original_cairo = NULL;
-  cairo_surface_t *region_surface;
+  cairo_surface_t *region_surface = NULL;
   cairo_matrix_t orientation_matrix;
 
   /* Flush any pending fragment */
