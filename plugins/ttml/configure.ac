@@ -134,6 +134,9 @@ if test "x$HAVE_FLUDOWNLOADER" = "xno"; then
 fi
 fi
 
+dnl Start date used to autogenrate ChangeLog from git log
+AC_SUBST(GIT_LOG_START_COMMIT, "74a9740eb10b78296b01abcdc650515707efc234")
+
 AC_OUTPUT(
 Makefile
 src/Makefile
