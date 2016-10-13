@@ -1183,6 +1183,9 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
       GST_DEBUG_OBJECT (base, "our segment was %" GST_SEGMENT_FORMAT,
           base->segment);
 
+      if (!base->segment)
+        base->segment = gst_segment_new ();
+
       gst_segment_set_newsegment (base->segment, update, rate, format, start,
           stop, time);
 
