@@ -132,7 +132,7 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   }
 
   in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
-      base->base_time + begin, base->base_time + end,
+      begin, end,
       &clip_start, &clip_stop);
 
   if (in_seg) {
