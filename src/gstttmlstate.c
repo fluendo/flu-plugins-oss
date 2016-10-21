@@ -437,7 +437,7 @@ gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
     state->saved_data =
         g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
   }
-  
+
   /* Add a little header stating the data size */
   GST_DEBUG ("Storing image '%s' (raw length is %d bytes)", id, length);
   data = (guint8 *)g_realloc (data, length + 4);
@@ -496,7 +496,7 @@ void
 gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id)
 {
   gboolean res;
-  
+
   if (!state->saved_region_attr_stacks) {
     GST_WARNING ("Region list does not exist yet.");
     return;
