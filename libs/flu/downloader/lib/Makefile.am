@@ -1,13 +1,13 @@
 MAINTAINERCLEANFILES = Makefile.in
 
 lib_LTLIBRARIES = libfludownloader.la libfludownloader_static.la
-include_HEADERS = fludownloader.h
+include_HEADERS = fludownloader.h fludownloaderhelper.h
 
 if !USE_SYSTEM_CURL
 libcurl_objects = $(wildcard $(top_srcdir)/ext/curl/lib/libcurl_la-*.lo)
 endif
 
-libfludownloader_la_SOURCES = fludownloader.c fludownloader.h
+libfludownloader_la_SOURCES = fludownloader.c fludownloader.h fludownloaderhelper.c fludownloaderhelper.h
 libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
 libfludownloader_la_LIBADD = $(FLUDOWNLOADER_CURL_LIB) $(FLUDOWNLOADER_LIBS)
 libfludownloader_la_LDFLAGS = $(WIN32_LDFLAGS) -shared
