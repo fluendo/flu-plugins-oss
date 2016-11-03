@@ -17,28 +17,28 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 
 /* Free internally allocated memory for the state */
 static void
-gst_ttml_state_free_content (GstTTMLState *state)
+gst_ttml_state_free_content (GstTTMLState * state)
 {
   g_free (state->id);
 }
 
 /* Free this state structure and its contents */
 void
-gst_ttml_state_free (GstTTMLState *state)
+gst_ttml_state_free (GstTTMLState * state)
 {
   gst_ttml_state_free_content (state);
   g_free (state);
 }
 
 static void
-gst_ttml_state_free_attr_stack (GList *stack)
+gst_ttml_state_free_attr_stack (GList * stack)
 {
-  g_list_free_full (stack, (GDestroyNotify)gst_ttml_attribute_free);
+  g_list_free_full (stack, (GDestroyNotify) gst_ttml_attribute_free);
 }
 
 /* Set the state to default values */
 void
-gst_ttml_state_reset (GstTTMLState *state)
+gst_ttml_state_reset (GstTTMLState * state)
 {
   gst_ttml_state_free_content (state);
 
@@ -91,8 +91,8 @@ gst_ttml_state_reset (GstTTMLState *state)
  * The overwritten current value (if any) is returned. Do not forget to free
  * it! */
 static GstTTMLAttribute *
-gst_ttml_state_set_attribute (GstTTMLState *state,
-    const GstTTMLAttribute *attr)
+gst_ttml_state_set_attribute (GstTTMLState * state,
+    const GstTTMLAttribute * attr)
 {
   GstTTMLAttribute *ret_attr = NULL;
 
@@ -128,8 +128,8 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
       state->sub_frame_rate = attr->value.i;
       break;
     case GST_TTML_ATTR_CELLRESOLUTION:
-      state->cell_resolution_x = (int)attr->value.raw_length[0].f;
-      state->cell_resolution_y = (int)attr->value.raw_length[1].f;
+      state->cell_resolution_x = (int) attr->value.raw_length[0].f;
+      state->cell_resolution_y = (int) attr->value.raw_length[1].f;
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
       state->whitespace_preserve = attr->value.b;
@@ -164,8 +164,8 @@ gst_ttml_state_set_attribute (GstTTMLState *state,
  * depends on the type of attribute. By default it calls the _set_ method
  * above. */
 static void
-gst_ttml_state_merge_attribute (GstTTMLState *state,
-    const GstTTMLAttribute *attr)
+gst_ttml_state_merge_attribute (GstTTMLState * state,
+    const GstTTMLAttribute * attr)
 {
   GstTTMLAttribute *prev_attr;
 
@@ -200,7 +200,7 @@ gst_ttml_state_merge_attribute (GstTTMLState *state,
 /* Read from the state the attribute specified by type and return a new
  * attribute */
 static GstTTMLAttribute *
-gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
+gst_ttml_state_get_attribute (GstTTMLState * state, GstTTMLAttributeType type)
 {
   const GstTTMLAttribute *curr_attr;
   GstTTMLAttribute *attr;
@@ -237,9 +237,9 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
     case GST_TTML_ATTR_CELLRESOLUTION:
       attr = g_new0 (GstTTMLAttribute, 1);
       attr->type = type;
-      attr->value.raw_length[0].f = (float)state->cell_resolution_x;
+      attr->value.raw_length[0].f = (float) state->cell_resolution_x;
       attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
-      attr->value.raw_length[1].f = (float)state->cell_resolution_y;
+      attr->value.raw_length[1].f = (float) state->cell_resolution_y;
       attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
       break;
     case GST_TTML_ATTR_WHITESPACE_PRESERVE:
@@ -284,8 +284,8 @@ gst_ttml_state_get_attribute (GstTTMLState *state, GstTTMLAttributeType type)
  * into the attribute stack, for later retrieval.
  * The GstTTMLAttribute now belongs to the stack, do not free! */
 void
-gst_ttml_state_push_attribute (GstTTMLState *state,
-    GstTTMLAttribute *new_attr)
+gst_ttml_state_push_attribute (GstTTMLState * state,
+    GstTTMLAttribute * new_attr)
 {
   GstTTMLAttribute *old_attr;
 
@@ -323,8 +323,8 @@ gst_ttml_state_push_attribute (GstTTMLState *state,
 /* Pops an attribute from the stack and puts in the state, overwritting the
  * current value, which is returned. Do not forget to free it! */
 GstTTMLAttributeType
-gst_ttml_state_pop_attribute (GstTTMLState *state,
-    GstTTMLAttribute **prev_attr_ptr)
+gst_ttml_state_pop_attribute (GstTTMLState * state,
+    GstTTMLAttribute ** prev_attr_ptr)
 {
   GstTTMLAttribute *attr, *prev_attr = NULL;
   GstTTMLAttributeType type;
@@ -332,7 +332,7 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
   if (!state->attribute_stack) {
     GST_ERROR ("Unable to pop attribute: empty stack");
   }
-  attr  = (GstTTMLAttribute *)state->attribute_stack->data;
+  attr = (GstTTMLAttribute *) state->attribute_stack->data;
   type = attr->type;
   state->attribute_stack = g_list_delete_link (state->attribute_stack,
       state->attribute_stack);
@@ -363,15 +363,15 @@ gst_ttml_state_pop_attribute (GstTTMLState *state,
  * Create the hash table if necessary. Used for referential styling.
  */
 void
-gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
-    const gchar *id)
+gst_ttml_state_save_attr_stack (GstTTMLState * state, GHashTable ** table,
+    const gchar * id)
 {
   GstTTMLStyle style_copy = { 0 };
 
   if (!*table) {
     *table =
         g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
-        (GDestroyNotify)gst_ttml_state_free_attr_stack);
+        (GDestroyNotify) gst_ttml_state_free_attr_stack);
   }
 
   gst_ttml_style_copy (&style_copy, &state->style, TRUE);
@@ -389,8 +389,8 @@ gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
 /* Retrieve the attribute stack with the given id from the hash table and
  * apply it. Used for referential and region styling. */
 void
-gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
-    const gchar *id)
+gst_ttml_state_restore_attr_stack (GstTTMLState * state, GHashTable * table,
+    const gchar * id)
 {
   GList *attr_link = NULL;
 
@@ -402,7 +402,7 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
     return;
 
   if (table) {
-    g_hash_table_lookup_extended (table, id, NULL, (gpointer *)&attr_link);
+    g_hash_table_lookup_extended (table, id, NULL, (gpointer *) & attr_link);
   }
 
   if (!attr_link) {
@@ -428,8 +428,8 @@ gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
  * not free.
  */
 void
-gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
-    const gchar *id)
+gst_ttml_state_save_data (GstTTMLState * state, guint8 * data, gint length,
+    const gchar * id)
 {
   gchar *id_copy = g_strdup (id);
 
@@ -440,17 +440,17 @@ gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
 
   /* Add a little header stating the data size */
   GST_DEBUG ("Storing image '%s' (raw length is %d bytes)", id, length);
-  data = (guint8 *)g_realloc (data, length + 4);
+  data = (guint8 *) g_realloc (data, length + 4);
   memmove (data + 4, data, length);
-  *(gint32*)data = length;
+  *(gint32 *) data = length;
   g_hash_table_insert (state->saved_data, id_copy, data);
 }
 
 void
-gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
-    guint8 **data, gint *length)
+gst_ttml_state_restore_data (const GstTTMLState * state, const gchar * id,
+    guint8 ** data, gint * length)
 {
-  guint8 * rawdata;
+  guint8 *rawdata;
 
   *data = NULL;
   *length = 0;
@@ -461,10 +461,10 @@ gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
   if (!state->saved_data)
     return;
 
-  rawdata = (guint8 *)g_hash_table_lookup (state->saved_data, id);
+  rawdata = (guint8 *) g_hash_table_lookup (state->saved_data, id);
 
   if (rawdata) {
-    *length = *(gint32*)rawdata;
+    *length = *(gint32 *) rawdata;
     *data = rawdata + 4;
   }
 }
@@ -473,15 +473,15 @@ gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
  * from the style (it must be one of its attributes). The style ptr is stored
  * in the hash, so the caller must not free it. */
 void
-gst_ttml_state_new_region (GstTTMLState *state, const gchar *id,
-    GstTTMLStyle *style)
+gst_ttml_state_new_region (GstTTMLState * state, const gchar * id,
+    GstTTMLStyle * style)
 {
   gchar *id_copy;
 
   if (!state->saved_region_attr_stacks) {
     state->saved_region_attr_stacks =
         g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
-        (GDestroyNotify)gst_ttml_state_free_attr_stack);
+        (GDestroyNotify) gst_ttml_state_free_attr_stack);
   }
 
   id_copy = g_strdup (id);
@@ -493,7 +493,7 @@ gst_ttml_state_new_region (GstTTMLState *state, const gchar *id,
 
 /* Remove region from hash table */
 void
-gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id)
+gst_ttml_state_remove_region (GstTTMLState * state, const gchar * id)
 {
   gboolean res;
 
@@ -506,22 +506,22 @@ gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id)
   res = g_hash_table_remove (state->saved_region_attr_stacks, id);
 
   if (!res) {
-    GST_WARNING ("Tried to remove region '%s', but could not find it.",
-        id);
+    GST_WARNING ("Tried to remove region '%s', but could not find it.", id);
   }
 }
 
 /* Update the value of the specified attribute of the specified region id */
 void
-gst_ttml_state_update_region_attr (GstTTMLState *state, const gchar *id,
-    GstTTMLAttribute *attr)
+gst_ttml_state_update_region_attr (GstTTMLState * state, const gchar * id,
+    GstTTMLAttribute * attr)
 {
   GstTTMLAttribute *prev_attr;
   GstTTMLStyle style;
 
   GST_DEBUG ("Updating region with id %s, attr %s", id,
       gst_ttml_utils_enum_name (attr->type, AttributeType));
-  style.attributes = (GList *)g_hash_table_lookup (state->saved_region_attr_stacks, id);
+  style.attributes =
+      (GList *) g_hash_table_lookup (state->saved_region_attr_stacks, id);
   if (!style.attributes) {
     GST_WARNING ("Could not find region with id %s", id);
     return;

@@ -25,8 +25,7 @@
  * G(x,y) = 1/(2 * PI * sigma^2) * exp(-(x^2 + y^2)/(2 * sigma^2))
  */
 static pixman_fixed_t *
-gst_ttml_blur_create_gaussian_kernel (int radius, double sigma,
-    int *length)
+gst_ttml_blur_create_gaussian_kernel (int radius, double sigma, int *length)
 {
   const double scale2 = 2.0 * sigma * sigma;
   const double scale1 = 1.0 / (G_PI * scale2);
@@ -46,7 +45,7 @@ gst_ttml_blur_create_gaussian_kernel (int radius, double sigma,
       const double u = x * x;
       const double v = y * y;
 
-      tmp[i] = scale1 * exp (-(u+v)/scale2);
+      tmp[i] = scale1 * exp (-(u + v) / scale2);
 
       sum += tmp[i];
     }
@@ -70,7 +69,7 @@ gst_ttml_blur_create_gaussian_kernel (int radius, double sigma,
 /* Returns a new Cairo surface with the blurred version of the input surface,
  * which must be CAIRO_FORMAT_ARGB32. */
 cairo_surface_t *
-gst_ttml_blur_image_surface (cairo_surface_t *surface, int radius,
+gst_ttml_blur_image_surface (cairo_surface_t * surface, int radius,
     double sigma)
 {
   static cairo_user_data_key_t data_key;
@@ -86,7 +85,7 @@ gst_ttml_blur_image_surface (cairo_surface_t *surface, int radius,
   s = cairo_image_surface_get_stride (surface);
 
   /* create pixman image for cairo image surface */
-  p = (uint32_t *)cairo_image_surface_get_data (surface);
+  p = (uint32_t *) cairo_image_surface_get_data (surface);
   src = pixman_image_create_bits (PIXMAN_a8r8g8b8, w, h, p, s);
 
   /* attach gaussian kernel to pixman image */
@@ -95,14 +94,15 @@ gst_ttml_blur_image_surface (cairo_surface_t *surface, int radius,
   g_free (params);
 
   /* render blured image to new pixman image */
-  p = (uint32_t *)g_malloc0 (s * h);
+  p = (uint32_t *) g_malloc0 (s * h);
   dst = pixman_image_create_bits (PIXMAN_a8r8g8b8, w, h, p, s);
-  pixman_image_composite (PIXMAN_OP_SRC, src, NULL, dst, 0, 0, 0, 0, 0, 0, w, h);
+  pixman_image_composite (PIXMAN_OP_SRC, src, NULL, dst, 0, 0, 0, 0, 0, 0, w,
+      h);
   pixman_image_unref (src);
 
   /* create new cairo image for blured pixman image */
   surface = cairo_image_surface_create_for_data (
-      (unsigned char *)p, CAIRO_FORMAT_ARGB32, w, h, s);
+      (unsigned char *) p, CAIRO_FORMAT_ARGB32, w, h, s);
   cairo_surface_set_user_data (surface, &data_key, p, g_free);
   pixman_image_unref (dst);
 
