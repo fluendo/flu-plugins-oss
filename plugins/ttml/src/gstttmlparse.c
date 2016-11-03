@@ -31,7 +31,7 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #endif
 
 static GstStaticPadTemplate ttmlparse_src_template =
-    GST_STATIC_PAD_TEMPLATE ("src",
+GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
     GST_PAD_ALWAYS,
     GST_STATIC_CAPS (GST_TTMLPARSE_SRC_CAPS)
@@ -41,7 +41,7 @@ G_DEFINE_TYPE (GstTTMLParse, gst_ttmlparse, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlparse_parent_class
 
 static GstBuffer *
-gst_ttmlparse_gen_buffer (GstTTMLBase *base)
+gst_ttmlparse_gen_buffer (GstTTMLBase * base)
 {
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
@@ -56,7 +56,7 @@ gst_ttmlparse_gen_buffer (GstTTMLBase *base)
     return buffer;
   }
 
-  g_list_foreach (base->active_spans, (GFunc)gst_ttml_span_compose, &span);
+  g_list_foreach (base->active_spans, (GFunc) gst_ttml_span_compose, &span);
 
   if (span.length == 0) {
     /* Empty buffers are useless and Pango complains about them */
@@ -66,7 +66,7 @@ gst_ttmlparse_gen_buffer (GstTTMLBase *base)
 
   if (span.length == 1 && span.chars[0] == '\n') {
     /* Pango does not like buffers made entirely of invisible chars.
-      * This requires a more robust fix... */
+     * This requires a more robust fix... */
     span.chars[0] = ' ';
   }
 
@@ -92,10 +92,10 @@ gst_ttmlparse_class_init (GstTTMLParseClass * klass)
       gst_static_pad_template_get (&ttmlparse_src_template));
 
   gst_element_class_set_details_simple (GST_ELEMENT_CLASS (klass),
-    "TTML subtitle parser",
-    "Codec/Parser/Subtitle",
-    "Parse TTML subtitle streams into text stream",
-    "Fluendo S.A. <support@fluendo.com>");
+      "TTML subtitle parser",
+      "Codec/Parser/Subtitle",
+      "Parse TTML subtitle streams into text stream",
+      "Fluendo S.A. <support@fluendo.com>");
 
   base_klass->gen_buffer = GST_DEBUG_FUNCPTR (gst_ttmlparse_gen_buffer);
 }

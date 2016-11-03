@@ -30,13 +30,11 @@ static gboolean
 plugin_init (GstPlugin * plugin)
 {
   GST_DEBUG_CATEGORY_INIT (ttmlbase_debug, "ttmlbase",
-      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
-      "Fluendo TTML base element");
+      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML base element");
 
 #ifdef BUILD_TTMLPARSE
   GST_DEBUG_CATEGORY_INIT (ttmlparse_debug, "ttmlparse",
-      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
-      "Fluendo TTML parser");
+      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML parser");
 
   if (!gst_element_register (plugin, "ttmlparse", GST_RANK_MARGINAL,
           gst_ttmlparse_get_type ()))
@@ -45,8 +43,7 @@ plugin_init (GstPlugin * plugin)
 
 #ifdef BUILD_TTMLRENDER
   GST_DEBUG_CATEGORY_INIT (ttmlrender_debug, "ttmlrender",
-      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE,
-      "Fluendo TTML renderer");
+      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML renderer");
 
   if (!gst_element_register (plugin, "ttmlrender", GST_RANK_MARGINAL,
           gst_ttmlrender_get_type ()))
