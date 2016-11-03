@@ -4,32 +4,36 @@
 CURLM *mhandle;
 int tasks_running = 0;
 
-size_t write_function (void *buffer, size_t size, size_t nmemb,
-    int userdata) {
+size_t
+write_function (void *buffer, size_t size, size_t nmemb, int userdata)
+{
   int total_size = size * nmemb;
   printf ("%d> Received %d bytes\n", userdata, total_size);
 
   return total_size;
 }
 
-size_t header_function (const char *line, size_t size, size_t nmemb,
-    int userdata) {
+size_t
+header_function (const char *line, size_t size, size_t nmemb, int userdata)
+{
   int total_size = size * nmemb;
   printf ("%d> %s", userdata, line);
 
   return total_size;
 }
 
-void add_task (char *url, int num) {
+void
+add_task (char *url, int num)
+{
   CURL *ehandle = curl_easy_init ();
 
   curl_easy_setopt (ehandle, CURLOPT_WRITEFUNCTION,
       (curl_write_callback) write_function);
-  curl_easy_setopt (ehandle, CURLOPT_WRITEDATA, (void *)(long)num);
+  curl_easy_setopt (ehandle, CURLOPT_WRITEDATA, (void *) (long) num);
   curl_easy_setopt (ehandle, CURLOPT_HEADERFUNCTION,
       (curl_write_callback) header_function);
-  curl_easy_setopt (ehandle, CURLOPT_HEADERDATA, (void *)(long)num);
-  curl_easy_setopt (ehandle, CURLOPT_PRIVATE, (void *)(long)num);
+  curl_easy_setopt (ehandle, CURLOPT_HEADERDATA, (void *) (long) num);
+  curl_easy_setopt (ehandle, CURLOPT_PRIVATE, (void *) (long) num);
 
   curl_easy_setopt (ehandle, CURLOPT_NOPROGRESS, 1L);
   curl_easy_setopt (ehandle, CURLOPT_NOSIGNAL, 1L);
@@ -41,7 +45,8 @@ void add_task (char *url, int num) {
   curl_multi_add_handle (mhandle, ehandle);
 }
 
-void process_messages ()
+void
+process_messages ()
 {
   CURLMsg *msg;
   int nmsgs;
@@ -63,7 +68,9 @@ void process_messages ()
   }
 }
 
-int main (int argc, char *argv[]) {
+int
+main (int argc, char *argv[])
+{
   fd_set rfds, wfds, efds;
   int max_fd;
   int num_queued_tasks;
@@ -73,8 +80,12 @@ int main (int argc, char *argv[]) {
   mhandle = curl_multi_init ();
   curl_multi_setopt (mhandle, CURLMOPT_PIPELINING, 1);
 
-  add_task ("http://ftp.nluug.nl/ftp/graphics/blender/demo/movies/Sintel_4k/tiff16/00000001.tif", 1);
-  add_task ("http://ftp.nluug.nl/ftp/graphics/blender/demo/feature_videos/flvplayer.swf", 2);
+  add_task
+      ("http://ftp.nluug.nl/ftp/graphics/blender/demo/movies/Sintel_4k/tiff16/00000001.tif",
+      1);
+  add_task
+      ("http://ftp.nluug.nl/ftp/graphics/blender/demo/feature_videos/flvplayer.swf",
+      2);
 
   while (tasks_running > 0) {
     FD_ZERO (&rfds);
@@ -106,4 +117,3 @@ int main (int argc, char *argv[]) {
 
   return 0;
 }
-
