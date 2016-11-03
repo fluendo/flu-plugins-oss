@@ -114,7 +114,7 @@ _report_task_done (FluDownloaderTask * task, CURLcode result)
 /* Gets called by libCurl when new data is received */
 static size_t
 _write_function (void *buffer, size_t size, size_t nmemb,
-    FluDownloaderTask *task)
+    FluDownloaderTask * task)
 {
   size_t total_size = size * nmemb;
 
@@ -127,10 +127,9 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     return 0;
   }
 
-  if (task->context->queued_tasks &&
-      task->context->queued_tasks->data != task) {
+  if (task->context->queued_tasks && task->context->queued_tasks->data != task) {
     FluDownloaderTask *prev_task =
-        (FluDownloaderTask *)task->context->queued_tasks->data;
+        (FluDownloaderTask *) task->context->queued_tasks->data;
 
     /* This is not the currently running task, therefore, it must have finished
      * and a new one has started, but we have not called process_curl_messages
@@ -158,10 +157,10 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 /* Gets called by libCurl for each received HTTP header line */
 static size_t
 _header_function (const char *line, size_t size, size_t nmemb,
-    FluDownloaderTask *task)
+    FluDownloaderTask * task)
 {
   size_t total_size = size * nmemb;
- 
+
   g_mutex_lock (task->context->mutex);
 
   if (task->first_header_line) {
@@ -180,8 +179,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
     }
   }
 
-  task->first_header_line =
-      (total_size > 1 && line[0] == 13 && line[1] == 10);
+  task->first_header_line = (total_size > 1 && line[0] == 13 && line[1] == 10);
 
   g_mutex_unlock (task->context->mutex);
 
@@ -191,7 +189,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
 /* Removes a task. Transfer will NOT be interrupted if it had already started.
  * Call with the lock taken. */
 static void
-_remove_task (FluDownloader *context, FluDownloaderTask *task)
+_remove_task (FluDownloader * context, FluDownloaderTask * task)
 {
   if (task->running) {
     /* If the task has already been submitted to libCurl, remove it.
@@ -210,7 +208,7 @@ _remove_task (FluDownloader *context, FluDownloaderTask *task)
  * once data for this task starts arriving (so previous downloads are allowed
  * to finish). Call with the lock taken. */
 static void
-_abort_task (FluDownloader *context, FluDownloaderTask *task)
+_abort_task (FluDownloader * context, FluDownloaderTask * task)
 {
   if (task->running) {
     /* This is running, we need to halt if from the write callback */
@@ -225,7 +223,7 @@ _abort_task (FluDownloader *context, FluDownloaderTask *task)
  * Inform the user about finished tasks and remove them from internal list.
  * Call with lock taken. */
 static void
-_process_curl_messages (FluDownloader *context)
+_process_curl_messages (FluDownloader * context)
 {
   CURLMsg *msg;
   int nmsgs;
@@ -252,7 +250,7 @@ _process_curl_messages (FluDownloader *context)
 /* Examine the list of queued tasks to see if there is any that can be started.
  * Call with the lock taken. */
 static void
-_schedule_tasks (FluDownloader *context)
+_schedule_tasks (FluDownloader * context)
 {
   FluDownloaderTask *first_task, *next_task = NULL;
 
@@ -261,14 +259,14 @@ _schedule_tasks (FluDownloader *context)
     return;
 
   /* Check if the first task is already running */
-  first_task = (FluDownloaderTask *)context->queued_tasks->data;
+  first_task = (FluDownloaderTask *) context->queued_tasks->data;
   if (!first_task->running) {
     next_task = first_task;
   } else {
     GList *next_task_link = context->queued_tasks->next;
     /* Cheeck if there exists a next enqueued task */
     if (next_task_link) {
-      next_task = (FluDownloaderTask *)next_task_link->data;
+      next_task = (FluDownloaderTask *) next_task_link->data;
       /* Check if it is already running */
       if (next_task->running || next_task->is_file || first_task->is_file) {
         /* Nothing to do then */
@@ -295,7 +293,7 @@ _schedule_tasks (FluDownloader *context)
  * "shutdown" var. Releases the lock when sleeping so other threads can
  * interact with the FluDownloder structure. */
 static gpointer
-_thread_function (FluDownloader *context)
+_thread_function (FluDownloader * context)
 {
   fd_set rfds, wfds, efds;
   int max_fd;
@@ -399,7 +397,7 @@ error:
 }
 
 void
-fludownloader_destroy (FluDownloader *context)
+fludownloader_destroy (FluDownloader * context)
 {
   GList *link;
 
@@ -428,8 +426,8 @@ fludownloader_destroy (FluDownloader *context)
 }
 
 FluDownloaderTask *
-fludownloader_new_task (FluDownloader *context, const gchar *url,
-    const gchar *range, gpointer user_data, gboolean locked)
+fludownloader_new_task (FluDownloader * context, const gchar * url,
+    const gchar * range, gpointer user_data, gboolean locked)
 {
   FluDownloaderTask *task;
 
@@ -482,7 +480,7 @@ fludownloader_new_task (FluDownloader *context, const gchar *url,
 }
 
 void
-fludownloader_abort_task (FluDownloaderTask *task)
+fludownloader_abort_task (FluDownloaderTask * task)
 {
   FluDownloader *context;
 
