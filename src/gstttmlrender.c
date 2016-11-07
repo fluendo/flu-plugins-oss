@@ -410,8 +410,8 @@ gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
     }
 
     /* Load from file */
-    if (gst_ttml_downloader_download (render->downloader, url, &buffer.data,
-            &buffer.datalen)) {
+    if (fludownloader_helper_downloader_download_sync (render->downloader, url,
+            &buffer.data, &buffer.datalen)) {
       surface = gst_ttmlrender_decode_image_from_buffer (id, &buffer);
     } else {
       /* Download error */
@@ -1639,7 +1639,7 @@ gst_ttmlrender_dispose (GObject * object)
     render->pango_context = NULL;
   }
 
-  gst_ttml_downloader_free (render->downloader);
+  fludownloader_helper_downloader_free (render->downloader);
 
   GST_CALL_PARENT (G_OBJECT_CLASS, dispose, (object));
 }
@@ -1716,5 +1716,5 @@ gst_ttmlrender_init (GstTTMLRender * render)
   render->default_font_size = NULL;
   render->cached_images = NULL;
 
-  render->downloader = gst_ttml_downloader_new ();
+  render->downloader = fludownloader_helper_downloader_new ();
 }
