@@ -13,7 +13,7 @@
 #include "gst-demo.h"
 #include "gstttmlbase.h"
 #include "gstttmlstate.h"
-#include "gstttmldownloader.h"
+#include "fludownloaderhelper.h"
 
 G_BEGIN_DECLS
 
@@ -40,7 +40,7 @@ typedef struct _GstTTMLRender {
   GHashTable *cached_images;
 
   /* To download external files */
-  GstTTMLDownloader *downloader;
+  FluDownloaderHelper *downloader;
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */
