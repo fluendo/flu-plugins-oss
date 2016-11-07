@@ -411,7 +411,7 @@ gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
 
     /* Load from file */
     if (gst_ttml_downloader_download (render->downloader, url, &buffer.data,
-        &buffer.datalen)) {
+            &buffer.datalen)) {
       surface = gst_ttmlrender_decode_image_from_buffer (id, &buffer);
     } else {
       /* Download error */
@@ -692,9 +692,12 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
     if (!default_font_size) {
       /* According to the spec, when no font size is specified, use "1c" */
-      default_font_size = g_strdup_printf (" %fpx ",
+      default_font_size = g_strdup_printf (" %dpx ",
           render->base.state.frame_height /
-          (float) render->base.state.cell_resolution_y);
+          render->base.state.cell_resolution_y);
+      GST_DEBUG_OBJECT (render, "No font size specified, using %d/%d =%s",
+          render->base.state.frame_height,
+          render->base.state.cell_resolution_y, default_font_size);
     }
 
     gst_ttml_style_gen_pango_markup (&render->base.state, &final_style,
