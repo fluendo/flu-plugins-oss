@@ -346,8 +346,8 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
         gint parent_length;
         /* FIXME We should make sure EXTENT attr is parsed before PADDING */
         prev_attr =
-            gst_ttml_style_get_attr (style_override ? style_override : &state->
-            style, GST_TTML_ATTR_EXTENT);
+            gst_ttml_style_get_attr (style_override ? style_override :
+            &state->style, GST_TTML_ATTR_EXTENT);
         if (prev_attr) {
           if (prev_attr->value.raw_length[direction].unit !=
               GST_TTML_LENGTH_UNIT_PIXELS) {
@@ -376,8 +376,8 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
       /* Retrieve current font size (which should be in pixels) and scale as
        * requested. */
       prev_attr =
-          gst_ttml_style_get_attr (style_override ? style_override : &state->
-          style, GST_TTML_ATTR_FONT_SIZE);
+          gst_ttml_style_get_attr (style_override ? style_override :
+          &state->style, GST_TTML_ATTR_FONT_SIZE);
       if (prev_attr) {
         length->f *= prev_attr->value.raw_length[0].f;
         length->unit = prev_attr->value.raw_length[0].unit;
@@ -468,8 +468,10 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       GST_LOG ("Parsed '%s' frameRate into %g", value, attr->value.d);
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      sscanf (value, "%d %d",
-          &attr->value.fraction.num, &attr->value.fraction.den);
+      if (sscanf (value, "%d %d",
+              &attr->value.fraction.num, &attr->value.fraction.den) != 2) {
+        GST_WARNING ("Could not understand '%s' frameRateMultiplier", value);
+      }
       GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
           attr->value.fraction.num, attr->value.fraction.den);
       break;
@@ -507,8 +509,10 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           gst_ttml_utils_enum_name (attr->value.clock_mode, ClockMode));
       break;
     case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
-      sscanf (value, "%d %d",
-          &attr->value.fraction.num, &attr->value.fraction.den);
+      if (sscanf (value, "%d %d",
+              &attr->value.fraction.num, &attr->value.fraction.den) != 2) {
+        GST_WARNING ("Could not understand '%s' pixelAspectRatio", value);
+      }
       GST_LOG ("Parsed '%s' pixelAspectRatio into num=%d den=%d", value,
           attr->value.fraction.num, attr->value.fraction.den);
       break;
