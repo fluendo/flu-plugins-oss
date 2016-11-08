@@ -442,7 +442,11 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   if (task->is_file) {
     /* Find out file size now, because we will not be able to parse any
      * HTTP header for file transfers. */
+#ifdef GStatBuf
     GStatBuf s;
+#else
+    struct stat s;
+#endif
     gchar *path = g_filename_from_uri (url, NULL, NULL);
     if (path) {
       if (g_stat (path, &s) == 0) {
