@@ -331,6 +331,7 @@ gst_ttml_state_pop_attribute (GstTTMLState * state,
 
   if (!state->attribute_stack) {
     GST_ERROR ("Unable to pop attribute: empty stack");
+    return GST_TTML_ATTR_UNKNOWN;
   }
   attr = (GstTTMLAttribute *) state->attribute_stack->data;
   type = attr->type;
