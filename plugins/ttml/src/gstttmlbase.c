@@ -338,12 +338,10 @@ gst_ttmlbase_add_region (GstTTMLBase * base)
       gst_ttml_style_gen_region_events (base->state.id, &base->state.style,
       base->timeline);
 
-  if (attr) {
-    /* We keep the attr pointer, but its content does not belong to us, there
-     * is no harm in overwritting it here. */
-    gst_ttml_state_pop_attribute (&base->state, &attr);
-    gst_ttml_attribute_free (attr);
-  }
+  /* We keep the attr pointer, but its content does not belong to us, there
+   * is no harm in overwritting it here. */
+  gst_ttml_state_pop_attribute (&base->state, &attr);
+  gst_ttml_attribute_free (attr);
 
   base->last_event_timestamp = timestamp;
 
