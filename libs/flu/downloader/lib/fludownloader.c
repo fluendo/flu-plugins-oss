@@ -472,6 +472,8 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
   curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
+  /* enable all supported built-in compressions */
+  curl_easy_setopt(task->handle, CURLOPT_ACCEPT_ENCODING, "");
 
   if (locked)
     g_mutex_lock (context->mutex);
