@@ -472,6 +472,8 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
   curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
+  /* wait for pipelining/multiplexing Added in 7.43.0 */
+  curl_easy_setopt (task->handle, CURLOPT_PIPEWAIT, 1);
   /* enable all supported built-in compressions */
   curl_easy_setopt(task->handle, CURLOPT_ACCEPT_ENCODING, "");
 
