@@ -18,5 +18,5 @@ mantainer-clean:
 endif
 
 distdir:
-	tar --exclude='.svn' -c -f - -C $(top_srcdir)/ext/ curl | (cd ${distdir} ; tar -xpf -)
+	tar --exclude='.git' -c -f - -C $(top_srcdir)/ext/ curl | (cd ${distdir} ; tar -xpf -)
 	cp -f $(top_srcdir)/ext/Makefile.am $(top_srcdir)/ext/Makefile.in ${distdir}
