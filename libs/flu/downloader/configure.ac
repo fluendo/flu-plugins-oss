@@ -45,7 +45,7 @@ REQUIREMENTS_PC="glib-2.0 gthread-2.0"
 AC_ARG_WITH(system-curl,
             [AS_HELP_STRING([--with-system-curl=ARG], [use system cURL libraries])],
             [with_system_curl="$withval"],
-            [with_system_curl="yes"])
+            [with_system_curl="no"])
 AM_CONDITIONAL(USE_SYSTEM_CURL, test "x$with_system_curl" = "xyes")
 
 # In case of dynamic curl, append the check for libcurl
@@ -99,29 +99,31 @@ AC_CONFIG_COMMANDS_PRE([
 
     echo "Configuring included cURL instance with args $embcurl_configure_args"
     origdir=`pwd`
+    abssrcdir=${origdir}/${srcdir}
     dnl Don't put path on the configure call when not needed, as configure relies on it
     dnl to detect out-of-tree builds
     if test -z "$srcdir" -o "$srcdir" = .; then
       autogencmd="./buildconf"
       configurecmd="./configure"
     else
-      autogencmd="${ac_abs_top_srcdir}/ext/curl/buildconf"
-      configurecmd="${ac_abs_top_srcdir}/ext/curl/configure"
+      autogencmd="cd ${abssrcdir}/ext/curl/ && ./buildconf"
+      configurecmd="cd ${origdir}/ext/curl/ && ${abssrcdir}/ext/curl/configure"
     fi
-
-    if test -f "ext/curl/configure"; then
+    echo "${abssrcdir}/ext/curl/configure"
+    if test -f "${abssrcdir}/ext/curl/configure"; then
       confcmd="$configurecmd"
     else
-      confcmd="patch -d ${ac_abs_top_srcdir}/ext/curl/ -p0 -f < ${ac_abs_top_srcdir}/patches/fix-automake-1.13.patch && $autogencmd && $configurecmd"
+      confcmd="$autogencmd && $configurecmd"
     fi
     AS_MKDIR_P(["$ac_top_build_prefix"ext/curl])
     cd "$ac_top_build_prefix"ext/curl &&
       eval "$confcmd $embcurl_configure_args" ||
       AC_MSG_ERROR([Failed to configure embedded cURL tree])
     cd "$origdir"
+    echo "${top_srcdir}"
     # In case of static curl, append the local flags/libs
     CURL_LIBS=$($PKG_CONFIG --static --libs-only-l "$ac_top_build_prefix"ext/curl/libcurl.pc | sed 's/-lcurl//g')
-    FLUDOWNLOADER_CFLAGS="${FLUDOWNLOADER_CFLAGS} -I \$(top_srcdir)/ext/curl/include"
+    FLUDOWNLOADER_CFLAGS="${FLUDOWNLOADER_CFLAGS} -I \$(top_srcdir)/ext/curl/include -I \$(top_builddir)/ext/curl/include/curl"
     FLUDOWNLOADER_LIBS="${FLUDOWNLOADER_LIBS} ${CURL_LIBS}"
     FLUDOWNLOADER_CURL_LIB="\${top_builddir}/ext/curl/lib/.libs/libcurl.la"
     AC_MSG_NOTICE([Using included cURL code])
@@ -139,3 +141,12 @@ AC_CONFIG_FILES([
 ])
 
 AC_OUTPUT
+
+echo "
+$PACKAGE-$VERSION
+
+        prefix:                           ${prefix}
+        compiler:                         ${CC}
+
+        Use system curl:                  ${with_system_curl}
+"
