@@ -100,7 +100,7 @@ _report_task_done (FluDownloaderTask * task, CURLcode result)
       curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
           &http_status_code);
 
-      if (http_status_code >= 300)
+      if (http_status_code >= 400)
         outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
     }
 
