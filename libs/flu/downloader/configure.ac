@@ -94,8 +94,7 @@ AC_CONFIG_COMMANDS_PRE([
     # if we are cross-compiling, tell curl so
     target_os=`echo $host_os | sed 's/-gnu//'`
     if test "x$cross_compiling" = xyes; then
-      embcurl_configure_args="$embcurl_configure_args --enable-cross-compile \
-          --target-os=$target_os --arch=$host_cpu --cross-prefix=$host_alias-"
+      embcurl_configure_args="$embcurl_configure_args --host=$host_alias"
     fi
 
     echo "Configuring included cURL instance with args $embcurl_configure_args"
