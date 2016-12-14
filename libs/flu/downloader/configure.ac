@@ -89,7 +89,7 @@ AC_CONFIG_COMMANDS_PRE([
     embcurl_configure_args="--prefix=$prefix"
 
     # Enable pic and static so that we get .a files, but with PIC code.
-    embcurl_configure_args="--disable-shared --enable-static --enable-pic"
+    embcurl_configure_args="--disable-shared --enable-static --enable-pic --without-gnutls --with-ssl"
 
     # if we are cross-compiling, tell curl so
     target_os=`echo $host_os | sed 's/-gnu//'`
