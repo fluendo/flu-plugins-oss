@@ -4,7 +4,7 @@ lib_LTLIBRARIES = libfludownloader.la libfludownloader_static.la
 include_HEADERS = fludownloader.h fludownloaderhelper.h
 
 if !USE_SYSTEM_CURL
-libcurl_objects = $(wildcard $(top_srcdir)/ext/curl/lib/libcurl_la-*.lo)
+libcurl_objects = $(wildcard $(top_builddir)/ext/curl/lib/libcurl_la-*.lo) $(wildcard $(top_builddir)/ext/curl/lib/vtls/libcurl_la-*.lo)
 endif
 
 libfludownloader_la_SOURCES = fludownloader.c fludownloader.h fludownloaderhelper.c fludownloaderhelper.h
