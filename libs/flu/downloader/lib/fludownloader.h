@@ -34,7 +34,6 @@ typedef enum _FluDownloaderTaskOutcome
   /* A local file could not be read */
   FLUDOWNLOADER_TASK_FILE_NOT_FOUND,
 } FluDownloaderTaskOutcome;
-  
 
 /* Data callback. Return FALSE to cancel this download immediately. */
 typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
