@@ -59,8 +59,8 @@ FluDownloader *fludownloader_new (FluDownloaderDataCallback data_cb,
 void fludownloader_destroy (FluDownloader * context);
 
 /* Add a URL to be downloaded. Task will start immediately if possible,
- * or will be queued. Ranges are in HTTP format, or NULL to retrieve the
- * whole content. */
+ * or will be queued. Ranges are in HTTP format, NULL to retrieve the
+ * whole content or "HEAD" to send only HEAD request. */
 FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
     const gchar * url, const gchar *range, gpointer user_data,
     gboolean locked);
