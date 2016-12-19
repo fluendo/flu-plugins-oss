@@ -99,5 +99,8 @@ size_t fludownloader_task_get_length (FluDownloaderTask * task);
 void fludownloader_set_polling_period (FluDownloader * context, gint period);
 gint fludownloader_get_polling_period (FluDownloader * context);
 
+/* Get a text string describing a task outcome.
+ * Useful for debugging and messages .*/
 const gchar *fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome);
+
 #endif /* _FLUDOWNLOADER_H */
