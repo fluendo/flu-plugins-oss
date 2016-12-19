@@ -92,6 +92,10 @@ const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
  * report it. Works for file:// transfers too. */
 size_t fludownloader_task_get_length (FluDownloaderTask * task);
 
+/* Retrieve pointer to string containing "Date" field value from
+ * HTTP header, if no such field in header - returns NULL. */
+const gchar *fludownloader_task_get_date (FluDownloaderTask * task);
+
 /* The polling_period (in uSeconds) sets the wait between curl checks.
  * It is useful to reduce CPU consumption (by reducing throughput too).
  * Set it to 0 to disable polling and use select(), resulting in

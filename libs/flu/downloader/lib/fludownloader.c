@@ -6,10 +6,12 @@
 #include "fludownloader.h"
 
 #include "curl/curl.h"
+#include <string.h>
 
 #include <glib/gstdio.h>        /* g_stat */
 
 #define TIMEOUT 100000          /* 100ms */
+#define DATE_MAX_LENGTH 48
 
 /*****************************************************************************
  * Private functions and structs
@@ -52,6 +54,7 @@ struct _FluDownloaderTask
   /* Download control */
   size_t total_size;            /* File size reported by HTTP headers */
   size_t downloaded_size;       /* Amount of bytes downloaded */
+  gchar date[DATE_MAX_LENGTH];  /* Http header date field value */
 
   /* CURL stuff */
   CURL *handle;                 /* CURL easy handler */
@@ -171,13 +174,23 @@ _header_function (const char *line, size_t size, size_t nmemb,
     }
   } else {
     /* This is another header line */
-    size_t size;
-    if (task->response_ok &&
-        sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
-      /* Context length parsed ok */
-      task->total_size = size;
+    if (task->response_ok) {
+      size_t size;
+      if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
+        /* Context length parsed ok */
+        task->total_size = size;
+        goto header_line_end;
+      }
+
+      if (g_strrstr_len (line, 6, "Date: ") != NULL) {
+        memset (task->date, '\0', DATE_MAX_LENGTH);
+        strncpy (task->date, line + 6, 32);
+        goto header_line_end;
+      }
     }
   }
+
+header_line_end:
 
   task->first_header_line = (total_size > 1 && line[0] == 13 && line[1] == 10);
 
@@ -439,6 +452,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   task->context = context;
   task->first_header_line = TRUE;
   task->is_file = g_str_has_prefix (url, "file://");
+  memset (task->date, '\0', DATE_MAX_LENGTH);
   if (task->is_file) {
     /* Find out file size now, because we will not be able to parse any
      * HTTP header for file transfers. */
@@ -559,6 +573,15 @@ size_t
 fludownloader_task_get_length (FluDownloaderTask * task)
 {
   return task->total_size;
+}
+
+const gchar *
+fludownloader_task_get_date (FluDownloaderTask * task)
+{
+  if (strlen (task->date) > 0)
+    return task->date;
+  else
+    return NULL;
 }
 
 void
