@@ -181,10 +181,13 @@ _header_function (const char *line, size_t size, size_t nmemb,
         task->total_size = size;
         goto header_line_end;
       }
-
-      if (g_strrstr_len (line, 6, "Date: ") != NULL) {
+      gchar *pos = g_strrstr_len (line, 5, "Date:");
+      if (pos != NULL) {
+        pos += 5;
+        while (*pos == ' ')
+          pos++;
         memset (task->date, '\0', DATE_MAX_LENGTH);
-        strncpy (task->date, line + 6, 32);
+        strncpy (task->date, pos, DATE_MAX_LENGTH - 1);
         goto header_line_end;
       }
     }
