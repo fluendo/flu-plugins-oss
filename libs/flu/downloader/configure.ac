@@ -50,8 +50,7 @@ AM_CONDITIONAL(USE_SYSTEM_CURL, test "x$with_system_curl" = "xyes")
 
 # In case of dynamic curl, append the check for libcurl
 if test "x$with_system_curl" = "xyes"; then
-  PKG_CHECK_MODULES(CURL,libcurl >= 7.43.0,,AC_MSG_ERROR(You need at least 7.43.0 curl version !))
-  REQUIREMENTS_PC="${REQUIREMENTS_PC} libcurl"
+  REQUIREMENTS_PC="${REQUIREMENTS_PC} libcurl >= 7.43"
 fi
 
 PKG_CHECK_MODULES([REQUIREMENTS], [${REQUIREMENTS_PC}])
