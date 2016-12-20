@@ -479,8 +479,10 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   /* Choose if we want to send HEAD or GET request */
   if (range != NULL && strcmp (range, "HEAD") == 0)
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 1L);
-  else
+  else {
+    curl_easy_setopt (task->handle, CURLOPT_NOBODY, 0L);
     curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
+  }
   /* wait for pipelining/multiplexing Added in 7.43.0 */
   curl_easy_setopt (task->handle, CURLOPT_PIPEWAIT, 1);
   /* enable all supported built-in compressions */
