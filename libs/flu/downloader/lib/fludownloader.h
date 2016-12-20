@@ -59,8 +59,8 @@ FluDownloader *fludownloader_new (FluDownloaderDataCallback data_cb,
 void fludownloader_destroy (FluDownloader * context);
 
 /* Add a URL to be downloaded. Task will start immediately if possible,
- * or will be queued. Ranges are in HTTP format, or NULL to retrieve the
- * whole content. */
+ * or will be queued. Ranges are in HTTP format, NULL to retrieve the
+ * whole content or "HEAD" to send only HEAD request. */
 FluDownloaderTask *fludownloader_new_task (FluDownloader * context,
     const gchar * url, const gchar *range, gpointer user_data,
     gboolean locked);
@@ -91,6 +91,10 @@ const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
  * server. Can be 0 if the task has not started yet or if the server did not
  * report it. Works for file:// transfers too. */
 size_t fludownloader_task_get_length (FluDownloaderTask * task);
+
+/* Retrieve pointer to string containing "Date" field value from
+ * HTTP header, if there is no such field in the header, returns NULL.. */
+const gchar *fludownloader_task_get_date (FluDownloaderTask * task);
 
 /* The polling_period (in uSeconds) sets the wait between curl checks.
  * It is useful to reduce CPU consumption (by reducing throughput too).

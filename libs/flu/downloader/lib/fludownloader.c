@@ -6,10 +6,12 @@
 #include "fludownloader.h"
 
 #include "curl/curl.h"
+#include <string.h>
 
 #include <glib/gstdio.h>        /* g_stat */
 
 #define TIMEOUT 100000          /* 100ms */
+#define DATE_MAX_LENGTH 48
 
 /*****************************************************************************
  * Private functions and structs
@@ -52,6 +54,7 @@ struct _FluDownloaderTask
   /* Download control */
   size_t total_size;            /* File size reported by HTTP headers */
   size_t downloaded_size;       /* Amount of bytes downloaded */
+  gchar date[DATE_MAX_LENGTH];  /* Http header date field value */
 
   /* CURL stuff */
   CURL *handle;                 /* CURL easy handler */
@@ -169,13 +172,14 @@ _header_function (const char *line, size_t size, size_t nmemb,
     if (sscanf (line, "%*s %d", &code) == 1) {
       task->response_ok = (code >= 200) && (code <= 299);
     }
-  } else {
+  } else if (task->response_ok) {
     /* This is another header line */
     size_t size;
-    if (task->response_ok &&
-        sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
+    if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
       /* Context length parsed ok */
       task->total_size = size;
+    } else if (g_strrstr_len (line, 5, "Date:")) {
+      strncpy (task->date, line + 5, DATE_MAX_LENGTH - 1);
     }
   }
 
@@ -439,6 +443,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   task->context = context;
   task->first_header_line = TRUE;
   task->is_file = g_str_has_prefix (url, "file://");
+  memset (task->date, '\0', DATE_MAX_LENGTH);
   if (task->is_file) {
     /* Find out file size now, because we will not be able to parse any
      * HTTP header for file transfers. */
@@ -471,7 +476,13 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   /* Allow redirections */
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
-  curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
+  /* Choose if we want to send HEAD or GET request */
+  if (range != NULL && strcmp (range, "HEAD") == 0)
+    curl_easy_setopt (task->handle, CURLOPT_NOBODY, 1L);
+  else {
+    curl_easy_setopt (task->handle, CURLOPT_NOBODY, 0L);
+    curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
+  }
   /* wait for pipelining/multiplexing Added in 7.43.0 */
   curl_easy_setopt (task->handle, CURLOPT_PIPEWAIT, 1);
   /* enable all supported built-in compressions */
@@ -555,6 +566,15 @@ size_t
 fludownloader_task_get_length (FluDownloaderTask * task)
 {
   return task->total_size;
+}
+
+const gchar *
+fludownloader_task_get_date (FluDownloaderTask * task)
+{
+  if (strlen (task->date) > 0)
+    return task->date;
+  else
+    return NULL;
 }
 
 void
