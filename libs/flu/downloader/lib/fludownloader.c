@@ -172,28 +172,16 @@ _header_function (const char *line, size_t size, size_t nmemb,
     if (sscanf (line, "%*s %d", &code) == 1) {
       task->response_ok = (code >= 200) && (code <= 299);
     }
-  } else {
+  } else if (task->response_ok) {
     /* This is another header line */
-    if (task->response_ok) {
-      size_t size;
-      if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
-        /* Context length parsed ok */
-        task->total_size = size;
-        goto header_line_end;
-      }
-      gchar *pos = g_strrstr_len (line, 5, "Date:");
-      if (pos != NULL) {
-        pos += 5;
-        while (*pos == ' ')
-          pos++;
-        memset (task->date, '\0', DATE_MAX_LENGTH);
-        strncpy (task->date, pos, DATE_MAX_LENGTH - 1);
-        goto header_line_end;
-      }
+    size_t size;
+    if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
+      /* Context length parsed ok */
+      task->total_size = size;
+    } else if (g_strrstr_len (line, 5, "Date:")) {
+      strncpy (task->date, line + 5, DATE_MAX_LENGTH - 1);
     }
   }
-
-header_line_end:
 
   task->first_header_line = (total_size > 1 && line[0] == 13 && line[1] == 10);
 
