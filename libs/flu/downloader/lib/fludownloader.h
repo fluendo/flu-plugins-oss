@@ -93,7 +93,7 @@ const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
 size_t fludownloader_task_get_length (FluDownloaderTask * task);
 
 /* Retrieve pointer to string containing "Date" field value from
- * HTTP header, if no such field in header - returns NULL. */
+ * HTTP header, if there is no such field in the header, returns NULL.. */
 const gchar *fludownloader_task_get_date (FluDownloaderTask * task);
 
 /* The polling_period (in uSeconds) sets the wait between curl checks.
