@@ -44,6 +44,7 @@ fludownloader_helper_done_cb (FluDownloaderTaskOutcome outcome,
   downloader->http_status_code = http_status_code;
   LOG ("Transfer finished with http status code=%d size=%d\n", http_status_code,
       downloader->size);
+  downloader->header = fludownloader_task_get_header (task);
   g_cond_signal (downloader->done_cond);
   g_mutex_unlock (downloader->done_mutex);
 }
@@ -82,6 +83,9 @@ fludownloader_helper_downloader_free (FluDownloaderHelper * downloader)
 
   g_mutex_free (downloader->done_mutex);
   g_cond_free (downloader->done_cond);
+
+  if (downloader->header)
+    g_free (downloader->header);
 
   g_free (downloader);
 
@@ -127,6 +131,45 @@ fludownloader_helper_simple_download_sync (gchar * url, guint8 ** data,
   ret =
       fludownloader_helper_downloader_download_sync (download_helper, url, data,
       size);
+  *http_status_code = download_helper->http_status_code;
+  fludownloader_helper_downloader_free (download_helper);
+  return ret;
+}
+
+gboolean
+fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downloader,
+    const gchar * url, gchar ** header)
+{
+  downloader->finished = FALSE;
+  if (!url)
+    return FALSE;
+  fludownloader_new_task (downloader->fludownloader, url, "HEAD", downloader, FALSE);
+
+  g_mutex_lock (downloader->done_mutex);
+  while (!downloader->finished)
+    g_cond_wait (downloader->done_cond, downloader->done_mutex);
+  if (downloader->header) {
+    *header = downloader->header;
+    downloader->header = NULL;
+  }
+  else
+    *header = NULL;
+
+  g_mutex_unlock (downloader->done_mutex);
+
+  return *header != NULL;
+}
+
+gboolean
+fludownloader_helper_simple_download_head_sync (gchar * url, gchar ** header,
+    gint * http_status_code)
+{
+  gboolean ret = FALSE;
+  if (!url)
+    return ret;
+  FluDownloaderHelper *download_helper = fludownloader_helper_downloader_new ();
+  ret =
+    fludownloader_helper_downloader_download_head_sync (download_helper, url, header);
   *http_status_code = download_helper->http_status_code;
   fludownloader_helper_downloader_free (download_helper);
   return ret;
