@@ -31,6 +31,8 @@ main (int argc, char *argv[])
   guint8 *buffer;
   gint size;
   gint http_status_code;
+  gchar *header = NULL;
+  FluDownloader *dl;
 
   g_print
       ("Lets start a new download from internal url=%s\nWaiting to complete...\n",
@@ -54,7 +56,7 @@ main (int argc, char *argv[])
 
   /* Test HTTP HEAD request */
   g_print ("Now lets send only HEAD request:\n");
-  FluDownloader *dl = fludownloader_new (data_cb, done_cb);
+  dl = fludownloader_new (data_cb, done_cb);
   if (!dl) {
     g_printf ("fludownloader_new failed\n");
     return -1;
@@ -65,6 +67,12 @@ main (int argc, char *argv[])
       "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s",
       "HEAD", (gpointer) 0, FALSE);
   fludownloader_unlock (dl);
+
+
+  fludownloader_helper_simple_download_head_sync ("http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", &header, &http_status_code);
+
+  g_print ("%s", header);
+  g_free (header);
 
   getchar ();
 
