@@ -141,7 +141,7 @@ fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downlo
     const gchar * url, gchar ** header)
 {
   downloader->finished = FALSE;
-  if (!url)
+  if (!url || !header)
     return FALSE;
   fludownloader_new_task (downloader->fludownloader, url, "HEAD", downloader, FALSE);
 
@@ -165,7 +165,7 @@ fludownloader_helper_simple_download_head_sync (gchar * url, gchar ** header,
     gint * http_status_code)
 {
   gboolean ret = FALSE;
-  if (!url)
+  if (!url || !header)
     return ret;
   FluDownloaderHelper *download_helper = fludownloader_helper_downloader_new ();
   ret =

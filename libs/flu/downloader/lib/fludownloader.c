@@ -57,8 +57,7 @@ struct _FluDownloaderTask
   gchar date[DATE_MAX_LENGTH];  /* Http header date field value */
 
   gboolean store_header;        /* Store response header or no */
-  GList *header_lines;          /* List with lines hrom response header */
-  gsize header_length;          /* Total length of header string */
+  GList *header_lines;          /* List with lines from response header */
 
   /* CURL stuff */
   CURL *handle;                 /* CURL easy handler */
@@ -596,19 +595,19 @@ fludownloader_task_get_header (FluDownloaderTask * task)
   gchar *ret = NULL;
   gsize pos = 0;
   GList *it;
+  gint header_length = 0;
 
   if (!task->header_lines)
     return NULL;
 
-  if (task->header_length == 0) {
-    it = task->header_lines;
-    while (it) {
-      task->header_length += strlen (it->data);
-      it = it->next;
-    }
+  it = task->header_lines;
+  while (it) {
+    header_length += strlen (it->data);
+    it = it->next;
   }
 
-  ret = g_malloc (task->header_length * sizeof (gchar) + 1);
+  ret = g_malloc (header_length * sizeof (gchar) + 1);
+  ret[header_length] = '\0';
 
   it = task->header_lines;
   while (it) {
