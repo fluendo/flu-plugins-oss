@@ -22,6 +22,7 @@ struct _FluDownloaderHelper
   gint http_status_code;
   guint8 *data;
   gint size;
+  gchar *header;
 };
 
 /* Initialize and retrieve a helper structure for a new download */
@@ -37,11 +38,23 @@ void fludownloader_helper_downloader_free (FluDownloaderHelper * downloader);
 gboolean fludownloader_helper_downloader_download_sync (FluDownloaderHelper *
     downloader, const gchar * url, guint8 ** data, gint * size);
 
-/*Launch a download with a given url and wait for its completion.
+/* Launch a download with a given url and wait for its completion.
  * Returns TRUE with data(remember to free it) and size on transfer success.
  * Returns FALSE and a status code on failure.*/
 gboolean fludownloader_helper_simple_download_sync (gchar * url, guint8 ** data,
     gint * size, gint * http_status_code);
+
+/* Initiate sending a HEAD request and wait for response.
+ * Returns TRUE and response header (call g_free after usage) on success.
+ * Returns FALSE and a status code on failure.*/
+gboolean fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper *
+    downloader, const gchar * url, gchar ** headers);
+
+/* Send a HEAD request to given url and wait for response.
+ * Returns TRUE and response header (call g_free after usage) on success.
+ * Returns FALSE and a status code on failure.*/
+gboolean fludownloader_helper_simple_download_head_sync (gchar * url,
+    gchar ** headers, gint * http_status_code);
 
 G_END_DECLS
 #endif /* __FLUDOWNLOADERHELPER_H */

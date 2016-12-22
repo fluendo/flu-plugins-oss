@@ -56,6 +56,9 @@ struct _FluDownloaderTask
   size_t downloaded_size;       /* Amount of bytes downloaded */
   gchar date[DATE_MAX_LENGTH];  /* Http header date field value */
 
+  gboolean store_header;        /* Store response header or no */
+  GList *header_lines;          /* List with lines from response header */
+
   /* CURL stuff */
   CURL *handle;                 /* CURL easy handler */
 
@@ -183,6 +186,9 @@ _header_function (const char *line, size_t size, size_t nmemb,
     }
   }
 
+  if (task->store_header)
+    task->header_lines = g_list_append (task->header_lines, g_strdup (line));
+
   task->first_header_line = (total_size > 1 && line[0] == 13 && line[1] == 10);
 
   g_mutex_unlock (task->context->mutex);
@@ -205,6 +211,10 @@ _remove_task (FluDownloader * context, FluDownloaderTask * task)
   }
   curl_easy_cleanup (task->handle);
   context->queued_tasks = g_list_remove (context->queued_tasks, task);
+
+  if (task->header_lines)
+    g_list_free_full (task->header_lines, g_free);
+
   g_free (task);
 }
 
@@ -477,8 +487,10 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
   /* Choose if we want to send HEAD or GET request */
-  if (range != NULL && strcmp (range, "HEAD") == 0)
+  if (range != NULL && strcmp (range, "HEAD") == 0) {
+    task->store_header = TRUE;
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 1L);
+  }
   else {
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 0L);
     curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
@@ -575,6 +587,37 @@ fludownloader_task_get_date (FluDownloaderTask * task)
     return task->date;
   else
     return NULL;
+}
+
+gchar *
+fludownloader_task_get_header (FluDownloaderTask * task)
+{
+  gchar *ret = NULL;
+  gsize pos = 0;
+  GList *it;
+  gint header_length = 0;
+
+  if (!task->header_lines)
+    return NULL;
+
+  it = task->header_lines;
+  while (it) {
+    header_length += strlen (it->data);
+    it = it->next;
+  }
+
+  ret = g_malloc (header_length * sizeof (gchar) + 1);
+  ret[header_length] = '\0';
+
+  it = task->header_lines;
+  while (it) {
+    gsize len = strlen (it->data);
+    strncpy (ret + pos, it->data, len);
+    pos += len;
+    it = it->next;
+  }
+
+  return ret;
 }
 
 void
