@@ -5,6 +5,8 @@
 
 #include "fludownloader.h"
 
+#include "glib-compat.h"
+
 #include "curl/curl.h"
 #include <string.h>
 
