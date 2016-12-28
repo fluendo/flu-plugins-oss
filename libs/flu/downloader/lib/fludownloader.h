@@ -111,4 +111,8 @@ gint fludownloader_get_polling_period (FluDownloader * context);
  * Useful for debugging and messages .*/
 const gchar *fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome);
 
+/* Proxy for curl_getdate.
+ * Convert a date string to number of seconds since the Epoch */
+time_t fludownloader_getdate (char * datestring);
+
 #endif /* _FLUDOWNLOADER_H */

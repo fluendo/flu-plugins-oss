@@ -664,3 +664,9 @@ fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome)
       return "<Unknown>";
   }
 }
+
+time_t
+fludownloader_getdate (char * datestring)
+{
+  return curl_getdate (datestring, NULL);
+}
