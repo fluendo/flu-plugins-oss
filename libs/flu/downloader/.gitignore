@@ -29,3 +29,4 @@ lib/liblfu*la
 .settings/
 .version
 ar-lib
+test-driver
