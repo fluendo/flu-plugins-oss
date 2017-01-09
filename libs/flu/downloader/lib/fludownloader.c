@@ -67,6 +67,9 @@ struct _FluDownloaderTask
   /* Header parsing */
   gboolean first_header_line;   /* Next header line will be a status line */
   gboolean response_ok;         /* This is an OK header */
+  FluDownloaderTaskOutcome outcome;
+  FluDownloaderTaskSSLStatus ssl_status;
+
 };
 
 static void
@@ -83,6 +86,8 @@ _report_task_done (FluDownloaderTask * task, CURLcode result)
         outcome = FLUDOWNLOADER_TASK_OK;
         break;
       case CURLE_COULDNT_RESOLVE_HOST:
+        outcome = FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST;
+        break;
       case CURLE_COULDNT_CONNECT:
         outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
         break;
@@ -98,11 +103,55 @@ _report_task_done (FluDownloaderTask * task, CURLcode result)
       case CURLE_FILE_COULDNT_READ_FILE:
         outcome = FLUDOWNLOADER_TASK_FILE_NOT_FOUND;
         break;
+      case CURLE_SSL_CONNECT_ERROR:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CONNECT_ERROR;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_ENGINE_NOTFOUND:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_NOT_FOUND;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_ENGINE_SETFAILED:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_SET_FAILED;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CERTPROBLEM:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CERTPROBLEM;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CACERT:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CACERT;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_ENGINE_INITFAILED:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_INIT_FAILED;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CACERT_BADFILE:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CACERT_BADFILE;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_SHUTDOWN_FAILED:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_SHUTDOWN_FAILED;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CRL_BADFILE:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CRL_BADFILE;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_PINNEDPUBKEYNOTMATCH:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_PINNEDPUBKEYNOTMATCH;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_INVALIDCERTSTATUS:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_INVALIDCERTSTATUS;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
       default:
         outcome = FLUDOWNLOADER_TASK_ERROR;
         break;
     }
-
+    task->outcome = outcome;
     /* Retrieve HTTP result code, and inform user */
     if (!task->is_file && outcome == FLUDOWNLOADER_TASK_OK) {
       curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
@@ -492,15 +541,14 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   if (range != NULL && strcmp (range, "HEAD") == 0) {
     task->store_header = TRUE;
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 1L);
-  }
-  else {
+  } else {
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 0L);
     curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
   }
   /* wait for pipelining/multiplexing Added in 7.43.0 */
   curl_easy_setopt (task->handle, CURLOPT_PIPEWAIT, 1);
   /* enable all supported built-in compressions */
-  curl_easy_setopt(task->handle, CURLOPT_ACCEPT_ENCODING, "");
+  curl_easy_setopt (task->handle, CURLOPT_ACCEPT_ENCODING, "");
 
   if (locked)
     g_mutex_lock (context->mutex);
@@ -642,10 +690,21 @@ fludownloader_get_polling_period (FluDownloader * context)
   return ret;
 }
 
+FluDownloaderTaskOutcome
+fludownloader_task_get_outcome (FluDownloaderTask * task)
+{
+  if (task)
+    return task->outcome;
+  else
+    return FLUDOWNLOADER_TASK_NO_TASK;
+}
+
 const gchar *
 fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome)
 {
   switch (outcome) {
+    case FLUDOWNLOADER_TASK_NO_TASK:
+      return "Task is null";
     case FLUDOWNLOADER_TASK_OK:
       return "OK";
     case FLUDOWNLOADER_TASK_ERROR:
@@ -662,13 +721,66 @@ fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome)
       return "Operation timed out";
     case FLUDOWNLOADER_TASK_FILE_NOT_FOUND:
       return "File not found";
+    case FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST:
+      return "Could not resolve host";
+    case FLUDOWNLOADER_TASK_SSL_ERROR:
+      return "SSL error";
+    default:
+      return "<Unknown>";
+  }
+}
+
+FluDownloaderTaskSSLStatus
+fludownloader_task_get_ssl_status (FluDownloaderTask * task)
+{
+  if (task)
+    return task->ssl_status;
+  else
+    return FLUDOWNLOADER_TASK_SSL_NO_TASK;
+}
+
+const gchar *
+fludownloader_get_ssl_status_string (FluDownloaderTaskSSLStatus status)
+{
+  switch (status) {
+    case FLUDOWNLOADER_TASK_SSL_NO_TASK:
+      return "Task is null";
+    case FLUDOWNLOADER_TASK_SSL_OK:
+      return NULL;
+    case FLUDOWNLOADER_TASK_SSL_CONNECT_ERROR:
+      return "Connect error";
+    case FLUDOWNLOADER_TASK_SSL_ENGINE_NOT_FOUND:
+      return "Engine not found";
+    case FLUDOWNLOADER_TASK_SSL_ENGINE_SET_FAILED:
+      return "Can not set SSL crypto engine as default";
+    case FLUDOWNLOADER_TASK_SSL_CERTPROBLEM:
+      return "Certificate problem";
+    case FLUDOWNLOADER_TASK_SSL_CIPHER:
+      return "Problem with the local SSL certificate";
+    case FLUDOWNLOADER_TASK_SSL_CACERT:
+      return
+          "Peer certificate cannot be authenticated with given CA certificates";
+    case FLUDOWNLOADER_TASK_SSL_ENGINE_INIT_FAILED:
+      return "Failed to initialise SSL crypto engine";
+    case FLUDOWNLOADER_TASK_SSL_CACERT_BADFILE:
+      return "Problem with the SSL CA cert (path? access rights?)";
+    case FLUDOWNLOADER_TASK_SSL_SHUTDOWN_FAILED:
+      return "Failed to shut down the SSL connection";
+    case FLUDOWNLOADER_TASK_SSL_CRL_BADFILE:
+      return "Failed to load CRL file (path? access rights?, format?)";
+    case FLUDOWNLOADER_TASK_SSL_ISSUER_ERROR:
+      return "Issuer check against peer certificate failed";
+    case FLUDOWNLOADER_TASK_SSL_PINNEDPUBKEYNOTMATCH:
+      return "SSL public key does not match pinned public key";
+    case FLUDOWNLOADER_TASK_SSL_INVALIDCERTSTATUS:
+      return "SSL server certificate status verification FAILED";
     default:
       return "<Unknown>";
   }
 }
 
 time_t
-fludownloader_getdate (char * datestring)
+fludownloader_getdate (char *datestring)
 {
   return curl_getdate (datestring, NULL);
 }

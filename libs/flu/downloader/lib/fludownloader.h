@@ -33,7 +33,47 @@ typedef enum _FluDownloaderTaskOutcome
   FLUDOWNLOADER_TASK_TIMEOUT,
   /* A local file could not be read */
   FLUDOWNLOADER_TASK_FILE_NOT_FOUND,
+  /* Unable to resolve host */
+  FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST,
+  /* SSL related errors */
+  FLUDOWNLOADER_TASK_SSL_ERROR,
+  /* LAST: No Task */
+  FLUDOWNLOADER_TASK_NO_TASK,
 } FluDownloaderTaskOutcome;
+
+typedef enum _FluDownloaderTaskSSLStatus
+{
+  /* NO SSL error */
+  FLUDOWNLOADER_TASK_SSL_OK = 0,
+  /* wrong when connecting with SSL */
+  FLUDOWNLOADER_TASK_SSL_CONNECT_ERROR,
+  /* SSL crypto engine not found */
+  FLUDOWNLOADER_TASK_SSL_ENGINE_NOT_FOUND,
+  /* can not set SSL crypto engine as default */
+  FLUDOWNLOADER_TASK_SSL_ENGINE_SET_FAILED,
+  /* problem with the local certificate */
+  FLUDOWNLOADER_TASK_SSL_CERTPROBLEM,
+  /* problem with the local certificate */
+  FLUDOWNLOADER_TASK_SSL_CIPHER,
+  /* problem with the CA cert (path?) */
+  FLUDOWNLOADER_TASK_SSL_CACERT,
+  /* failed to initialise ENGINE */
+  FLUDOWNLOADER_TASK_SSL_ENGINE_INIT_FAILED,
+  /* ould not load CACERT file, missing or wrong format */
+  FLUDOWNLOADER_TASK_SSL_CACERT_BADFILE,
+  /* Failed to shut down the SSL connection */
+  FLUDOWNLOADER_TASK_SSL_SHUTDOWN_FAILED,
+  /*  could not load CRL file, missing or wrong format (Added in 7.19.0) */
+  FLUDOWNLOADER_TASK_SSL_CRL_BADFILE,
+  /* Issuer check failed. */
+  FLUDOWNLOADER_TASK_SSL_ISSUER_ERROR,
+  /* specified pinned public key did not match */
+  FLUDOWNLOADER_TASK_SSL_PINNEDPUBKEYNOTMATCH,
+  /* invalid certificate status. */
+  FLUDOWNLOADER_TASK_SSL_INVALIDCERTSTATUS,
+  /* LAST: No Task */
+  FLUDOWNLOADER_TASK_SSL_NO_TASK,
+} FluDownloaderTaskSSLStatus;
 
 /* Data callback. Return FALSE to cancel this download immediately. */
 typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
@@ -107,9 +147,18 @@ gchar *fludownloader_task_get_header (FluDownloaderTask * task);
 void fludownloader_set_polling_period (FluDownloader * context, gint period);
 gint fludownloader_get_polling_period (FluDownloader * context);
 
+/* Get task outcome.*/
+FluDownloaderTaskOutcome fludownloader_task_get_outcome (FluDownloaderTask* task);
+
 /* Get a text string describing a task outcome.
  * Useful for debugging and messages .*/
 const gchar *fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome);
+
+/* Get ssl status for the given task */
+FluDownloaderTaskSSLStatus fludownloader_task_get_ssl_status(FluDownloaderTask* task);
+
+/* Get a text string describing the ssl error encountered */
+const gchar *fludownloader_get_ssl_status_string (FluDownloaderTaskSSLStatus status);
 
 /* Proxy for curl_getdate.
  * Convert a date string to number of seconds since the Epoch */
