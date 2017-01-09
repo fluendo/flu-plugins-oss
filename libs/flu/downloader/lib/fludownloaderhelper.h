@@ -23,6 +23,7 @@ struct _FluDownloaderHelper
   guint8 *data;
   gint size;
   gchar *header;
+  gboolean success;
 };
 
 /* Initialize and retrieve a helper structure for a new download */
