@@ -40,10 +40,11 @@ fludownloader_helper_done_cb (FluDownloaderTaskOutcome outcome,
     g_free (downloader->data);
     downloader->size = 0;
   }
+  downloader->success = (outcome == FLUDOWNLOADER_TASK_OK);
   downloader->finished = TRUE;
   downloader->http_status_code = http_status_code;
-  LOG ("Transfer finished with http status code=%d size=%d\n", http_status_code,
-      downloader->size);
+  LOG ("Transfer finished with http status code=%d size=%d outcome error=%s\n", http_status_code,
+      downloader->size, fludownloader_get_outcome_string(outcome));
   downloader->header = fludownloader_task_get_header (task);
   g_cond_signal (downloader->done_cond);
   g_mutex_unlock (downloader->done_mutex);
@@ -117,7 +118,7 @@ fludownloader_helper_downloader_download_sync (FluDownloaderHelper * downloader,
 
   g_mutex_unlock (downloader->done_mutex);
 
-  return downloader->size != 0;
+  return downloader->success;
 }
 
 gboolean
@@ -157,7 +158,7 @@ fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downlo
 
   g_mutex_unlock (downloader->done_mutex);
 
-  return *header != NULL;
+  return downloader->success;
 }
 
 gboolean
