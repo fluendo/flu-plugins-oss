@@ -18,7 +18,8 @@ data_cb (void *buffer, size_t size, gpointer user_data,
 
 void
 done_cb (FluDownloaderTaskOutcome outcome, int http_status_code,
-    size_t downloaded_size, gpointer user_data, FluDownloaderTask * task)
+    size_t downloaded_size, gpointer user_data, FluDownloaderTask * task,
+    gboolean * cancel_remaining_downloads)
 {
   g_printf ("Transfer #%p done (%s). HTTP Code = %d. %"
       G_GSIZE_FORMAT " downloaded bytes (%s).\n",
