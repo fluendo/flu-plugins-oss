@@ -329,7 +329,7 @@ _schedule_tasks (FluDownloader * context)
     next_task = first_task;
   } else {
     GList *next_task_link = context->queued_tasks->next;
-    /* Cheeck if there exists a next enqueued task */
+    /* Check if there exists a next enqueued task */
     if (next_task_link) {
       next_task = (FluDownloaderTask *) next_task_link->data;
       /* Check if it is already running */
@@ -356,7 +356,7 @@ _schedule_tasks (FluDownloader * context)
 /* Main function of the downloading thread. Just wait from events from libCurl
  * and keep calling its "perform" method until signalled to exit through the
  * "shutdown" var. Releases the lock when sleeping so other threads can
- * interact with the FluDownloder structure. */
+ * interact with the FluDownloader structure. */
 static gpointer
 _thread_function (FluDownloader * context)
 {
@@ -545,9 +545,9 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 0L);
     curl_easy_setopt (task->handle, CURLOPT_RANGE, range);
   }
-  /* wait for pipelining/multiplexing Added in 7.43.0 */
+  /* Wait for pipelining/multiplexing Added in 7.43.0 */
   curl_easy_setopt (task->handle, CURLOPT_PIPEWAIT, 1);
-  /* enable all supported built-in compressions */
+  /* Enable all supported built-in compressions */
   curl_easy_setopt (task->handle, CURLOPT_ACCEPT_ENCODING, "");
 
   if (locked)
