@@ -72,6 +72,65 @@ struct _FluDownloaderTask
 
 };
 
+/* Removes a task. Transfer will NOT be interrupted if it had already started.
+ * Call with the lock taken. */
+static void
+_remove_task (FluDownloader * context, FluDownloaderTask * task)
+{
+  if (task->running) {
+    /* If the task has already been submitted to libCurl, remove it.
+     * If libCurl has already issued the GET, it will close the connection
+     * and restart from 0 all running tasks that had not been aborted.
+     * We should only reach this point when shutting down or when
+     * removing a completed task. */
+    curl_multi_remove_handle (context->handle, task->handle);
+  }
+  curl_easy_cleanup (task->handle);
+  context->queued_tasks = g_list_remove (context->queued_tasks, task);
+
+  if (task->header_lines)
+    g_list_free_full (task->header_lines, g_free);
+
+  g_free (task);
+}
+
+/* Aborts a task. If the GET had already been issued, connection will be reset
+ * once data for this task starts arriving (so previous downloads are allowed
+ * to finish). Call with the lock taken. */
+static void
+_abort_task (FluDownloader * context, FluDownloaderTask * task)
+{
+  if (task->running) {
+    /* This is running, we need to halt if from the write callback */
+    task->abort = TRUE;
+  } else {
+    /* This is an scheduled task, libCurl knows nothing about it yet */
+    _remove_task (context, task);
+  }
+}
+
+/*Abort all the tasks. Call with the lock taken.*/
+static void
+_abort_all_tasks_unlocked (FluDownloader * context, gboolean including_current)
+{
+  GList *link;
+
+  if (context == NULL)
+    return;
+
+  link = context->queued_tasks;
+
+  while (link) {
+    GList *next = link->next;
+    FluDownloaderTask *task = link->data;
+
+    if (link->prev || including_current) {
+      _abort_task (context, task);
+    }
+    link = next;
+  }
+}
+
 static void
 _report_task_done (FluDownloaderTask * task, CURLcode result)
 {
@@ -162,8 +221,13 @@ _report_task_done (FluDownloaderTask * task, CURLcode result)
     }
 
     if (task->context->done_cb) {
+      gboolean cancel_remaining_downloads = FALSE;
+
       task->context->done_cb (outcome, http_status_code,
-          task->downloaded_size, task->user_data, task);
+          task->downloaded_size, task->user_data, task,
+          &cancel_remaining_downloads);
+      if (cancel_remaining_downloads)
+        _abort_all_tasks_unlocked (task->context, TRUE);
     }
   }
 }
@@ -245,43 +309,6 @@ _header_function (const char *line, size_t size, size_t nmemb,
   g_mutex_unlock (task->context->mutex);
 
   return total_size;
-}
-
-/* Removes a task. Transfer will NOT be interrupted if it had already started.
- * Call with the lock taken. */
-static void
-_remove_task (FluDownloader * context, FluDownloaderTask * task)
-{
-  if (task->running) {
-    /* If the task has already been submitted to libCurl, remove it.
-     * If libCurl has already issued the GET, it will close the connection
-     * and restart from 0 all running tasks that had not been aborted.
-     * We should only reach this point when shutting down or when
-     * removing a completed task. */
-    curl_multi_remove_handle (context->handle, task->handle);
-  }
-  curl_easy_cleanup (task->handle);
-  context->queued_tasks = g_list_remove (context->queued_tasks, task);
-
-  if (task->header_lines)
-    g_list_free_full (task->header_lines, g_free);
-
-  g_free (task);
-}
-
-/* Aborts a task. If the GET had already been issued, connection will be reset
- * once data for this task starts arriving (so previous downloads are allowed
- * to finish). Call with the lock taken. */
-static void
-_abort_task (FluDownloader * context, FluDownloaderTask * task)
-{
-  if (task->running) {
-    /* This is running, we need to halt if from the write callback */
-    task->abort = TRUE;
-  } else {
-    /* This is an scheduled task, libCurl knows nothing about it yet */
-    _remove_task (context, task);
-  }
 }
 
 /* Read messages from CURL (Only the DONE message exists as of libCurl 7.29)
@@ -581,23 +608,9 @@ void
 fludownloader_abort_all_tasks (FluDownloader * context,
     gboolean including_current)
 {
-  GList *link;
-
-  if (context == NULL)
-    return;
-
   g_mutex_lock (context->mutex);
-  link = context->queued_tasks;
 
-  while (link) {
-    GList *next = link->next;
-    FluDownloaderTask *task = link->data;
-
-    if (link->prev || including_current) {
-      _abort_task (context, task);
-    }
-    link = next;
-  }
+  _abort_all_tasks_unlocked (context, including_current);
 
   g_mutex_unlock (context->mutex);
 }

@@ -82,7 +82,7 @@ typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
 /* Done callback. Called when a download finishes. */
 typedef void (*FluDownloaderDoneCallback) (FluDownloaderTaskOutcome outcome,
     int http_status_code, size_t downloaded_size,
-    gpointer user_data, FluDownloaderTask *task);
+    gpointer user_data, FluDownloaderTask *task, gboolean* cancel_remaining_downloads);
 
 /* Initialize the library */
 void fludownloader_init ();

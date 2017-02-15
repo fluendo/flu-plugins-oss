@@ -15,7 +15,8 @@ data_cb (void *buffer, size_t size, gpointer user_data,
 
 void
 done_cb (FluDownloaderTaskOutcome outcome, int http_status_code,
-    size_t downloaded_size, gpointer user_data, FluDownloaderTask * task)
+    size_t downloaded_size, gpointer user_data, FluDownloaderTask * task,
+    gboolean * cancel_remaining_downloads)
 {
   g_printf ("Header date: %s", fludownloader_task_get_date (task));
   g_printf ("Total file size = %" G_GSIZE_FORMAT "\n",
