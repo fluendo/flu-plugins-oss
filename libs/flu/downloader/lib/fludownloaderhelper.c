@@ -33,7 +33,7 @@ fludownloader_helper_data_cb (void *buffer, size_t size,
 static void
 fludownloader_helper_done_cb (FluDownloaderTaskOutcome outcome,
     int http_status_code, size_t downloaded_size,
-    FluDownloaderHelper * downloader, FluDownloaderTask * task)
+    FluDownloaderHelper * downloader, FluDownloaderTask * task, gboolean * cancel_remaining_downloads)
 {
   g_mutex_lock (downloader->done_mutex);
   if (outcome != FLUDOWNLOADER_TASK_OK) {
