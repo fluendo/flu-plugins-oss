@@ -86,7 +86,7 @@ fludownloader_helper_downloader_free (FluDownloaderHelper * downloader)
   g_cond_free (downloader->done_cond);
 
   if (downloader->header)
-    g_free (downloader->header);
+    g_strfreev (downloader->header);
 
   g_free (downloader);
 
@@ -139,7 +139,7 @@ fludownloader_helper_simple_download_sync (gchar * url, guint8 ** data,
 
 gboolean
 fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downloader,
-    const gchar * url, gchar ** header)
+    const gchar * url, gchar *** header)
 {
   downloader->finished = FALSE;
   if (!url || !header)
@@ -162,7 +162,7 @@ fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downlo
 }
 
 gboolean
-fludownloader_helper_simple_download_head_sync (gchar * url, gchar ** header,
+fludownloader_helper_simple_download_head_sync (gchar * url, gchar *** header,
     gint * http_status_code)
 {
   gboolean ret = FALSE;

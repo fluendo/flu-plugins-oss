@@ -652,32 +652,25 @@ fludownloader_task_get_date (FluDownloaderTask * task)
     return NULL;
 }
 
-gchar *
+gchar **
 fludownloader_task_get_header (FluDownloaderTask * task)
 {
-  gchar *ret = NULL;
-  gsize pos = 0;
+  gchar **ret = NULL;
+  int i;
   GList *it;
-  gint header_length = 0;
 
   if (!task->header_lines)
     return NULL;
 
-  it = task->header_lines;
-  while (it) {
-    header_length += strlen (it->data);
-    it = it->next;
-  }
-
-  ret = g_malloc (header_length * sizeof (gchar) + 1);
-  ret[header_length] = '\0';
+  ret = g_new0 (gchar *, g_list_length (task->header_lines) + 1);
 
   it = task->header_lines;
+  i = 0;
   while (it) {
-    gsize len = strlen (it->data);
-    strncpy (ret + pos, it->data, len);
-    pos += len;
+    ret[i] = g_strdup ((gchar *) it->data);
+
     it = it->next;
+    i++;
   }
 
   return ret;

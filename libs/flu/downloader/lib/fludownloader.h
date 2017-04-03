@@ -138,7 +138,7 @@ const gchar *fludownloader_task_get_date (FluDownloaderTask * task);
 
 /* Retrieve pointer to newly allocated string containing response header.
  * Call g_free after usage */
-gchar *fludownloader_task_get_header (FluDownloaderTask * task);
+gchar **fludownloader_task_get_header (FluDownloaderTask * task);
 
 /* The polling_period (in uSeconds) sets the wait between curl checks.
  * It is useful to reduce CPU consumption (by reducing throughput too).
