@@ -41,6 +41,8 @@ struct _FluDownloader
   /* CPU control stuff */
   gboolean use_polling;         /* Do not use select() */
   gint polling_period;          /* uSeconds to wait between curl checks */
+
+  gchar **cookies;              /* NULL-terminated array of strings with cookies */
 };
 
 /* Takes care of one task (file) */
@@ -512,9 +514,24 @@ fludownloader_destroy (FluDownloader * context)
 
   g_mutex_free (context->mutex);
 
+  if (context->cookies)
+    g_strfreev (context->cookies);
+
   /* FIXME: This will crash libcurl if no easy handles have ever been added */
   curl_multi_cleanup (context->handle);
   g_free (context);
+}
+
+static void
+fludownloader_task_set_cookies (FluDownloaderTask * task, gchar ** cookies)
+{
+  if (cookies) {
+    gchar **it = cookies;
+    while (*it) {
+      curl_easy_setopt (task->handle, CURLOPT_COOKIE, *it);
+      it++;
+    }
+  }
 }
 
 FluDownloaderTask *
@@ -576,6 +593,9 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   curl_easy_setopt (task->handle, CURLOPT_PIPEWAIT, 1);
   /* Enable all supported built-in compressions */
   curl_easy_setopt (task->handle, CURLOPT_ACCEPT_ENCODING, "");
+
+  /* Set context cookies */
+  fludownloader_task_set_cookies (task, context->cookies);
 
   if (locked)
     g_mutex_lock (context->mutex);
@@ -652,32 +672,25 @@ fludownloader_task_get_date (FluDownloaderTask * task)
     return NULL;
 }
 
-gchar *
+gchar **
 fludownloader_task_get_header (FluDownloaderTask * task)
 {
-  gchar *ret = NULL;
-  gsize pos = 0;
+  gchar **ret = NULL;
+  int i;
   GList *it;
-  gint header_length = 0;
 
   if (!task->header_lines)
     return NULL;
 
-  it = task->header_lines;
-  while (it) {
-    header_length += strlen (it->data);
-    it = it->next;
-  }
-
-  ret = g_malloc (header_length * sizeof (gchar) + 1);
-  ret[header_length] = '\0';
+  ret = g_new0 (gchar *, g_list_length (task->header_lines) + 1);
 
   it = task->header_lines;
+  i = 0;
   while (it) {
-    gsize len = strlen (it->data);
-    strncpy (ret + pos, it->data, len);
-    pos += len;
+    ret[i] = g_strdup ((gchar *) it->data);
+
     it = it->next;
+    i++;
   }
 
   return ret;
@@ -796,4 +809,13 @@ time_t
 fludownloader_getdate (char *datestring)
 {
   return curl_getdate (datestring, NULL);
+}
+
+void
+fludownloader_set_cookies (FluDownloader * context, gchar ** cookies)
+{
+  if (context->cookies)
+    g_strfreev (context->cookies);
+
+  context->cookies = g_strdupv (cookies);
 }

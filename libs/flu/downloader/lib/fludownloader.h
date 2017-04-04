@@ -138,7 +138,7 @@ const gchar *fludownloader_task_get_date (FluDownloaderTask * task);
 
 /* Retrieve pointer to newly allocated string containing response header.
  * Call g_free after usage */
-gchar *fludownloader_task_get_header (FluDownloaderTask * task);
+gchar **fludownloader_task_get_header (FluDownloaderTask * task);
 
 /* The polling_period (in uSeconds) sets the wait between curl checks.
  * It is useful to reduce CPU consumption (by reducing throughput too).
@@ -163,5 +163,10 @@ const gchar *fludownloader_get_ssl_status_string (FluDownloaderTaskSSLStatus sta
 /* Proxy for curl_getdate.
  * Convert a date string to number of seconds since the Epoch */
 time_t fludownloader_getdate (char * datestring);
+
+/* Set downloader cookies. Pass 'cookies' as NULL-terminated array of strings
+ * I.e. cookies can be retrieved from 'Set-cookie' header field of previos response
+ * Only tasks added after setting new cookies will use them. */
+void fludownloader_set_cookies (FluDownloader * context, gchar ** cookies);
 
 #endif /* _FLUDOWNLOADER_H */

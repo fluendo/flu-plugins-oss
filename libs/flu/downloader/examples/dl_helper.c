@@ -32,7 +32,8 @@ main (int argc, char *argv[])
   guint8 *buffer;
   gint size;
   gint http_status_code;
-  gchar *header = NULL;
+  gchar **header = NULL;
+  gchar **it = NULL;
   FluDownloader *dl;
 
   g_print
@@ -72,8 +73,14 @@ main (int argc, char *argv[])
 
   fludownloader_helper_simple_download_head_sync ("http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", &header, &http_status_code);
 
-  g_print ("%s", header);
-  g_free (header);
+  it = header;
+  if (it) {
+    while (*it) {
+      g_print ("%s", *it);
+      it++;
+    }
+  }
+  g_strfreev(header);
 
   getchar ();
 
