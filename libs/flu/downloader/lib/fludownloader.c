@@ -43,6 +43,8 @@ struct _FluDownloader
   gint polling_period;          /* uSeconds to wait between curl checks */
 
   gchar **cookies;              /* NULL-terminated array of strings with cookies */
+  gchar *user_agent;            /* String containing the user-agent used optionally by cURL */
+  gchar *proxy;                 /* String containing the proxy server used optionally by cURL */
 };
 
 /* Takes care of one task (file) */
@@ -517,6 +519,12 @@ fludownloader_destroy (FluDownloader * context)
   if (context->cookies)
     g_strfreev (context->cookies);
 
+  if (context->user_agent)
+    g_free (context->user_agent);
+
+  if (context->proxy)
+    g_free (context->proxy);
+
   /* FIXME: This will crash libcurl if no easy handles have ever been added */
   curl_multi_cleanup (context->handle);
   g_free (context);
@@ -596,6 +604,14 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
 
   /* Set context cookies */
   fludownloader_task_set_cookies (task, context->cookies);
+
+  /* Set context user-agent */
+  if (context->user_agent)
+    curl_easy_setopt (task->handle, CURLOPT_USERAGENT, context->user_agent);
+
+  /* Set context proxy */
+  if (context->proxy)
+    curl_easy_setopt (task->handle, CURLOPT_PROXY, context->proxy);
 
   if (locked)
     g_mutex_lock (context->mutex);
@@ -818,4 +834,22 @@ fludownloader_set_cookies (FluDownloader * context, gchar ** cookies)
     g_strfreev (context->cookies);
 
   context->cookies = g_strdupv (cookies);
+}
+
+void
+fludownloader_set_user_agent (FluDownloader * context, const gchar * user_agent)
+{
+  if (context->user_agent)
+    g_free (context->user_agent);
+
+  context->user_agent = g_strdup (user_agent);
+}
+
+void
+fludownloader_set_proxy (FluDownloader * context, const gchar * proxy)
+{
+  if (context->proxy)
+    g_free (context->proxy);
+
+  context->proxy = g_strdup (proxy);
 }
