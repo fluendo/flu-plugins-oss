@@ -40,7 +40,7 @@ AM_CONDITIONAL(HAVE_WINDOWS, [test "x$os_type" = "xwindows"])
 AC_SUBST(WIN32_LDFLAGS)
 
 dnl Dependencies check 
-REQUIREMENTS_PC="glib-2.0 gthread-2.0"
+REQUIREMENTS_PC="glib-2.0 gthread-2.0 gobject-2.0"
 # Checks to build curl sttically or depend on the system version
 AC_ARG_WITH(system-curl,
             [AS_HELP_STRING([--with-system-curl=ARG], [use system cURL libraries])],

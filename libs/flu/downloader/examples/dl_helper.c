@@ -39,7 +39,7 @@ main (int argc, char *argv[])
   g_print
       ("Lets start a new download from internal url=%s\nWaiting to complete...\n",
       internal_url);
-  fludownloader_helper_simple_download_sync (internal_url, &buffer, &size,
+  fludownloader_helper_simple_download_sync (internal_url, NULL, &buffer, &size,
       &http_status_code);
   g_free (buffer);
   g_print ("The first attempt has finished with status %d and size %d\n",
@@ -48,7 +48,7 @@ main (int argc, char *argv[])
     url = g_strdup (argv[1]);
     g_print ("Lets start a new download with url=%s\nWaiting to complete...\n",
         url);
-    fludownloader_helper_simple_download_sync (url, &buffer, &size,
+    fludownloader_helper_simple_download_sync (url, NULL, &buffer, &size,
         &http_status_code);
     g_print ("The second attempt has finished with status %d and size %d\n",
         http_status_code, size);
@@ -71,7 +71,7 @@ main (int argc, char *argv[])
   fludownloader_unlock (dl);
 
 
-  fludownloader_helper_simple_download_head_sync ("http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", &header, &http_status_code);
+  fludownloader_helper_simple_download_head_sync ("http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", NULL, &header, &http_status_code);
 
   it = header;
   if (it) {
