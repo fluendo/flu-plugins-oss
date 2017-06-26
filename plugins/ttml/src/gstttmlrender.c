@@ -1716,5 +1716,5 @@ gst_ttmlrender_init (GstTTMLRender * render)
   render->default_font_size = NULL;
   render->cached_images = NULL;
 
-  render->downloader = fludownloader_helper_downloader_new ();
+  render->downloader = fludownloader_helper_downloader_new (NULL);
 }
