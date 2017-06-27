@@ -169,4 +169,10 @@ time_t fludownloader_getdate (char * datestring);
  * Only tasks added after setting new cookies will use them. */
 void fludownloader_set_cookies (FluDownloader * context, gchar ** cookies);
 
+/* Set downloader user-agent */
+void fludownloader_set_user_agent (FluDownloader * context, const gchar* user_agent);
+
+/* Set downloader proxy */
+void fludownloader_set_proxy (FluDownloader * context, const gchar* proxy);
+
 #endif /* _FLUDOWNLOADER_H */
