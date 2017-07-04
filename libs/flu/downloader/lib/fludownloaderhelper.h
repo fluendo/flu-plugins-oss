@@ -29,7 +29,7 @@ struct _FluDownloaderHelper
 /* Create an hashtable and add parameters as follows: name, type and value. End list with NULL.
  * ie. fludownloader_helper_downloader_parameters_new("user-agent", G_TYPE_STRING, value, NULL);
  * Supported parameters are:
- * - cookies: G_TYPE_BOXED GValue must contain a NULL-terminated array of strings.
+ * - cookies: G_TYPE_STRV GValue must contain a NULL-terminated array of strings.
  * - user-agent: G_TYPE_STRING
  * - proxy: G_TYPE_STRING
  * The hash table returned can be destroyed with g_hash_table_destroy
@@ -39,7 +39,7 @@ GHashTable *fludownloader_helper_downloader_parameters_new (const gchar * firstf
 /* Add parameters to an existing hash table.
 * ie. fludownloader_helper_downloader_parameters_add(table, "user-agent", G_TYPE_STRING, value, NULL);
 * Supported parameters are:
-* - cookies: G_TYPE_BOXED containing a NULL-terminated array of strings.
+* - cookies: G_TYPE_STRV containing a NULL-terminated array of strings.
 * - user-agent: G_TYPE_STRING
 * - proxy: G_TYPE_STRING
 * */

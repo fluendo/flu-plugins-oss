@@ -114,10 +114,10 @@ fludownloader_helper_downloader_set_parameters (FluDownloaderHelper * downloader
     GValue* value = NULL;
     value = g_hash_table_lookup (parameters, "cookies");
     if (value) {
-      if (G_VALUE_HOLDS (value, G_TYPE_BOXED))
+      if (G_VALUE_HOLDS (value, G_TYPE_STRV))
         fludownloader_set_cookies (downloader->fludownloader, g_value_get_boxed (value));
       else
-        g_warning ("Invalid type: 'cookies' should be G_TYPE_BOXED");
+        g_warning ("Invalid type: 'cookies' should be G_TYPE_STRV");
     }
     value = g_hash_table_lookup(parameters,"user-agent");
     if (value) {
