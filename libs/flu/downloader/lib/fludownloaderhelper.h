@@ -56,7 +56,9 @@ void fludownloader_helper_downloader_free (FluDownloaderHelper * downloader);
 
 /* Initiate a download and wait for its completion.
  * Returns TRUE with data(remember to free it) and size on transfer success.
- * Returns FALSE with status code in FluDownloaderHelper structure.*/
+ * Returns FALSE with status code in FluDownloaderHelper structure.
+ * data or size can be NULL.
+ * */
 gboolean fludownloader_helper_downloader_download_sync (FluDownloaderHelper *
     downloader, const gchar * url, guint8 ** data, gint * size);
 
@@ -64,6 +66,7 @@ gboolean fludownloader_helper_downloader_download_sync (FluDownloaderHelper *
  * Returns TRUE with data(remember to free it) and size on transfer success.
  * Returns FALSE and a status code on failure.
  * Parameters can be NULL.
+ * data, size or http_status_code can be NULL.
  * */
 gboolean fludownloader_helper_simple_download_sync (gchar * url, GHashTable* parameters, guint8 ** data,
     gint * size, gint * http_status_code);
@@ -71,7 +74,9 @@ gboolean fludownloader_helper_simple_download_sync (gchar * url, GHashTable* par
 /* Initiate sending a HEAD request and wait for response.
  * Returns TRUE and response header (a NULL-terminated array of strings,
  * call g_strfreev after usage) on success.
- * Returns FALSE and a status code on failure.*/
+ * Returns FALSE and a status code on failure.
+ * headers can be NULL.
+ * */
 gboolean fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper *
     downloader, const gchar * url, gchar *** headers);
 
@@ -79,7 +84,9 @@ gboolean fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper
  * Returns TRUE and response header (a NULL-terminated array of strings,
  * call g_strfreev after usage) on success.
  * Parameters can be NULL.
- * Returns FALSE and a status code on failure.*/
+ * Returns FALSE and a status code on failure.
+ * headers or http_status_code can be NULL.
+ * */
 gboolean fludownloader_helper_simple_download_head_sync (gchar * url, GHashTable* parameters,
     gchar *** headers, gint * http_status_code);
 

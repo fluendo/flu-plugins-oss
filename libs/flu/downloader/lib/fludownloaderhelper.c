@@ -222,12 +222,14 @@ fludownloader_helper_downloader_download_sync (FluDownloaderHelper * downloader,
   g_mutex_lock (downloader->done_mutex);
   while (!downloader->finished)
     g_cond_wait (downloader->done_cond, downloader->done_mutex);
-  if (downloader->size) {
-    *data = downloader->data;
-    *size = downloader->size;
-  } else {
-      *data = NULL;
-      *size = 0;
+  if (data && size) {
+    if (downloader->size) {
+      *data = downloader->data;
+      *size = downloader->size;
+    } else {
+        *data = NULL;
+        *size = 0;
+    }
   }
 
   g_mutex_unlock (downloader->done_mutex);
@@ -246,7 +248,8 @@ fludownloader_helper_simple_download_sync (gchar * url, GHashTable* parameters, 
   ret =
       fludownloader_helper_downloader_download_sync (download_helper, url, data,
       size);
-  *http_status_code = download_helper->http_status_code;
+  if (http_status_code)
+    *http_status_code = download_helper->http_status_code;
   fludownloader_helper_downloader_free (download_helper);
   return ret;
 }
@@ -256,19 +259,21 @@ fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downlo
     const gchar * url, gchar *** header)
 {
   downloader->finished = FALSE;
-  if (!url || !header)
+  if (!url)
     return FALSE;
   fludownloader_new_task (downloader->fludownloader, url, "HEAD", downloader, FALSE);
 
   g_mutex_lock (downloader->done_mutex);
   while (!downloader->finished)
     g_cond_wait (downloader->done_cond, downloader->done_mutex);
-  if (downloader->header) {
-    *header = downloader->header;
-    downloader->header = NULL;
+  if (header) {
+    if (downloader->header) {
+      *header = downloader->header;
+      downloader->header = NULL;
+    }
+    else
+      *header = NULL;
   }
-  else
-    *header = NULL;
 
   g_mutex_unlock (downloader->done_mutex);
 
@@ -280,12 +285,13 @@ fludownloader_helper_simple_download_head_sync (gchar * url, GHashTable* paramet
     gint * http_status_code)
 {
   gboolean ret = FALSE;
-  if (!url || !header)
+  if (!url)
     return ret;
   FluDownloaderHelper *download_helper = fludownloader_helper_downloader_new (parameters);
   ret =
     fludownloader_helper_downloader_download_head_sync (download_helper, url, header);
-  *http_status_code = download_helper->http_status_code;
+  if (http_status_code)
+    *http_status_code = download_helper->http_status_code;
   fludownloader_helper_downloader_free (download_helper);
   return ret;
 }
