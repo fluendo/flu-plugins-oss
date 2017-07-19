@@ -56,7 +56,7 @@ fi
 PKG_CHECK_MODULES([REQUIREMENTS], [${REQUIREMENTS_PC}])
 
 dnl Add the correct pkg-config flags into our own .pc files
-FLUDOWNLOADER_CFLAGS="${REQUIREMENTS_CFLAGS} -Wall -Werror -DGLIB_DISABLE_DEPRECATION_WARNINGS"
+FLUDOWNLOADER_CFLAGS="${REQUIREMENTS_CFLAGS} -I\${top_srcdir}/common -Wall -Werror -DGLIB_DISABLE_DEPRECATION_WARNINGS"
 FLUDOWNLOADER_LIBS="${REQUIREMENTS_LIBS}"
 FLUDOWNLOADER_CURL_LIB=""
 CURL_LIBS=""
@@ -122,7 +122,7 @@ AC_CONFIG_COMMANDS_PRE([
     echo "${top_srcdir}"
     # In case of static curl, append the local flags/libs
     CURL_LIBS=$($PKG_CONFIG --static --libs-only-l "$ac_top_build_prefix"ext/curl/libcurl.pc | sed 's/-lcurl//g')
-    FLUDOWNLOADER_CFLAGS="${FLUDOWNLOADER_CFLAGS} -DCURL_STATICLIB -I\$(top_srcdir)/common -I \$(top_srcdir)/ext/curl/include -I \$(top_builddir)/ext/curl/include/curl"
+    FLUDOWNLOADER_CFLAGS="${FLUDOWNLOADER_CFLAGS} -DCURL_STATICLIB -I \$(top_srcdir)/ext/curl/include -I \$(top_builddir)/ext/curl/include/curl"
     FLUDOWNLOADER_LIBS="${FLUDOWNLOADER_LIBS} ${CURL_LIBS}"
     FLUDOWNLOADER_CURL_LIB="\${top_builddir}/ext/curl/lib/.libs/libcurl.la"
     AC_MSG_NOTICE([Using included cURL code])
