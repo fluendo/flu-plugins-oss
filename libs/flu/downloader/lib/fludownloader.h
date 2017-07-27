@@ -76,10 +76,6 @@ typedef enum _FluDownloaderTaskSSLStatus
 } FluDownloaderTaskSSLStatus;
 
 /* Data callback. Return FALSE to cancel this download immediately. */
-/* FIXME: It would help other apps a lot if the user could call context-modifying
- * methods from within the callbacks, for example, add tasks, or remove_all_tasks.
- * Maybe a GRecMutex is enough?
- */
 typedef gboolean (*FluDownloaderDataCallback) (void *buffer, size_t size,
     gpointer user_data, FluDownloaderTask *task);
 

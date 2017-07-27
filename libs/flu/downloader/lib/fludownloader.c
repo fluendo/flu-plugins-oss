@@ -27,7 +27,7 @@ struct _FluDownloader
 {
   /* Threading stuff */
   GThread *thread;
-  GMutex *mutex;
+  GStaticRecMutex mutex;
   gboolean shutdown;            /* Tell the worker thread to quit */
 
   /* API stuff */
@@ -243,12 +243,12 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 {
   size_t total_size = size * nmemb;
 
-  g_mutex_lock (task->context->mutex);
+  g_static_rec_mutex_lock (&task->context->mutex);
   task->downloaded_size += total_size;
 
   if (task->abort) {
     /* The task has been signalled to abort. Return 0 so libCurl stops it. */
-    g_mutex_unlock (task->context->mutex);
+    g_static_rec_mutex_unlock (&task->context->mutex);
     return 0;
   }
 
@@ -270,12 +270,12 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task)) {
-      g_mutex_unlock (task->context->mutex);
+      g_static_rec_mutex_unlock (&task->context->mutex);
       return 0;
     }
   }
 
-  g_mutex_unlock (task->context->mutex);
+  g_static_rec_mutex_unlock (&task->context->mutex);
   return total_size;
 }
 
@@ -286,7 +286,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
 {
   size_t total_size = size * nmemb;
 
-  g_mutex_lock (task->context->mutex);
+  g_static_rec_mutex_lock (&task->context->mutex);
 
   if (task->first_header_line) {
     /* This is the status line */
@@ -310,7 +310,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
 
   task->first_header_line = (total_size > 1 && line[0] == 13 && line[1] == 10);
 
-  g_mutex_unlock (task->context->mutex);
+  g_static_rec_mutex_unlock (&task->context->mutex);
 
   return total_size;
 }
@@ -395,7 +395,7 @@ _thread_function (FluDownloader * context)
   int max_fd;
   int num_queued_tasks;
 
-  g_mutex_lock (context->mutex);
+  g_static_rec_mutex_lock (&context->mutex);
   while (!context->shutdown) {
     FD_ZERO (&rfds);
     FD_ZERO (&wfds);
@@ -403,7 +403,7 @@ _thread_function (FluDownloader * context)
     curl_multi_fdset (context->handle, &rfds, &wfds, &efds, &max_fd);
     if (max_fd == -1 || context->use_polling) {
       /* There is nothing happening: wait a bit (and release the mutex) */
-      g_mutex_unlock (context->mutex);
+      g_static_rec_mutex_unlock (&context->mutex);
       g_usleep (context->polling_period);
     } else if (max_fd > 0) {
       /* There are some active fd's: wait for them (and release the mutex) */
@@ -411,16 +411,16 @@ _thread_function (FluDownloader * context)
 
       tv.tv_sec = 0;
       tv.tv_usec = TIMEOUT;
-      g_mutex_unlock (context->mutex);
+      g_static_rec_mutex_unlock (&context->mutex);
       select (max_fd + 1, &rfds, NULL, NULL, &tv);
     } else {
       /* max_fd should never be 0, but better be safe than sorry. */
-      g_mutex_unlock (context->mutex);
+      g_static_rec_mutex_unlock (&context->mutex);
     }
 
     /* Perform transfers */
     curl_multi_perform (context->handle, &num_queued_tasks);
-    g_mutex_lock (context->mutex);
+    g_static_rec_mutex_lock (&context->mutex);
 
     /* Keep an eye on possible finished tasks */
     _process_curl_messages (context);
@@ -428,7 +428,7 @@ _thread_function (FluDownloader * context)
     /* See if any queued task can be started */
     _schedule_tasks (context);
   }
-  g_mutex_unlock (context->mutex);
+  g_static_rec_mutex_unlock (&context->mutex);
   return NULL;
 }
 
@@ -478,7 +478,7 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
     goto error;
   curl_multi_setopt (context->handle, CURLMOPT_PIPELINING, 1);
 
-  context->mutex = g_mutex_new ();
+  g_static_rec_mutex_init (&context->mutex);
 
   context->thread = g_thread_create ((GThreadFunc) _thread_function, context,
       TRUE, NULL);
@@ -514,7 +514,7 @@ fludownloader_destroy (FluDownloader * context)
     link = next;
   }
 
-  g_mutex_free (context->mutex);
+  g_static_rec_mutex_free (&context->mutex);
 
   if (context->cookies)
     g_strfreev (context->cookies);
@@ -614,11 +614,11 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
     curl_easy_setopt (task->handle, CURLOPT_PROXY, context->proxy);
 
   if (locked)
-    g_mutex_lock (context->mutex);
+    g_static_rec_mutex_lock (&context->mutex);
   context->queued_tasks = g_list_append (context->queued_tasks, task);
   _schedule_tasks (context);
   if (locked)
-    g_mutex_unlock (context->mutex);
+    g_static_rec_mutex_unlock (&context->mutex);
 
   return task;
 }
@@ -635,32 +635,32 @@ fludownloader_abort_task (FluDownloaderTask * task)
   if (context == NULL)
     return;
 
-  g_mutex_lock (context->mutex);
+  g_static_rec_mutex_lock (&context->mutex);
   _abort_task (context, task);
-  g_mutex_unlock (context->mutex);
+  g_static_rec_mutex_unlock (&context->mutex);
 }
 
 void
 fludownloader_abort_all_tasks (FluDownloader * context,
     gboolean including_current)
 {
-  g_mutex_lock (context->mutex);
+  g_static_rec_mutex_lock (&context->mutex);
 
   _abort_all_tasks_unlocked (context, including_current);
 
-  g_mutex_unlock (context->mutex);
+  g_static_rec_mutex_unlock (&context->mutex);
 }
 
 void
 fludownloader_lock (FluDownloader * context)
 {
-  g_mutex_lock (context->mutex);
+  g_static_rec_mutex_lock (&context->mutex);
 }
 
 void
 fludownloader_unlock (FluDownloader * context)
 {
-  g_mutex_unlock (context->mutex);
+  g_static_rec_mutex_unlock (&context->mutex);
 }
 
 const gchar *
@@ -715,19 +715,19 @@ fludownloader_task_get_header (FluDownloaderTask * task)
 void
 fludownloader_set_polling_period (FluDownloader * context, gint period)
 {
-  g_mutex_lock (context->mutex);
+  g_static_rec_mutex_lock (&context->mutex);
   context->use_polling = period > 0;
   context->polling_period = period > 0 ? period : TIMEOUT;
-  g_mutex_unlock (context->mutex);
+  g_static_rec_mutex_unlock (&context->mutex);
 }
 
 gint
 fludownloader_get_polling_period (FluDownloader * context)
 {
   gint ret;
-  g_mutex_lock (context->mutex);
+  g_static_rec_mutex_lock (&context->mutex);
   ret = context->use_polling ? context->polling_period : 0;
-  g_mutex_unlock (context->mutex);
+  g_static_rec_mutex_unlock (&context->mutex);
 
   return ret;
 }
