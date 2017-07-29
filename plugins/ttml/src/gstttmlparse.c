@@ -10,6 +10,7 @@
 #include <string.h>
 
 #include <libxml/parser.h>
+#include <libxml/xmlwriter.h>
 #include <gst/gstconfig.h>
 
 #include "gstttmlbase.h"
@@ -31,6 +32,8 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_TTMLPARSE_SRC_CAPS "text/x-pango-markup"
 #endif
 
+#define LIBXML_CHAR (const guchar *)
+
 static GstStaticPadTemplate ttmlparse_src_template =
     GST_STATIC_PAD_TEMPLATE ("src",
     GST_PAD_SRC,
@@ -41,10 +44,170 @@ static GstStaticPadTemplate ttmlparse_src_template =
 G_DEFINE_TYPE (GstTTMLParse, gst_ttmlparse, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlparse_parent_class
 
+static void
+gst_ttmlparse_attr_dump (GstTTMLAttribute * attr, xmlTextWriterPtr writer)
+{
+  gchar *attr_val;
+  gchar *attr_name = NULL;
+
+  attr_val = gst_ttml_attribute_dump (attr);
+  if (attr_val && attr_name) {
+    xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
+        LIBXML_CHAR attr_val);
+  }
+
+  if (attr_val)
+    g_free (attr_val);
+  if (attr_name)
+    g_free (attr_name);
+}
+
+static void
+gst_ttmlparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer)
+{
+  GList *l;
+  gboolean open = FALSE;
+
+  /* for each span until a \n create a new <p> node */
+  for (l = base->active_spans; l; l = l->next) {
+    GstTTMLSpan *span = l->data;
+    int chars_left = span->length;
+    gchar *frag_start = span->chars;    /* NOT NULL-terminated! */
+    gchar *line_break = NULL;
+
+    if (!open) {
+      /* <p> */
+      xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
+      open = TRUE;
+    }
+
+    while ((line_break = g_utf8_strchr (frag_start, chars_left, '\n'))) {
+      int frag_len = line_break - frag_start + 1;
+
+      /* put the contents of the fragment */
+      if (frag_len != 1) {
+        /* <span> */
+        xmlTextWriterStartElement (writer, LIBXML_CHAR "span");
+        g_list_foreach (span->style.attributes, (GFunc) gst_ttmlparse_attr_dump,
+            writer);
+        xmlTextWriterWriteFormatString (writer, "%.*s", frag_len, frag_start);
+        /* </span> */
+        xmlTextWriterEndElement (writer);
+      }
+
+      /* </p> */
+      if (open) {
+        xmlTextWriterEndElement (writer);
+        open = FALSE;
+      }
+
+      frag_start += frag_len;
+      chars_left -= frag_len;
+
+      /* avoid creating empty <p> */
+      if (chars_left) {
+        /* <p> */
+        xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
+        open = TRUE;
+      }
+    }
+
+    if (chars_left) {
+      /* <span> */
+      xmlTextWriterStartElement (writer, LIBXML_CHAR "span");
+      g_list_foreach (span->style.attributes, (GFunc) gst_ttmlparse_attr_dump,
+          writer);
+      xmlTextWriterWriteFormatString (writer, "%.*s", chars_left, frag_start);
+      /* </span> */
+      xmlTextWriterEndElement (writer);
+    }
+  }
+
+  /* just in case */
+  if (open) {
+    /* </p> */
+    xmlTextWriterEndElement (writer);
+  }
+}
+
+static void
+gst_ttmlparse_region_dump (gchar * id, GList * attrs, xmlTextWriterPtr writer)
+{
+  /* <region> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "region");
+  g_list_foreach (attrs, (GFunc) gst_ttmlparse_attr_dump, writer);
+  /* </region> */
+  xmlTextWriterEndElement (writer);
+}
+
+static void
+gst_ttmlparse_style_dump (gchar * id, GList * attrs, xmlTextWriterPtr writer)
+{
+  /* <style> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "style");
+  g_list_foreach (attrs, (GFunc) gst_ttmlparse_attr_dump, writer);
+  /* </style> */
+  xmlTextWriterEndElement (writer);
+}
+
 static GstBuffer *
 gst_ttmlparse_ttml_gen_buffer (GstTTMLBase * base)
 {
-  return NULL;
+  GstBuffer *buffer = NULL;
+  GstMapInfo map_info;
+  xmlBufferPtr buf;
+  xmlTextWriterPtr writer;
+
+  buf = xmlBufferCreate ();
+  writer = xmlNewTextWriterMemory (buf, 0);
+  /* <?xml version="1.0" encoding="utf-8"?> */
+  xmlTextWriterStartDocument (writer, NULL, "utf-8", NULL);
+  /* <tt xmlns="http://www.w3.org/ns/ttml" /> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "tt");
+  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "xmlns",
+      LIBXML_CHAR "http://www.w3.org/ns/ttml");
+  /* <head> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "head");
+
+  /* <styling> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "styling");
+  /* create every style */
+  g_hash_table_foreach (base->state.saved_styling_attr_stacks,
+      (GHFunc) gst_ttmlparse_style_dump, writer);
+  /* </styling> */
+  xmlTextWriterEndElement (writer);
+
+  /* <layout> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "layout");
+  /* create every style */
+  g_hash_table_foreach (base->state.saved_region_attr_stacks,
+      (GHFunc) gst_ttmlparse_region_dump, writer);
+  /* </layout> */
+  xmlTextWriterEndElement (writer);
+  /* </head> */
+  xmlTextWriterEndElement (writer);
+  /* <body> */
+  xmlTextWriterStartElement (writer, LIBXML_CHAR "body");
+  gst_ttmlparse_spans_dump (base, writer);
+  /* </body> */
+  xmlTextWriterEndElement (writer);
+  /* </tt> */
+  xmlTextWriterEndElement (writer);
+
+  xmlTextWriterEndDocument (writer);
+  xmlFreeTextWriter (writer);
+
+  GST_MEMDUMP ("TTML:", buf->content, buf->use);
+  /* FIXME we copy for now, we can use the buffer directly
+   * but we need it to do for 0.10 and 1.0 */
+  buffer = gst_buffer_new_and_alloc (buf->use);
+  gst_buffer_map (buffer, &map_info, GST_MAP_WRITE);
+  memcpy (map_info.data, buf->content, buf->use);
+  gst_buffer_unmap (buffer, &map_info);
+
+  xmlBufferFree (buf);
+
+  return buffer;
 }
 
 static GstBuffer *

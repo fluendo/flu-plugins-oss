@@ -908,6 +908,108 @@ beach:
   return attr;
 }
 
+gchar *
+gst_ttml_attribute_dump (GstTTMLAttribute * attr)
+{
+  gchar *ret = NULL;
+
+  switch (attr->type) {
+    case GST_TTML_ATTR_BEGIN:
+      break;
+    case GST_TTML_ATTR_END:
+      break;
+    case GST_TTML_ATTR_DUR:
+      break;
+    case GST_TTML_ATTR_TICK_RATE:
+      break;
+    case GST_TTML_ATTR_FRAME_RATE:
+      break;
+    case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
+      break;
+    case GST_TTML_ATTR_SUB_FRAME_RATE:
+      break;
+    case GST_TTML_ATTR_WHITESPACE_PRESERVE:
+      break;
+    case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
+      break;
+    case GST_TTML_ATTR_TIME_BASE:
+      break;
+    case GST_TTML_ATTR_CLOCK_MODE:
+      break;
+    case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
+      break;
+    case GST_TTML_ATTR_COLOR:
+      break;
+    case GST_TTML_ATTR_BACKGROUND_COLOR:
+      break;
+    case GST_TTML_ATTR_DISPLAY:
+      break;
+    case GST_TTML_ATTR_FONT_FAMILY:
+      break;
+    case GST_TTML_ATTR_FONT_SIZE:
+      break;
+    case GST_TTML_ATTR_FONT_STYLE:
+      break;
+    case GST_TTML_ATTR_FONT_WEIGHT:
+      break;
+    case GST_TTML_ATTR_TEXT_DECORATION:
+      break;
+    case GST_TTML_ATTR_ID:
+      break;
+    case GST_TTML_ATTR_STYLE:
+      break;
+    case GST_TTML_ATTR_REGION:
+      break;
+    case GST_TTML_ATTR_ORIGIN:
+      break;
+    case GST_TTML_ATTR_EXTENT:
+      break;
+    case GST_TTML_ATTR_TEXT_ALIGN:
+      break;
+    case GST_TTML_ATTR_DISPLAY_ALIGN:
+      break;
+    case GST_TTML_ATTR_OVERFLOW:
+      break;
+    case GST_TTML_ATTR_CELLRESOLUTION:
+      break;
+    case GST_TTML_ATTR_TEXTOUTLINE:
+      break;
+    case GST_TTML_ATTR_ZINDEX:
+      break;
+    case GST_TTML_ATTR_LINE_HEIGHT:
+      break;
+    case GST_TTML_ATTR_WRAP_OPTION:
+      break;
+    case GST_TTML_ATTR_PADDING:
+      break;
+    case GST_TTML_ATTR_SHOW_BACKGROUND:
+      break;
+    case GST_TTML_ATTR_VISIBILITY:
+      break;
+    case GST_TTML_ATTR_OPACITY:
+      break;
+    case GST_TTML_ATTR_UNICODE_BIDI:
+      break;
+    case GST_TTML_ATTR_DIRECTION:
+      break;
+    case GST_TTML_ATTR_WRITING_MODE:
+      break;
+    case GST_TTML_ATTR_SMPTE_IMAGETYPE:
+      break;
+    case GST_TTML_ATTR_SMPTE_ENCODING:
+      break;
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
+      break;
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
+      break;
+    default:
+      GST_WARNING ("Attribute not implemented");
+      break;
+  }
+  return ret;
+}
+
 /* Deallocates a GstTTMLAttribute. Required for attributes with
  * allocated internal memory. */
 void
