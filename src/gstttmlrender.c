@@ -1447,7 +1447,8 @@ gst_ttmlrender_build_background_layout (const gchar * id, GList * attr_list,
 }
 
 static GstBuffer *
-gst_ttmlrender_gen_buffer (GstTTMLBase * base)
+gst_ttmlrender_gen_buffer (GstTTMLBase * base, GstClockTime ts,
+    GstClockTime duration)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
   GstBuffer *buffer = NULL;

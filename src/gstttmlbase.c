@@ -135,7 +135,7 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   if (in_seg) {
     GstBuffer *buffer;
 
-    buffer = klass->gen_buffer (base);
+    buffer = klass->gen_buffer (base, clip_start, clip_stop - clip_start);
     if (!buffer) {
       return;
     }
