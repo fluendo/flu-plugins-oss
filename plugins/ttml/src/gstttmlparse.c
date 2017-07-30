@@ -135,6 +135,7 @@ gst_ttmlparse_region_dump (gchar * id, GList * attrs, xmlTextWriterPtr writer)
 {
   /* <region> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "region");
+  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "xml:id", LIBXML_CHAR id);
   g_list_foreach (attrs, (GFunc) gst_ttmlparse_attr_dump, writer);
   /* </region> */
   xmlTextWriterEndElement (writer);
@@ -145,6 +146,7 @@ gst_ttmlparse_style_dump (gchar * id, GList * attrs, xmlTextWriterPtr writer)
 {
   /* <style> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "style");
+  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "xml:id", LIBXML_CHAR id);
   g_list_foreach (attrs, (GFunc) gst_ttmlparse_attr_dump, writer);
   /* </style> */
   xmlTextWriterEndElement (writer);
