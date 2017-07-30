@@ -63,10 +63,13 @@ gst_ttmlparse_attr_dump (GstTTMLAttribute * attr, xmlTextWriterPtr writer)
 }
 
 static void
-gst_ttmlparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer)
+gst_ttmlparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
+    GstClockTime ts, GstClockTime duration)
 {
   GList *l;
   gboolean open = FALSE;
+  gchar *end = gst_ttml_attribute_dump_time_expression (ts + duration);
+  gchar *begin = gst_ttml_attribute_dump_time_expression (ts);
 
   /* for each span until a \n create a new <p> node */
   for (l = base->active_spans; l; l = l->next) {
@@ -78,6 +81,9 @@ gst_ttmlparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer)
     if (!open) {
       /* <p> */
       xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
+      xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
+          LIBXML_CHAR begin);
+      xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end", LIBXML_CHAR end);
       open = TRUE;
     }
 
@@ -108,6 +114,10 @@ gst_ttmlparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer)
       if (chars_left) {
         /* <p> */
         xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
+            LIBXML_CHAR begin);
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end",
+            LIBXML_CHAR end);
         open = TRUE;
       }
     }
@@ -128,6 +138,8 @@ gst_ttmlparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer)
     /* </p> */
     xmlTextWriterEndElement (writer);
   }
+
+  g_free (end);
 }
 
 static void
@@ -191,7 +203,7 @@ gst_ttmlparse_ttml_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlTextWriterEndElement (writer);
   /* <body> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "body");
-  gst_ttmlparse_spans_dump (base, writer);
+  gst_ttmlparse_spans_dump (base, writer, ts, duration);
   /* </body> */
   xmlTextWriterEndElement (writer);
   /* </tt> */
