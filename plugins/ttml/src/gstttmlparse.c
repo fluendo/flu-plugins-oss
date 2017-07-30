@@ -48,9 +48,11 @@ static void
 gst_ttmlparse_attr_dump (GstTTMLAttribute * attr, xmlTextWriterPtr writer)
 {
   gchar *attr_val;
-  gchar *attr_name = NULL;
+  const gchar *attr_name = NULL;
 
   attr_val = gst_ttml_attribute_dump (attr);
+  attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
+
   if (attr_val && attr_name) {
     xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
         LIBXML_CHAR attr_val);
@@ -58,8 +60,6 @@ gst_ttmlparse_attr_dump (GstTTMLAttribute * attr, xmlTextWriterPtr writer)
 
   if (attr_val)
     g_free (attr_val);
-  if (attr_name)
-    g_free (attr_name);
 }
 
 static void
