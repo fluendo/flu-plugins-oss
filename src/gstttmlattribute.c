@@ -402,6 +402,20 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
   }
 }
 
+gchar *
+gst_ttml_attribute_dump_time_expression (GstClockTime time)
+{
+  gchar *ret;
+  char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
+
+  setlocale (LC_NUMERIC, "C");
+  ret = g_strdup_printf ("%" GST_TIME_FORMAT, GST_TIME_ARGS (time));
+  setlocale (LC_NUMERIC, previous_locale);
+  g_free (previous_locale);
+
+  return ret;
+}
+
 gfloat
 gst_ttml_attribute_get_normalized_length (const GstTTMLState * state,
     const GstTTMLStyle * style_override, const GstTTMLAttribute * attr,
