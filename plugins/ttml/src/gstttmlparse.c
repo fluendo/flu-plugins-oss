@@ -153,7 +153,8 @@ gst_ttmlparse_style_dump (gchar * id, GList * attrs, xmlTextWriterPtr writer)
 }
 
 static GstBuffer *
-gst_ttmlparse_ttml_gen_buffer (GstTTMLBase * base)
+gst_ttmlparse_ttml_gen_buffer (GstTTMLBase * base, GstClockTime ts,
+    GstClockTime duration)
 {
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
@@ -213,7 +214,8 @@ gst_ttmlparse_ttml_gen_buffer (GstTTMLBase * base)
 }
 
 static GstBuffer *
-gst_ttmlparse_pango_gen_buffer (GstTTMLBase * base)
+gst_ttmlparse_pango_gen_buffer (GstTTMLBase * base, GstClockTime ts,
+    GstClockTime duration)
 {
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
