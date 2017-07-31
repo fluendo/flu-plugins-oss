@@ -184,21 +184,26 @@ gst_ttmlparse_ttml_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   /* <head> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "head");
 
-  /* <styling> */
-  xmlTextWriterStartElement (writer, LIBXML_CHAR "styling");
   /* create every style */
-  g_hash_table_foreach (base->state.saved_styling_attr_stacks,
-      (GHFunc) gst_ttmlparse_style_dump, writer);
-  /* </styling> */
-  xmlTextWriterEndElement (writer);
+  if (base->state.saved_styling_attr_stacks) {
+    /* <styling> */
+    xmlTextWriterStartElement (writer, LIBXML_CHAR "styling");
+    g_hash_table_foreach (base->state.saved_styling_attr_stacks,
+        (GHFunc) gst_ttmlparse_style_dump, writer);
+    /* </styling> */
+    xmlTextWriterEndElement (writer);
+  }
 
-  /* <layout> */
-  xmlTextWriterStartElement (writer, LIBXML_CHAR "layout");
-  /* create every style */
-  g_hash_table_foreach (base->state.saved_region_attr_stacks,
-      (GHFunc) gst_ttmlparse_region_dump, writer);
-  /* </layout> */
-  xmlTextWriterEndElement (writer);
+  /* create every layout */
+  if (base->state.saved_region_attr_stacks) {
+    /* <layout> */
+    xmlTextWriterStartElement (writer, LIBXML_CHAR "layout");
+    g_hash_table_foreach (base->state.saved_region_attr_stacks,
+        (GHFunc) gst_ttmlparse_region_dump, writer);
+    /* </layout> */
+    xmlTextWriterEndElement (writer);
+  }
+
   /* </head> */
   xmlTextWriterEndElement (writer);
   /* <body> */
