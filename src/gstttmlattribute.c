@@ -216,6 +216,13 @@ gst_ttml_attribute_parse_color_expression (const gchar * expr, guint32 * color,
   return TRUE;
 }
 
+static gchar *
+gst_ttml_attribute_dump_color_expression (guint32 color)
+{
+  return g_strdup_printf ("#%02x%02x%02x%02x", (color >> 24) & 0xff,
+      (color >> 16) & 0xff, (color >> 8) & 0xff, color & 0xff);
+}
+
 /* Parse <length> expressions as per the TTML specification.
  * Returns TRUE on error.
 <length>
@@ -393,6 +400,20 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
     default:
       break;
   }
+}
+
+gchar *
+gst_ttml_attribute_dump_time_expression (GstClockTime time)
+{
+  gchar *ret;
+  char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
+
+  setlocale (LC_NUMERIC, "C");
+  ret = g_strdup_printf ("%" GST_TIME_FORMAT, GST_TIME_ARGS (time));
+  setlocale (LC_NUMERIC, previous_locale);
+  g_free (previous_locale);
+
+  return ret;
 }
 
 gfloat
@@ -906,6 +927,155 @@ beach:
   g_free (previous_locale);
 
   return attr;
+}
+
+static gchar *
+gst_ttml_attribute_dump_double_expression (gdouble d)
+{
+  gchar *ret;
+  char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
+
+  setlocale (LC_NUMERIC, "C");
+  ret = g_strdup_printf ("%lf", d);
+  setlocale (LC_NUMERIC, previous_locale);
+  g_free (previous_locale);
+  return ret;
+}
+
+gchar *
+gst_ttml_attribute_dump (GstTTMLAttribute * attr)
+{
+  gchar *ret = NULL;
+
+  switch (attr->type) {
+    case GST_TTML_ATTR_BEGIN:
+      ret = gst_ttml_attribute_dump_time_expression (attr->value.time);
+      break;
+    case GST_TTML_ATTR_END:
+      ret = gst_ttml_attribute_dump_time_expression (attr->value.time);
+      break;
+    case GST_TTML_ATTR_DUR:
+      ret = gst_ttml_attribute_dump_time_expression (attr->value.time);
+      break;
+    case GST_TTML_ATTR_TICK_RATE:
+      ret = gst_ttml_attribute_dump_double_expression (attr->value.d *
+          GST_SECOND);
+      break;
+    case GST_TTML_ATTR_FRAME_RATE:
+      ret = gst_ttml_attribute_dump_double_expression (attr->value.d);
+      break;
+    case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
+      ret = g_strdup_printf ("%d %d", attr->value.fraction.num,
+          attr->value.fraction.den);
+      break;
+    case GST_TTML_ATTR_SUB_FRAME_RATE:
+      ret = g_strdup_printf ("%d", attr->value.i);
+      break;
+    case GST_TTML_ATTR_WHITESPACE_PRESERVE:
+      break;
+    case GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER:
+      break;
+    case GST_TTML_ATTR_TIME_BASE:
+      break;
+    case GST_TTML_ATTR_CLOCK_MODE:
+      break;
+    case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
+      break;
+    case GST_TTML_ATTR_COLOR:
+      ret = gst_ttml_attribute_dump_color_expression (attr->value.color);
+      break;
+    case GST_TTML_ATTR_BACKGROUND_COLOR:
+      ret = gst_ttml_attribute_dump_color_expression (attr->value.color);
+      break;
+    case GST_TTML_ATTR_DISPLAY:
+      if (attr->value.b)
+        ret = g_strdup ("auto");
+      else
+        ret = g_strdup ("none");
+      break;
+    case GST_TTML_ATTR_FONT_FAMILY:
+      break;
+    case GST_TTML_ATTR_FONT_SIZE:
+      break;
+    case GST_TTML_ATTR_FONT_STYLE:
+      break;
+    case GST_TTML_ATTR_FONT_WEIGHT:
+      break;
+    case GST_TTML_ATTR_TEXT_DECORATION:
+      break;
+    case GST_TTML_ATTR_ID:
+      ret = g_strdup (attr->value.string);
+      break;
+    case GST_TTML_ATTR_STYLE:
+      ret = g_strdup (attr->value.string);
+      break;
+    case GST_TTML_ATTR_REGION:
+      ret = g_strdup (attr->value.string);
+      break;
+    case GST_TTML_ATTR_ORIGIN:
+      break;
+    case GST_TTML_ATTR_EXTENT:
+      break;
+    case GST_TTML_ATTR_TEXT_ALIGN:
+      break;
+    case GST_TTML_ATTR_DISPLAY_ALIGN:
+      ret = g_strdup (gst_ttml_utils_enum_name (attr->value.display_align,
+              DisplayAlign));
+      break;
+    case GST_TTML_ATTR_OVERFLOW:
+      if (attr->value.b)
+        ret = g_strdup ("visible");
+      else
+        ret = g_strdup ("hidden");
+      break;
+      break;
+    case GST_TTML_ATTR_CELLRESOLUTION:
+      break;
+    case GST_TTML_ATTR_TEXTOUTLINE:
+      break;
+    case GST_TTML_ATTR_ZINDEX:
+      break;
+    case GST_TTML_ATTR_LINE_HEIGHT:
+      break;
+    case GST_TTML_ATTR_WRAP_OPTION:
+      ret = g_strdup (gst_ttml_utils_enum_name (attr->value.wrap_option,
+              WrapOption));
+      break;
+    case GST_TTML_ATTR_PADDING:
+      break;
+    case GST_TTML_ATTR_SHOW_BACKGROUND:
+      ret = g_strdup (gst_ttml_utils_enum_name (attr->value.show_background,
+              ShowBackground));
+      break;
+    case GST_TTML_ATTR_VISIBILITY:
+      if (attr->value.b)
+        ret = g_strdup ("visible");
+      else
+        ret = g_strdup ("hidden");
+      break;
+    case GST_TTML_ATTR_OPACITY:
+      ret = g_strdup_printf ("%lf", attr->value.d);
+      break;
+    case GST_TTML_ATTR_UNICODE_BIDI:
+      break;
+    case GST_TTML_ATTR_DIRECTION:
+      break;
+    case GST_TTML_ATTR_WRITING_MODE:
+      break;
+    case GST_TTML_ATTR_SMPTE_IMAGETYPE:
+      break;
+    case GST_TTML_ATTR_SMPTE_ENCODING:
+      break;
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
+      break;
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL:
+    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
+      break;
+    default:
+      GST_WARNING ("Attribute not implemented");
+      break;
+  }
+  return ret;
 }
 
 /* Deallocates a GstTTMLAttribute. Required for attributes with

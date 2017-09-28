@@ -62,7 +62,8 @@ typedef struct _GstTTMLBaseClass {
    * must generate a GstBuffer (with whatever caps it declared when created
    * the src pad template).
    */
-  GstBuffer *(*gen_buffer)(GstTTMLBase *base);
+  GstBuffer *(*gen_buffer)(GstTTMLBase *base, GstClockTime ts,
+      GstClockTime duration);
 
   /* Derived classes can set any unfixed value to whatever they please.
    * Used to set a default video size, if downstream does not request one,
