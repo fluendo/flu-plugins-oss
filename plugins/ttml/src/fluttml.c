@@ -13,6 +13,7 @@
 
 #ifdef BUILD_TTMLPARSE
 #include "gstttmlparse.h"
+#include "gstttmlsegmentedparse.h"
 #endif
 
 #ifdef BUILD_TTMLRENDER
@@ -23,6 +24,7 @@
 
 GST_DEBUG_CATEGORY (ttmlbase_debug);
 GST_DEBUG_CATEGORY (ttmlparse_debug);
+GST_DEBUG_CATEGORY (ttmlsegmentedparse_debug);
 GST_DEBUG_CATEGORY (ttmlrender_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
 
@@ -36,8 +38,15 @@ plugin_init (GstPlugin * plugin)
   GST_DEBUG_CATEGORY_INIT (ttmlparse_debug, "ttmlparse",
       GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML parser");
 
-  if (!gst_element_register (plugin, "ttmlparse", GST_RANK_MARGINAL,
+  if (!gst_element_register (plugin, "ttmlparse", GST_RANK_SECONDARY,
           gst_ttmlparse_get_type ()))
+    return FALSE;
+
+  GST_DEBUG_CATEGORY_INIT (ttmlsegmentedparse_debug, "ttmlsegmentedparse",
+      GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML segmented parser");
+
+  if (!gst_element_register (plugin, "ttmlsegmentedparse", GST_RANK_MARGINAL,
+          gst_ttmlsegmentedparse_get_type ()))
     return FALSE;
 #endif
 

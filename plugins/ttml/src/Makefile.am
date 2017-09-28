@@ -34,7 +34,7 @@ $(GST_BASE_LIBS) \
 $(LIBXML_LIBS)
 
 if BUILD_TTMLPARSE
-libgstfluttml_la_SOURCES += gstttmlparse.c
+libgstfluttml_la_SOURCES += gstttmlparse.c gstttmlsegmentedparse.c
 endif
 
 if BUILD_TTMLRENDER
@@ -60,5 +60,6 @@ gstttmlevent.h \
 gstttmlspan.h \
 gstttmlenums.h \
 gstttmlutils.h \
+gstttmlsegmentedparse.h \
 gstttmlstyle.h \
 gstttmlforward.h

@@ -20,6 +20,7 @@
 #include "gstttmlevent.h"
 #include "gstttmlattribute.h"
 #include "gstttmlutils.h"
+#include "gstttmltype.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
@@ -41,7 +42,8 @@ G_DEFINE_TYPE (GstTTMLParse, gst_ttmlparse, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlparse_parent_class
 
 static GstBuffer *
-gst_ttmlparse_gen_buffer (GstTTMLBase * base)
+gst_ttmlparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
+    GstClockTime duration)
 {
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;

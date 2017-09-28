@@ -68,6 +68,9 @@ struct _GstTTMLAttributeEvent {
 
 GstTTMLAttribute *gst_ttml_attribute_parse (GstTTMLState *state,
     const char *ns, const char *name, const char *value);
+gchar * gst_ttml_attribute_dump (GstTTMLAttribute * attr);
+
+gchar * gst_ttml_attribute_dump_time_expression (GstClockTime time);
 
 void gst_ttml_attribute_free (GstTTMLAttribute *attr);
 

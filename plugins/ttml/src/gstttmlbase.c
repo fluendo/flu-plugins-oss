@@ -91,7 +91,6 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     GstTTMLBase * base)
 {
   GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
-  GstBuffer *buffer;
   gboolean in_seg = FALSE;
 #if GST_CHECK_VERSION (1,0,0)
   guint64 clip_start = 0, clip_stop = 0;
@@ -122,10 +121,6 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   if (!klass->gen_buffer) {
     return;
   }
-  buffer = klass->gen_buffer (base);
-  if (!buffer) {
-    return;
-  }
 
   if (!base->segment) {
     /* We have not received any newsegment from upstream, make our own */
@@ -138,6 +133,13 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
       begin, end, &clip_start, &clip_stop);
 
   if (in_seg) {
+    GstBuffer *buffer;
+
+    buffer = klass->gen_buffer (base, clip_start, clip_stop - clip_start);
+    if (!buffer) {
+      return;
+    }
+
     if (G_UNLIKELY (base->newsegment_needed)) {
       GstEvent *event;
       event = gst_event_new_new_segment (FALSE, base->segment->rate,
@@ -168,7 +170,6 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   } else {
     GST_DEBUG_OBJECT (base, "Buffer is out of segment (pts %"
         GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
-    gst_buffer_unref (buffer);
   }
 }
 
