@@ -175,4 +175,7 @@ void fludownloader_set_user_agent (FluDownloader * context, const gchar* user_ag
 /* Set downloader proxy */
 void fludownloader_set_proxy (FluDownloader * context, const gchar* proxy);
 
+/* Get tasks count. It includes the active task. */
+gint fludownloader_get_tasks_count (FluDownloader * context);
+
 #endif /* _FLUDOWNLOADER_H */

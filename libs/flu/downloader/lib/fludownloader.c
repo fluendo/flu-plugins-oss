@@ -853,3 +853,17 @@ fludownloader_set_proxy (FluDownloader * context, const gchar * proxy)
 
   context->proxy = g_strdup (proxy);
 }
+
+gint
+fludownloader_get_tasks_count (FluDownloader * context)
+{
+  gint ret = 0;
+
+  g_static_rec_mutex_lock (&context->mutex);
+  if (context)
+    ret = g_list_length (context->queued_tasks);
+  g_static_rec_mutex_unlock (&context->mutex);
+
+  return ret;
+}
+
