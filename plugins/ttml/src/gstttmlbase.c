@@ -913,6 +913,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
     } else {
       GST_WARNING_OBJECT (base, "Caps are unfixed and derived class did not "
           "provide a fixate_caps method");
+      gst_caps_unref (src_caps);
       return FALSE;
     }
   }
