@@ -913,9 +913,17 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
     } else {
       GST_WARNING_OBJECT (base, "Caps are unfixed and derived class did not "
           "provide a fixate_caps method");
+      gst_caps_unref (src_caps);
       return FALSE;
     }
   }
+
+  /* Fixate the caps by common means. This give an issue with some default
+   * fields that are fixed to the first option available, like for example
+   * the interlaced field. Sadly, if we dont fixate like this, the pad
+   * can not have non-fixed caps
+   */
+  gst_pad_fixate_caps (base->srcpad, src_caps);
 
   GST_DEBUG_OBJECT (base, "setting caps %" GST_PTR_FORMAT, src_caps);
   gst_pad_set_caps (base->srcpad, src_caps);
