@@ -583,6 +583,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   curl_easy_setopt (task->handle, CURLOPT_HEADERDATA, task);
   curl_easy_setopt (task->handle, CURLOPT_PRIVATE, task);
   curl_easy_setopt (task->handle, CURLOPT_NOPROGRESS, 1L);
+  curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, FALSE);
   curl_easy_setopt (task->handle, CURLOPT_USERAGENT, "fludownloader");
   /* We do not want signals, since we are multithreading */
   curl_easy_setopt (task->handle, CURLOPT_NOSIGNAL, 1L);
