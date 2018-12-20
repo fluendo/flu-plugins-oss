@@ -5,5 +5,6 @@
 
 #include <fluc/ipc/flucipc.h>
 #include <fluc/va/flucva.h>
+#include <fluc/license/fluclicense.h>
 
 #endif /*  _FLUC_H_  */
