@@ -591,8 +591,8 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
   /* Choose if we want to send HEAD or GET request */
+  task->store_header = TRUE;
   if (range != NULL && strcmp (range, "HEAD") == 0) {
-    task->store_header = TRUE;
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 1L);
   } else {
     curl_easy_setopt (task->handle, CURLOPT_NOBODY, 0L);
