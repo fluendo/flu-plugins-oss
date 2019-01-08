@@ -33,11 +33,10 @@ enum
   PROP_DEFAULT_FONT_FAMILY,
   PROP_DEFAULT_FONT_SIZE,
   PROP_DEFAULT_TEXT_ALIGN,
-  PROP_DEFAULT_DISPLAY_ALIGN
+  PROP_DEFAULT_DISPLAY_ALIGN,
+  PROP_WINDOW_WIDTH,
+  PROP_WINDOW_HEIGHT
 };
-
-#define DEFAULT_RENDER_WIDTH 720
-#define DEFAULT_RENDER_HEIGHT 576
 
 typedef struct _GstTTMLRegion
 {
@@ -1510,8 +1509,8 @@ gst_ttmlrender_fixate_caps (GstTTMLBase * base, GstCaps * caps)
   /* Our peer allows us to choose image size (we have fixed all other values
    * in the template caps) */
   GST_DEBUG_OBJECT (render, "Fixating caps %" GST_PTR_FORMAT, caps);
-  gst_structure_fixate_field_nearest_int (s, "width", DEFAULT_RENDER_WIDTH);
-  gst_structure_fixate_field_nearest_int (s, "height", DEFAULT_RENDER_HEIGHT);
+  gst_structure_fixate_field_nearest_int (s, "width", render->window_width);
+  gst_structure_fixate_field_nearest_int (s, "height", render->window_height);
   GST_DEBUG_OBJECT (render, "Fixated to    %" GST_PTR_FORMAT, caps);
 }
 
@@ -1558,7 +1557,13 @@ gst_ttmlrender_get_property (GObject * object, guint prop_id, GValue * value,
       break;
     case PROP_DEFAULT_DISPLAY_ALIGN:
       g_value_set_enum (value, render->default_display_align);
+    case PROP_WINDOW_WIDTH:
+      g_value_set_uint (value, render->window_width);
       break;
+    case PROP_WINDOW_HEIGHT:
+      g_value_set_uint (value, render->window_height);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1590,6 +1595,12 @@ gst_ttmlrender_set_property (GObject * object, guint prop_id,
     case PROP_DEFAULT_DISPLAY_ALIGN:
       render->default_display_align =
           (GstTTMLDisplayAlign) g_value_get_enum (value);
+      break;
+    case PROP_WINDOW_WIDTH:
+      render->window_width = g_value_get_uint (value);
+      break;
+    case PROP_WINDOW_HEIGHT:
+      render->window_height = g_value_get_uint (value);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1678,6 +1689,13 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
       g_param_spec_enum ("default_display_align", "Default display alignment",
           "Display alignment to use when the TTML file does not explicitly set one",
           GST_TTML_DISPLAY_ALIGN_SPEC, GST_TTML_DISPLAY_ALIGN_BEFORE,
+          G_PARAM_READWRITE));
+
+  g_object_class_install_property (gobject_class, PROP_WINDOW_WIDTH,
+      g_param_spec_uint ("window-width", "", "", 0, 4096, 1920,
+          G_PARAM_READWRITE));
+  g_object_class_install_property (gobject_class, PROP_WINDOW_HEIGHT,
+      g_param_spec_uint ("window-height", "", "", 0, 4096, 1080,
           G_PARAM_READWRITE));
 
   /* Here we register a Pad Template called "src" which the base class will
