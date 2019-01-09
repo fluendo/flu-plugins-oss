@@ -41,6 +41,7 @@ typedef struct _GstTTMLRender {
 
   /* To download external files */
   FluDownloaderHelper *downloader;
+  guint window_width, window_height;
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */
