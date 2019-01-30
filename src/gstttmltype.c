@@ -16,16 +16,17 @@ static GstStaticCaps gst_ttmltype_caps = GST_STATIC_CAPS (TTML_MIME);
 static void
 gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
 {
-  static const gchar tag_xml[] = "<?xml ";
-  static const gchar tag_tt[] = "<tt ";
+  static const gchar tag_xml[] = "<?xml";
+  static const gchar tag_tt[] = "<tt";
   guint64 offset = 0;
   const guint8 *data;
   guint checks = 0;
   GstTypeFindProbability prob = GST_TYPE_FIND_MAXIMUM;
 
-  while (((data = gst_type_find_peek (tf, offset, 4)) != NULL)
+  while (((data = gst_type_find_peek (tf, offset, 6)) != NULL)
       && offset < 1024) {
-    if (!memcmp (data, tag_xml, sizeof (tag_xml) - 1)) {
+    if (!memcmp (data, tag_xml, sizeof (tag_xml) - 1)
+        && (g_ascii_isspace (data[5]) || g_ascii_iscntrl (data[5]))) {
       checks |= 0x01;
       if (offset > 0) {
         /* We are only 100% sure this is a TTML file if the XML tag appears at
@@ -35,8 +36,12 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
         prob = GST_TYPE_FIND_LIKELY;
       }
     }
-    if (!memcmp (data, tag_tt, sizeof (tag_tt) - 1))
+
+    if (!memcmp (data, tag_tt, sizeof (tag_tt) - 1)
+        && (g_ascii_isspace (data[3]) || g_ascii_iscntrl (data[3]))) {
       checks |= 0x02;
+    }
+
     if (checks == 0x03) {
       gst_type_find_suggest (tf, prob, TTML_CAPS);
       return;
