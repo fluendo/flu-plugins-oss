@@ -19,6 +19,10 @@ typedef enum _FluDownloaderTaskOutcome
 {
   /* Task ended correctly */
   FLUDOWNLOADER_TASK_OK,
+  /* Task pending, not finished */
+  FLUDOWNLOADER_TASK_PENDING,
+  /* Task aborted */
+  FLUDOWNLOADER_TASK_ABORTED,
   /* Generic task error (error not in the list below) */
   FLUDOWNLOADER_TASK_ERROR,
   /* Server not found or connection refused */
@@ -146,6 +150,9 @@ gchar **fludownloader_task_get_header (FluDownloaderTask * task);
  * maximum network throughput (and CPU consumption). */
 void fludownloader_set_polling_period (FluDownloader * context, gint period);
 gint fludownloader_get_polling_period (FluDownloader * context);
+
+/* Get task outcome.*/
+gboolean fludownloader_task_get_abort (FluDownloaderTask* task);
 
 /* Get task outcome.*/
 FluDownloaderTaskOutcome fludownloader_task_get_outcome (FluDownloaderTask* task);
