@@ -265,9 +265,10 @@ _task_done (FluDownloaderTask * task, CURLcode result)
 
 /* Gets called by libCurl when idle */
 static int
-_progress_function (FluDownloaderTask *task, double dltotal, double dlnow, 
+_progress_function (void *p, double dltotal, double dlnow,
     double ultotal, double ulnow)
 {
+  FluDownloaderTask *task = (FluDownloaderTask *) p;
   int ret;
   g_static_rec_mutex_lock (&task->context->mutex);
   _process_curl_messages (task->context);
@@ -596,8 +597,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
 
   task->handle = curl_easy_init ();
   curl_easy_setopt (task->handle, CURLOPT_NOPROGRESS, 0L);
-  curl_easy_setopt (task->handle, CURLOPT_PROGRESSFUNCTION,
-    _progress_function);
+  curl_easy_setopt (task->handle, CURLOPT_PROGRESSFUNCTION, _progress_function);
   curl_easy_setopt (task->handle, CURLOPT_PROGRESSDATA, task);
   curl_easy_setopt (task->handle, CURLOPT_WRITEFUNCTION,
       (curl_write_callback) _write_function);
