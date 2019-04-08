@@ -8,7 +8,7 @@
  * as cancelled before the currently handled by curl. To do that,
  * _task_done should be called from the scheduler instead of from
  * _task_abort. But currently it is not required.
- * 
+ *
  * curl message processing moved to the progress function to ensure
  * that _task_done is handled before the next task outputs any data.
  * This fixed difficult to diagnose race conditions in clients using
@@ -17,7 +17,7 @@
  * events are handled synchronously in the curl progress function as
  * required, but for now I didn't remove it. A cond event could be used
  * instead to call the scheduler on new task to simplify and reduce
- * start latency. 
+ * start latency.
  */
 
 #include "fludownloader.h"
@@ -164,7 +164,7 @@ _task_done (FluDownloaderTask * task, CURLcode result)
 
   if (task->outcome != FLUDOWNLOADER_TASK_PENDING)
     return;
-  
+
   context = task->context;
   http_status_code = 0;
 
@@ -179,8 +179,16 @@ _task_done (FluDownloaderTask * task, CURLcode result)
           outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
       }
       break;
-    case CURLE_ABORTED_BY_CALLBACK:
     case CURLE_WRITE_ERROR:
+      outcome = FLUDOWNLOADER_TASK_ERROR;
+      if (!task->is_file ) {
+        curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
+        &http_status_code);
+        if (http_status_code >= 300 || http_status_code < 200)
+          outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
+      }
+      break;
+    case CURLE_ABORTED_BY_CALLBACK:
       outcome = FLUDOWNLOADER_TASK_ABORTED;
       break;
     case CURLE_COULDNT_RESOLVE_HOST:
@@ -283,6 +291,13 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     FluDownloaderTask * task)
 {
   size_t total_size = size * nmemb;
+
+  /* Do not pass data if https status is not OK.
+   * We may be streaming the data, and we must not
+   * stream error bodies. */
+  if (!task->response_ok) {
+    return 0;
+  }
 
   g_static_rec_mutex_lock (&task->context->mutex);
   task->downloaded_size += total_size;
@@ -576,6 +591,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   task->user_data = user_data;
   task->context = context;
   task->first_header_line = TRUE;
+  task->response_ok = TRUE;
   task->is_file = g_str_has_prefix (url, "file://");
   memset (task->date, '\0', DATE_MAX_LENGTH);
   if (task->is_file) {
