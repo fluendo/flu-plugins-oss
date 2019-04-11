@@ -27,6 +27,9 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlrender_debug);
 #define GST_CAT_DEFAULT ttmlrender_debug
 
+#define DEFAULT_WINDOW_WIDTH 720
+#define DEFAULT_WINDOW_HEIGHT 576
+
 enum
 {
   PROP_0,
@@ -1692,11 +1695,13 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
           G_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_WINDOW_WIDTH,
-      g_param_spec_uint ("window-width", "", "", 0, 4096, 1920,
-          G_PARAM_READWRITE));
+      g_param_spec_uint ("window-width", "Default window width",
+          "Default window width used when rendering", 0, 4096,
+          DEFAULT_WINDOW_WIDTH, G_PARAM_READWRITE));
   g_object_class_install_property (gobject_class, PROP_WINDOW_HEIGHT,
-      g_param_spec_uint ("window-height", "", "", 0, 4096, 1080,
-          G_PARAM_READWRITE));
+      g_param_spec_uint ("window-height", "Default window width",
+          "Default window height used when rendering", 0, 4096,
+          DEFAULT_WINDOW_HEIGHT, G_PARAM_READWRITE));
 
   /* Here we register a Pad Template called "src" which the base class will
    * use to instantiate the src pad. */
@@ -1731,8 +1736,12 @@ gst_ttmlrender_init (GstTTMLRender * render)
   gst_ttmlrender_pango_attr_reverse_oblique_klass.type =
       pango_attr_type_register ("ReverseOblique");
 
+  /* Set default property values */
   render->default_font_family = g_strdup ("Serif");
   render->default_font_size = NULL;
+  render->window_width = DEFAULT_WINDOW_WIDTH;
+  render->window_height = DEFAULT_WINDOW_HEIGHT;
+
   render->cached_images = NULL;
 
   render->downloader = fludownloader_helper_downloader_new (NULL);
