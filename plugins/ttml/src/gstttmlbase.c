@@ -923,7 +923,11 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
    * the interlaced field. Sadly, if we dont fixate like this, the pad
    * can not have non-fixed caps
    */
+#if GST_CHECK_VERSION (1,0,0)
+  src_caps = gst_caps_fixate (src_caps);
+#else
   gst_pad_fixate_caps (base->srcpad, src_caps);
+#endif
 
   GST_DEBUG_OBJECT (base, "setting caps %" GST_PTR_FORMAT, src_caps);
   gst_pad_set_caps (base->srcpad, src_caps);
