@@ -210,12 +210,7 @@ gst_ttml_event_list_flush (GList * timeline,
   GstTTMLEvent *event;
   GstClockTime time = GST_CLOCK_TIME_NONE;
 
-  if (!timeline) {
-    /* Empty timeline, nothing to do */
-    return timeline;
-  }
-
-  do {
+  while (timeline) {
     timeline = gst_ttml_event_list_get_next (timeline, &event);
 
     if (event->timestamp != time && GST_CLOCK_TIME_IS_VALID (time)) {
@@ -224,11 +219,6 @@ gst_ttml_event_list_flush (GList * timeline,
     time = event->timestamp;
     timeline = parse (event, userdata, timeline);
   } while (timeline);
-
-  /* Generate one last buffer to clear the last span. It will be empty,
-   * because the timeline is empty, so its duration does not really matter.
-   */
-  gen_buffer (time, time + 1, userdata);
 
   return timeline;
 }

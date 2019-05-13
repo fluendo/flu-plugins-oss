@@ -456,26 +456,20 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
 
   setlocale (LC_NUMERIC, "C");
 
-  GST_LOG ("Parsing attribute %s=%s", name, value);
+  GST_LOG ("Parsing attribute  %s=%s", name, value);
   type = gst_ttml_utils_enum_parse (name, AttributeType);
   if (type == GST_TTML_ATTR_UNKNOWN) {
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
     goto beach;
   }
 
-  attr = g_new0 (GstTTMLAttribute, 1);
+  attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
 
   switch (attr->type) {
     case GST_TTML_ATTR_BEGIN:
-      attr->value.time =
-          gst_ttml_attribute_parse_time_expression (state, value);
-      break;
     case GST_TTML_ATTR_END:
-      attr->value.time =
-          gst_ttml_attribute_parse_time_expression (state, value);
-      break;
     case GST_TTML_ATTR_DUR:
       attr->value.time =
           gst_ttml_attribute_parse_time_expression (state, value);
@@ -538,17 +532,12 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           attr->value.fraction.num, attr->value.fraction.den);
       break;
     case GST_TTML_ATTR_COLOR:
+    case GST_TTML_ATTR_BACKGROUND_COLOR:
+    case GST_TTML_ATTR_BACKGROUND_REGION_COLOR:
       if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,
               NULL))
         GST_WARNING ("Could not understand color expression '%s'", value);
       GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
-      break;
-    case GST_TTML_ATTR_BACKGROUND_COLOR:
-      if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,
-              NULL))
-        GST_WARNING ("Could not understand color expression '%s'", value);
-      GST_LOG ("Parsed '%s' background color into #%08X", value,
-          attr->value.color);
       break;
     case GST_TTML_ATTR_DISPLAY:
       attr->value.b = gst_ttml_utils_attr_value_is (value, "auto");
@@ -915,11 +904,16 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
               LengthUnit));
       break;
     default:
-      GST_WARNING ("Attribute not implemented");
+      GST_WARNING ("Attribute not implemented parsing: %s=%s", name, value);
       /* We should never reach here, anyway, dispose of the useless attribute */
       g_free (attr);
       attr = NULL;
-      break;
+      goto beach;
+  }
+
+  if (!attr->value.string) {
+    GST_LOG ("No string assigned, assigning original string");
+    attr->value.string = g_strdup (value);
   }
 
 beach:
@@ -982,8 +976,6 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
     case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
       break;
     case GST_TTML_ATTR_COLOR:
-      ret = gst_ttml_attribute_dump_color_expression (attr->value.color);
-      break;
     case GST_TTML_ATTR_BACKGROUND_COLOR:
       ret = gst_ttml_attribute_dump_color_expression (attr->value.color);
       break;
@@ -1034,6 +1026,7 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
     case GST_TTML_ATTR_TEXTOUTLINE:
       break;
     case GST_TTML_ATTR_ZINDEX:
+      ret = g_strdup_printf ("%d", attr->value.i);
       break;
     case GST_TTML_ATTR_LINE_HEIGHT:
       break;
@@ -1072,8 +1065,13 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
     case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL:
       break;
     default:
-      GST_WARNING ("Attribute not implemented");
       break;
+  }
+  if (!ret && attr->value.string) {
+    ret = g_strdup (attr->value.string);
+  }
+  if (!ret) {
+    GST_WARNING ("dump failed");
   }
   return ret;
 }
@@ -1086,17 +1084,9 @@ gst_ttml_attribute_free (GstTTMLAttribute * attr)
   if (!attr)
     return;
 
-  switch (attr->type) {
-    case GST_TTML_ATTR_ID:
-    case GST_TTML_ATTR_STYLE:
-    case GST_TTML_ATTR_FONT_FAMILY:
-    case GST_TTML_ATTR_REGION:
-    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
-      g_free (attr->value.string);
-      break;
-    default:
-      break;
-  }
+  if (attr->value.string)
+    g_free (attr->value.string);
+
   if (attr->timeline) {
     g_list_free_full (attr->timeline,
         (GDestroyNotify) gst_ttml_attribute_event_free);
@@ -1117,20 +1107,12 @@ GstTTMLAttribute *
 gst_ttml_attribute_copy (const GstTTMLAttribute * src,
     gboolean include_timeline)
 {
-  GstTTMLAttribute *dest = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *dest = gst_ttml_attribute_new ();
   dest->type = src->type;
-  switch (src->type) {
-    case GST_TTML_ATTR_ID:
-    case GST_TTML_ATTR_STYLE:
-    case GST_TTML_ATTR_FONT_FAMILY:
-    case GST_TTML_ATTR_REGION:
-    case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
-      dest->value.string = g_strdup (src->value.string);
-      break;
-    default:
-      dest->value = src->value;
-      break;
-  }
+  memcpy (&dest->value, &src->value, sizeof (dest->value));
+  if (src->value.string)
+    dest->value.string = g_strdup (src->value.string);
+
   if (src->timeline && include_timeline) {
     /* Copy the timeline too */
     GList *link = dest->timeline = g_list_copy (src->timeline);
@@ -1148,12 +1130,20 @@ gst_ttml_attribute_copy (const GstTTMLAttribute * src,
   return dest;
 }
 
+/* Create a new attribute. */
+GstTTMLAttribute *
+gst_ttml_attribute_new ()
+{
+  GstTTMLAttribute *attr = g_new0 (GstTTMLAttribute, 1);
+  return attr;
+}
+
 /* Create a new "node_type" attribute. Typically, attribute types are created
  * in the _attribute_parse() method above. */
 GstTTMLAttribute *
 gst_ttml_attribute_new_node (GstTTMLNodeType node_type)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = GST_TTML_ATTR_NODE_TYPE;
   attr->timeline = NULL;
   attr->value.node_type = node_type;
@@ -1165,7 +1155,7 @@ gst_ttml_attribute_new_node (GstTTMLNodeType node_type)
 GstTTMLAttribute *
 gst_ttml_attribute_new_boolean (GstTTMLAttributeType type, gboolean b)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
   attr->value.b = b;
@@ -1177,7 +1167,7 @@ gst_ttml_attribute_new_boolean (GstTTMLAttributeType type, gboolean b)
 GstTTMLAttribute *
 gst_ttml_attribute_new_int (GstTTMLAttributeType type, gint i)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
   attr->value.i = i;
@@ -1189,7 +1179,7 @@ gst_ttml_attribute_new_int (GstTTMLAttributeType type, gint i)
 GstTTMLAttribute *
 gst_ttml_attribute_new_time (GstTTMLAttributeType type, GstClockTime time)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
   attr->value.time = time;
@@ -1201,7 +1191,7 @@ gst_ttml_attribute_new_time (GstTTMLAttributeType type, GstClockTime time)
 GstTTMLAttribute *
 gst_ttml_attribute_new_string (GstTTMLAttributeType type, const gchar * str)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
   attr->value.string = g_strdup (str);
@@ -1213,7 +1203,7 @@ gst_ttml_attribute_new_string (GstTTMLAttributeType type, const gchar * str)
 GstTTMLAttribute *
 gst_ttml_attribute_new_double (GstTTMLAttributeType type, gdouble d)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
   attr->value.d = d;
@@ -1225,7 +1215,7 @@ gst_ttml_attribute_new_double (GstTTMLAttributeType type, gdouble d)
 GstTTMLAttribute *
 gst_ttml_attribute_new_fraction (GstTTMLAttributeType type, gint num, gint den)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
   attr->timeline = NULL;
   attr->value.fraction.num = num;
@@ -1238,7 +1228,7 @@ gst_ttml_attribute_new_fraction (GstTTMLAttributeType type, gint num, gint den)
 GstTTMLAttribute *
 gst_ttml_attribute_new_style_removal (GstTTMLAttributeType removed_style)
 {
-  GstTTMLAttribute *attr = g_new (GstTTMLAttribute, 1);
+  GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = GST_TTML_ATTR_STYLE_REMOVAL;
   attr->timeline = NULL;
   attr->value.removed_attribute_type = removed_style;
