@@ -71,7 +71,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   {"textDecoration", GST_TTML_ATTR_TEXT_DECORATION},
   {"origin", GST_TTML_ATTR_ORIGIN},
   {"extent", GST_TTML_ATTR_EXTENT},
-  {"regionColor", GST_TTML_ATTR_BACKGROUND_REGION_COLOR},       /* non-existant */
+  {"regionColor", GST_TTML_ATTR_BACKGROUND_REGION_COLOR},
   {"textAlign", GST_TTML_ATTR_TEXT_ALIGN},
   {"displayAlign", GST_TTML_ATTR_DISPLAY_ALIGN},
   {"overflow", GST_TTML_ATTR_OVERFLOW},
@@ -92,7 +92,7 @@ const GstTTMLToken GstTTMLUtilsTokensAttributeTypeInternal[] = {
   {"encoding", GST_TTML_ATTR_SMPTE_ENCODING},
   {"backgroundImage", GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE},
   {"backgroundImageHorizontal",
-        GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL},
+      GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL},
   {"backgroundImageVertical", GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL},
   {NULL, GST_TTML_ATTR_UNKNOWN}
 };

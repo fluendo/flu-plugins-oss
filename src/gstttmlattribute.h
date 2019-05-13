@@ -31,32 +31,34 @@ struct _GstTTMLTextOutline {
 /* A stored attribute */
 struct _GstTTMLAttribute {
   GstTTMLAttributeType type;
-  union _GstTTMLAttributeValue {
-    GstTTMLNodeType node_type;
-    GstClockTime time;
-    gdouble d;
-    gint i;
-    gboolean b;
-    GstTTMLFraction fraction;
+  struct _GstTTMLAttributeValue {
     gchar *string;
-    guint32 color;
-    GstTTMLFontStyle font_style;
-    GstTTMLLength raw_length[4];
-    GstTTMLFontWeight font_weight;
-    GstTTMLTextDecoration text_decoration;
-    GstTTMLTextAlign text_align;
-    GstTTMLDisplayAlign display_align;
-    GstTTMLTextOutline text_outline;
-    GstTTMLWrapOption wrap_option;
-    GstTTMLShowBackground show_background;
-    GstTTMLSMPTEImageType smpte_image_type;
-    GstTTMLSMPTEEncoding smpte_encoding;
-    GstTTMLAttributeType removed_attribute_type;
-    GstTTMLTimeBase time_base;
-    GstTTMLClockMode clock_mode;
-    GstTTMLUnicodeBIDI unicode_bidi;
-    GstTTMLDirection direction;
-    GstTTMLWritingMode writing_mode;
+    union {
+      GstTTMLNodeType node_type;
+      GstClockTime time;
+      gdouble d;
+      gint i;
+      gboolean b;
+      GstTTMLFraction fraction;
+      guint32 color;
+      GstTTMLFontStyle font_style;
+      GstTTMLLength raw_length[4];
+      GstTTMLFontWeight font_weight;
+      GstTTMLTextDecoration text_decoration;
+      GstTTMLTextAlign text_align;
+      GstTTMLDisplayAlign display_align;
+      GstTTMLTextOutline text_outline;
+      GstTTMLWrapOption wrap_option;
+      GstTTMLShowBackground show_background;
+      GstTTMLSMPTEImageType smpte_image_type;
+      GstTTMLSMPTEEncoding smpte_encoding;
+      GstTTMLAttributeType removed_attribute_type;
+      GstTTMLTimeBase time_base;
+      GstTTMLClockMode clock_mode;
+      GstTTMLUnicodeBIDI unicode_bidi;
+      GstTTMLDirection direction;
+      GstTTMLWritingMode writing_mode;
+    };
   } value;
   GList *timeline;
 };
@@ -78,6 +80,8 @@ void gst_ttml_attribute_event_free (GstTTMLAttributeEvent *attr_event);
 
 GstTTMLAttribute *gst_ttml_attribute_copy (const GstTTMLAttribute *src,
       gboolean include_timeline);
+
+GstTTMLAttribute *gst_ttml_attribute_new ();
 
 GstTTMLAttribute *gst_ttml_attribute_new_node (GstTTMLNodeType node_type);
 

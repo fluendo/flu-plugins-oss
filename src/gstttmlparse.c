@@ -49,6 +49,9 @@ gst_ttmlparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   GstMapInfo map_info;
   GstTTMLSpan span = { 0 };
 
+  GST_DEBUG_OBJECT (base, "Generating a new buffer atr %" GST_TIME_FORMAT
+      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
+
   if (base->active_spans == NULL) {
     /* Empty span list: Generate empty text buffer that textrender accepts */
     buffer = gst_buffer_new_and_alloc (1);

@@ -1381,7 +1381,7 @@ gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
       g_param_spec_boolean ("force_buffer_clear", "Force buffer clear",
           "Output an empty buffer after each text buffer to force its "
           "removal. Only needed for text renderers which do not honor "
-          "buffer durations.", FALSE, G_PARAM_READWRITE));
+          "buffer durations.", TRUE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =
@@ -1419,7 +1419,7 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   base->timeline = NULL;
 
   base->assume_ordered_spans = FALSE;
-  base->force_buffer_clear = FALSE;
+  base->force_buffer_clear = TRUE;
 
   base->state.attribute_stack = NULL;
   gst_ttml_state_reset (&base->state);
@@ -1430,7 +1430,8 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   gst_ttmlbase_cleanup (base);
   gstflu_demo_reset_statistics (&base->stats);
 
-  base->state.frame_width = base->state.frame_height = 0;
+  base->state.frame_width = 0;
+  base->state.frame_height = 0;
 }
 
 GType
