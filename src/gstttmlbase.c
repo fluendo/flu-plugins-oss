@@ -123,10 +123,24 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   }
 
   if (!base->segment) {
+    GstClockTime start;
+
     /* We have not received any newsegment from upstream, make our own */
     base->segment = gst_segment_new ();
+    /* It might happen that we need to push a clear buffer, if so, and we
+     * don't have configured any new segment yet, we'll choose the input
+     * buffer timestamp as newsgement start, but that is invalid for the
+     * clear buffer
+     */
+    if (!base->active_spans)
+      start = begin;
+    else
+      start = base->base_time;
     gst_segment_set_newsegment (base->segment, FALSE, 1.0, GST_FORMAT_TIME,
-        base->base_time, -1, 0);
+        start, -1, 0);
+    GST_DEBUG_OBJECT (base, "Generating a new segment start:%" GST_TIME_FORMAT
+        " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
+        GST_TIME_ARGS (base->segment->stop));
   }
 
   in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
