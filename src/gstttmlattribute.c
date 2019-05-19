@@ -456,7 +456,7 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
 
   setlocale (LC_NUMERIC, "C");
 
-  GST_LOG ("Parsing attribute  %s=%s", name, value);
+  GST_LOG ("Parsing attribute %s=%s", name, value);
   type = gst_ttml_utils_enum_parse (name, AttributeType);
   if (type == GST_TTML_ATTR_UNKNOWN) {
     GST_DEBUG ("  Skipping unknown attribute: %s=%s", name, value);
@@ -1084,8 +1084,7 @@ gst_ttml_attribute_free (GstTTMLAttribute * attr)
   if (!attr)
     return;
 
-  if (attr->value.string)
-    g_free (attr->value.string);
+  g_free (attr->value.string);
 
   if (attr->timeline) {
     g_list_free_full (attr->timeline,

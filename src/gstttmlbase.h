@@ -24,6 +24,7 @@ typedef struct _GstTTMLBase {
   GstPad *srcpad;
 
   GstSegment *segment;
+  GstSegment *pending_segment;
   gboolean newsegment_needed;
   GstClockTime base_time;
   GstFlowReturn current_gst_status;
@@ -42,6 +43,8 @@ typedef struct _GstTTMLBase {
   /* Timeline management */
   GList *timeline;
   GstClockTime last_event_timestamp;
+  GstClockTime last_out_time;
+
 
   /* Active span list */
   GList *active_spans;
