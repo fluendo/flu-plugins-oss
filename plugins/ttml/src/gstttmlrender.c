@@ -466,12 +466,6 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender * render,
   region->opacity = attr ? attr->value.d : 1.0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
-  if (attr)
-    GST_LOG ("attr origin='%s'=[%g(%s),%g(%s)]", attr->value.string,
-        attr->value.raw_length[0].f,
-        gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
-        attr->value.raw_length[1].f,
-        gst_ttml_utils_enum_name (attr->value.raw_length[1].unit, LengthUnit));
   region->originx =
       attr ? gst_ttml_attribute_get_normalized_length (&render->base.state,
       NULL, attr, 0, 0, NULL) : 0;
@@ -1549,7 +1543,7 @@ gst_ttmlrender_setcaps (GstTTMLBase * base, GstCaps * caps)
   gst_structure_get_int (structure, "width", &width);
   gst_structure_get_int (structure, "height", &height);
 
-  GST_DEBUG_OBJECT (render, "Got frame size %d x %d", width, height);
+  GST_DEBUG_OBJECT (render, "Got frame size %dx%d", width, height);
 
   render->base.state.frame_width = width;
   render->base.state.frame_height = height;
