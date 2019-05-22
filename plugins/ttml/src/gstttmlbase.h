@@ -44,7 +44,7 @@ typedef struct _GstTTMLBase {
   GList *timeline;
   GstClockTime last_event_timestamp;
   GstClockTime last_out_time;
-
+  GstClockTime last_in_time;
 
   /* Active span list */
   GList *active_spans;
