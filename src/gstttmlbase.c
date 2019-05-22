@@ -972,13 +972,20 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
   const char *buffer_data;
   int buffer_len;
   GstMapInfo map;
+  GstClockTime ts, dur;
 
   base = GST_TTMLBASE (gst_pad_get_parent (pad));
   base->current_gst_status = GST_FLOW_OK;
 
-  GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT,
-      (guint) gst_buffer_get_size (buffer),
-      GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)));
+  ts = GST_BUFFER_TIMESTAMP (buffer);
+  dur = GST_BUFFER_DURATION (buffer);
+  GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT
+      "dur %" GST_TIME_FORMAT, (guint) gst_buffer_get_size (buffer),
+      GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
+
+  if (GST_CLOCK_STIME_IS_VALID (ts) && GST_CLOCK_STIME_IS_VALID (dur)) {
+    base->last_in_time = ts + dur;
+  }
 
   gst_buffer_map (buffer, &map, GST_MAP_READ);
   buffer_data = (const char *) map.data;
@@ -1182,6 +1189,7 @@ gst_ttmlbase_cleanup (GstTTMLBase * base)
   base->newsegment_needed = TRUE;
   base->current_gst_status = GST_FLOW_OK;
   base->last_out_time = 0;
+  base->last_in_time = 0;
   base->last_event_timestamp = 0;
 
   gst_ttmlbase_reset (base);

@@ -217,10 +217,14 @@ gst_ttml_event_list_flush (GList * timeline,
 
     /* if there's a gap since last buffer out, generate clear buffer */
     if (event->timestamp > base->last_out_time && base->force_buffer_clear) {
-      gen_buffer (time, event->timestamp, userdata);
+      gen_buffer (time, event->timestamp, base);
     }
     timeline = parse (event, userdata, timeline);
-  } while (timeline);
+  }
+
+  if (base->last_out_time < base->last_in_time && base->force_buffer_clear) {
+    gen_buffer (base->last_out_time, base->last_in_time, base);
+  }
 
   return timeline;
 }
