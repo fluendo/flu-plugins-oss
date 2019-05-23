@@ -11,6 +11,7 @@
 #include "gstttmlevent.h"
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
+#include "gstttmlbase.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
@@ -88,7 +89,7 @@ gst_ttml_event_new_span_end (GstTTMLState * state, guint id)
   /* Substracting one nanosecond is a cheap way of making intervals
    * open on the right */
   if (GST_CLOCK_TIME_IS_VALID (state->end))
-    event->timestamp = state->end - 1;
+    event->timestamp = state->end;
   else
     event->timestamp = state->end;
   event->type = GST_TTML_EVENT_TYPE_SPAN_END;
@@ -207,28 +208,23 @@ gst_ttml_event_list_flush (GList * timeline,
     GstTTMLEventParseFunc parse, GstTTMLEventGenBufferFunc gen_buffer,
     void *userdata)
 {
+  GstTTMLBase *base = userdata;
   GstTTMLEvent *event;
-  GstClockTime time = GST_CLOCK_TIME_NONE;
+  GstClockTime time = base->last_out_time;
 
-  if (!timeline) {
-    /* Empty timeline, nothing to do */
-    return timeline;
-  }
-
-  do {
+  while (timeline) {
     timeline = gst_ttml_event_list_get_next (timeline, &event);
 
-    if (event->timestamp != time && GST_CLOCK_TIME_IS_VALID (time)) {
-      gen_buffer (time, event->timestamp, userdata);
+    /* if there's a gap since last buffer out, generate clear buffer */
+    if (event->timestamp > base->last_out_time && base->force_buffer_clear) {
+      gen_buffer (time, event->timestamp, base);
     }
-    time = event->timestamp;
     timeline = parse (event, userdata, timeline);
-  } while (timeline);
+  }
 
-  /* Generate one last buffer to clear the last span. It will be empty,
-   * because the timeline is empty, so its duration does not really matter.
-   */
-  gen_buffer (time, time + 1, userdata);
+  if (base->last_out_time < base->last_in_time && base->force_buffer_clear) {
+    gen_buffer (base->last_out_time, base->last_in_time, base);
+  }
 
   return timeline;
 }

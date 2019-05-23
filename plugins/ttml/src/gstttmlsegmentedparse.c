@@ -52,10 +52,10 @@ gst_ttmlsegmentedparse_attr_dump (GstTTMLAttribute * attr,
   if (attr_val && attr_name) {
     xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
         LIBXML_CHAR attr_val);
+  } else if (attr_name) {
+    GST_WARNING ("couldn't dump attrib %s", attr_name);
   }
-
-  if (attr_val)
-    g_free (attr_val);
+  g_free (attr_val);
 }
 
 static void
@@ -172,6 +172,9 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlBufferPtr buf;
   xmlTextWriterPtr writer;
 
+  GST_DEBUG_OBJECT (base, "Generating buffer at %" GST_TIME_FORMAT
+      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
+
   buf = xmlBufferCreate ();
   writer = xmlNewTextWriterMemory (buf, 0);
   /* <?xml version="1.0" encoding="utf-8"?> */
@@ -217,6 +220,7 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlFreeTextWriter (writer);
 
   GST_MEMDUMP ("TTML:", buf->content, buf->use);
+
   /* FIXME we copy for now, we can use the buffer directly
    * but we need it to do for 0.10 and 1.0 */
   buffer = gst_buffer_new_and_alloc (buf->use);

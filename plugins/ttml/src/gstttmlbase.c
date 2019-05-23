@@ -98,6 +98,14 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   gint64 clip_start = 0, clip_stop = 0;
 #endif
 
+  GST_DEBUG_OBJECT (base, "gen_buffer %" GST_TIME_FORMAT
+      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (begin), GST_TIME_ARGS (end));
+  if (begin < base->last_out_time) {
+    begin = base->last_out_time;
+    GST_DEBUG_OBJECT (base, "adjusted %" GST_TIME_FORMAT
+        " - %" GST_TIME_FORMAT, GST_TIME_ARGS (begin), GST_TIME_ARGS (end));
+  }
+
   /* Last chance to set the src pad's caps. It can happen (when linking with
    * a filesrc, for example) that the 0.10 set_caps function is never called.
    * Same thing happens with the 1.0 GST_EVENT_CAPS.
@@ -123,10 +131,24 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   }
 
   if (!base->segment) {
+    GstClockTime start;
+
     /* We have not received any newsegment from upstream, make our own */
     base->segment = gst_segment_new ();
+    /* It might happen that we need to push a clear buffer, if so, and we
+     * don't have configured any new segment yet, we'll choose the input
+     * buffer timestamp as newsgement start, but that is invalid for the
+     * clear buffer
+     */
+    if (!base->active_spans)
+      start = begin;
+    else
+      start = base->base_time;
     gst_segment_set_newsegment (base->segment, FALSE, 1.0, GST_FORMAT_TIME,
-        base->base_time, -1, 0);
+        start, -1, 0);
+    GST_DEBUG_OBJECT (base, "Generating a new segment start:%" GST_TIME_FORMAT
+        " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
+        GST_TIME_ARGS (base->segment->stop));
   }
 
   in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
@@ -167,6 +189,7 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
 
     base->current_gst_status = gstflu_demo_push_buffer (&base->stats,
         base->sinkpad, base->srcpad, buffer);
+    base->last_out_time = clip_stop;
   } else {
     GST_DEBUG_OBJECT (base, "Buffer is out of segment (pts %"
         GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
@@ -345,7 +368,6 @@ gst_ttmlbase_add_region (GstTTMLBase * base)
   gst_ttml_attribute_free (attr);
 
   base->last_event_timestamp = timestamp;
-
 }
 
 /* Adds the found chars to the embedded data string being constructed.
@@ -833,7 +855,6 @@ gst_ttmlbase_reset (GstTTMLBase * base)
     g_list_free_full (base->timeline, (GDestroyNotify) gst_ttml_event_free);
     base->timeline = NULL;
   }
-  base->last_event_timestamp = GST_CLOCK_TIME_NONE;
 
   if (base->active_spans) {
     g_list_free_full (base->active_spans, (GDestroyNotify) gst_ttml_span_free);
@@ -951,13 +972,20 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
   const char *buffer_data;
   int buffer_len;
   GstMapInfo map;
+  GstClockTime ts, dur;
 
   base = GST_TTMLBASE (gst_pad_get_parent (pad));
   base->current_gst_status = GST_FLOW_OK;
 
-  GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT,
-      (guint) gst_buffer_get_size (buffer),
-      GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)));
+  ts = GST_BUFFER_TIMESTAMP (buffer);
+  dur = GST_BUFFER_DURATION (buffer);
+  GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT
+      "dur %" GST_TIME_FORMAT, (guint) gst_buffer_get_size (buffer),
+      GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
+
+  if (GST_CLOCK_STIME_IS_VALID (ts) && GST_CLOCK_STIME_IS_VALID (dur)) {
+    base->last_in_time = ts + dur;
+  }
 
   gst_buffer_map (buffer, &map, GST_MAP_READ);
   buffer_data = (const char *) map.data;
@@ -1146,14 +1174,29 @@ gst_ttmlbase_cleanup (GstTTMLBase * base)
   if (base->segment) {
     gst_segment_init (base->segment, GST_FORMAT_TIME);
   }
+
+  if (base->pending_segment) {
+    GST_DEBUG_OBJECT (base, "We have a pending new segment at start:%"
+        GST_TIME_FORMAT " stop:%" GST_TIME_FORMAT " using it",
+        GST_TIME_ARGS (base->pending_segment->start),
+        GST_TIME_ARGS (base->pending_segment->stop));
+    if (base->segment)
+      gst_segment_free (base->segment);
+    base->segment = base->pending_segment;
+    base->pending_segment = NULL;
+  }
+
   base->newsegment_needed = TRUE;
   base->current_gst_status = GST_FLOW_OK;
+  base->last_out_time = 0;
+  base->last_in_time = 0;
+  base->last_event_timestamp = 0;
 
   gst_ttmlbase_reset (base);
 }
 
 static gboolean
-gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
+gst_ttmlbase_handle_sink_event (GstPad * pad, GstEvent * event)
 {
   GstTTMLBase *base;
   gboolean ret = TRUE;
@@ -1184,8 +1227,9 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
       }
 
       GST_DEBUG_OBJECT (base, "received new segment update %d, rate %f, "
-          "start %" GST_TIME_FORMAT ", stop %" GST_TIME_FORMAT, update, rate,
-          GST_TIME_ARGS (start), GST_TIME_ARGS (stop));
+          "start %" GST_TIME_FORMAT ", stop %" GST_TIME_FORMAT
+          ", time %" GST_TIME_FORMAT, update, rate,
+          GST_TIME_ARGS (start), GST_TIME_ARGS (stop), GST_TIME_ARGS (time));
 
       GST_DEBUG_OBJECT (base, "our segment was %" GST_SEGMENT_FORMAT,
           base->segment);
@@ -1196,11 +1240,24 @@ gst_ttmlbase_handle_event (GstPad * pad, GstEvent * event)
       gst_segment_set_newsegment (base->segment, update, rate, format, start,
           stop, time);
 
+      base->last_event_timestamp = start;
+      base->last_out_time = start;
+
       GST_DEBUG_OBJECT (base, "our segment now is %" GST_SEGMENT_FORMAT,
           base->segment);
       break;
     }
     case GST_EVENT_FLUSH_STOP:
+      /* FIXME we have a race condition when seeking/flushing. The FLUSH_START
+       * triggers a flush in the src pad that causes that every gst_pad_push()
+       * will return GST_FLOW_WRONG_STATE, therefore the the streaming thread
+       * that is iterating over the list of ttml events to render will take time
+       * to clean it up.
+       * After the FLUSH_START we'll receive the FLUSH_STOP where we are just
+       * cleaning the list of attributes/tineline but the chain might be still
+       * using it. Remember, FLUSH_START/FLUSH_STOP might come from different
+       * threads
+       */
       GST_DEBUG_OBJECT (base, "Flushing TTML parser");
       gst_ttmlbase_cleanup (base);
       ret = gst_pad_push_event (base->srcpad, event);
@@ -1222,10 +1279,142 @@ beach:
   return ret;
 }
 
+static gboolean
+gst_ttmlbase_do_seek (GstTTMLBase * base, GstEvent * seek)
+{
+  GstSeekFlags flags;
+  gdouble rate;
+  gint64 stop;
+  gint64 start;
+  gboolean ret;
+
+  /* set our new segment to the request seek parameters */
+  gst_event_parse_seek (seek, &rate, NULL, &flags, NULL, &start, NULL, &stop);
+  if (!base->pending_segment)
+    base->pending_segment = gst_segment_new ();
+
+  GST_DEBUG_OBJECT (base, "Seeking to start:%" GST_TIME_FORMAT " stop:%"
+      GST_TIME_FORMAT, GST_TIME_ARGS (start), GST_TIME_ARGS (stop));
+  gst_segment_set_newsegment (base->pending_segment, FALSE, rate,
+      GST_FORMAT_TIME, start, stop, 0);
+  gst_event_unref (seek);
+
+  /* do a 0, -1 seek upstream in bytes */
+  seek = gst_event_new_seek (1.0, GST_FORMAT_BYTES, flags, GST_SEEK_TYPE_SET,
+      0, GST_SEEK_TYPE_SET, -1);
+  ret = gst_pad_push_event (base->sinkpad, seek);
+
+  return ret;
+}
+
+static gboolean
+gst_ttmlbase_handle_src_event (GstPad * pad, GstEvent * event)
+{
+  GstTTMLBase *base;
+  gboolean ret = TRUE;
+
+  base = GST_TTMLBASE (gst_pad_get_parent (pad));
+
+  GST_LOG_OBJECT (base, "handling event %s", GST_EVENT_TYPE_NAME (event));
+
+  switch (GST_EVENT_TYPE (event)) {
+    case GST_EVENT_SEEK:{
+      GstFormat format;
+
+      /* check if TIME format, the only format we support */
+      gst_event_parse_seek (event, NULL, &format, NULL, NULL, NULL, NULL, NULL);
+      if (format == GST_FORMAT_TIME) {
+        GstQuery *upstream;
+
+        upstream = gst_query_new_seeking (GST_FORMAT_TIME);
+        if (!gst_pad_peer_query (base->sinkpad, upstream)) {
+          gst_query_unref (upstream);
+          upstream = gst_query_new_seeking (GST_FORMAT_BYTES);
+          if (!gst_pad_peer_query (base->sinkpad, upstream)) {
+            ret = FALSE;
+          } else {
+            /* upstream handles in bytes, let's seek there and clip ourselves */
+            ret = gst_ttmlbase_do_seek (base, event);
+            event = NULL;
+          }
+        } else {
+          /* upstream handles in time, forward the seek event */
+          ret = gst_pad_push_event (base->sinkpad, event);
+          event = NULL;
+
+        }
+        gst_query_unref (upstream);
+      } else {
+        ret = FALSE;
+      }
+      break;
+    }
+
+    default:
+      ret = gst_pad_push_event (base->sinkpad, event);
+      event = NULL;
+      break;
+  }
+
+  if (event) {
+    /* If we haven't pushed the event upstream, then unref it */
+    gst_event_unref (event);
+  }
+  gst_object_unref (base);
+
+  return ret;
+}
+
+static gboolean
+gst_ttmlbase_handle_src_query (GstPad * pad, GstQuery * query)
+{
+  GstTTMLBase *base;
+  gboolean ret = TRUE;
+
+  base = GST_TTMLBASE (gst_pad_get_parent (pad));
+
+  GST_LOG_OBJECT (base, "handling query %s", GST_QUERY_TYPE_NAME (query));
+
+  switch (GST_QUERY_TYPE (query)) {
+    case GST_QUERY_SEEKING:{
+      GstFormat format;
+
+      /* we can seek on time if upstream handles on time or bytes */
+      gst_query_parse_seeking (query, &format, NULL, NULL, NULL);
+      if (format == GST_FORMAT_TIME) {
+        if (!gst_pad_peer_query (base->sinkpad, query)) {
+          GstQuery *upstream;
+
+          upstream = gst_query_new_seeking (GST_FORMAT_BYTES);
+          if (!gst_pad_peer_query (base->sinkpad, upstream)) {
+            ret = FALSE;
+          } else {
+            GST_DEBUG_OBJECT (base, "Upstream supports seeking on bytes");
+            gst_query_set_seeking (query, GST_FORMAT_TIME, TRUE, 0, -1);
+          }
+          gst_query_unref (upstream);
+        } else {
+          GST_DEBUG_OBJECT (base, "Upstream supports seeking on time");
+        }
+      } else {
+        ret = FALSE;
+      }
+      break;
+    }
+    default:
+      ret = gst_pad_peer_query (base->sinkpad, query);
+      break;
+  }
+
+  gst_object_unref (base);
+
+  return ret;
+}
+
 #if GST_CHECK_VERSION (1,0,0)
 
 static GstFlowReturn
-gst_ttmlbase_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
+gst_ttmlbase_sink_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
 {
   return gst_ttmlbase_handle_buffer (pad, buffer);
 }
@@ -1233,13 +1422,25 @@ gst_ttmlbase_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
 static gboolean
 gst_ttmlbase_sink_event (GstPad * pad, GstObject * parent, GstEvent * event)
 {
-  return gst_ttmlbase_handle_event (pad, event);
+  return gst_ttmlbase_handle_sink_event (pad, event);
+}
+
+static gboolean
+gst_ttmlbase_src_query (GstPad * pad, GstObject * parent, GstQuery * query)
+{
+  return gst_ttmlbase_handle_src_query (pad, query);
+}
+
+static gboolean
+gst_ttmlbase_src_event (GstPad * pad, GstObject * parent, GstEvent * event)
+{
+  return gst_ttmlbase_handle_src_event (pad, event);
 }
 
 #else
 
 static GstFlowReturn
-gst_ttmlbase_chain (GstPad * pad, GstBuffer * buffer)
+gst_ttmlbase_sink_chain (GstPad * pad, GstBuffer * buffer)
 {
   return gst_ttmlbase_handle_buffer (pad, buffer);
 }
@@ -1247,8 +1448,21 @@ gst_ttmlbase_chain (GstPad * pad, GstBuffer * buffer)
 static gboolean
 gst_ttmlbase_sink_event (GstPad * pad, GstEvent * event)
 {
-  return gst_ttmlbase_handle_event (pad, event);
+  return gst_ttmlbase_handle_sink_event (pad, event);
 }
+
+static gboolean
+gst_ttmlbase_src_query (GstPad * pad, GstQuery * query)
+{
+  return gst_ttmlbase_handle_src_query (pad, query);
+}
+
+static gboolean
+gst_ttmlbase_src_event (GstPad * pad, GstEvent * event)
+{
+  return gst_ttmlbase_handle_src_event (pad, event);
+}
+
 #endif
 
 static GstStateChangeReturn
@@ -1324,6 +1538,8 @@ gst_ttmlbase_set_property (GObject * object, guint prop_id,
       break;
     case PROP_FORCE_BUFFER_CLEAR:
       base->force_buffer_clear = g_value_get_boolean (value);
+      GST_DEBUG_OBJECT (base, "force_buffer_clear=%d",
+          base->force_buffer_clear);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1341,6 +1557,11 @@ gst_ttmlbase_dispose (GObject * object)
   if (base->segment) {
     gst_segment_free (base->segment);
     base->segment = NULL;
+  }
+
+  if (base->pending_segment) {
+    gst_segment_free (base->pending_segment);
+    base->pending_segment = NULL;
   }
 
   GST_CALL_PARENT (G_OBJECT_CLASS, dispose, (object));
@@ -1381,7 +1602,7 @@ gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
       g_param_spec_boolean ("force_buffer_clear", "Force buffer clear",
           "Output an empty buffer after each text buffer to force its "
           "removal. Only needed for text renderers which do not honor "
-          "buffer durations.", FALSE, G_PARAM_READWRITE));
+          "buffer durations.", TRUE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =
@@ -1399,13 +1620,17 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   gst_pad_set_event_function (base->sinkpad,
       GST_DEBUG_FUNCPTR (gst_ttmlbase_sink_event));
   gst_pad_set_chain_function (base->sinkpad,
-      GST_DEBUG_FUNCPTR (gst_ttmlbase_chain));
+      GST_DEBUG_FUNCPTR (gst_ttmlbase_sink_chain));
 
   /* Create src pad. A template named "src" should have been added by the
    * derived class. */
   src_pad_template =
       gst_element_class_get_pad_template (GST_ELEMENT_CLASS (klass), "src");
   base->srcpad = gst_pad_new_from_template (src_pad_template, "src");
+  gst_pad_set_event_function (base->srcpad,
+      GST_DEBUG_FUNCPTR (gst_ttmlbase_src_event));
+  gst_pad_set_query_function (base->srcpad,
+      GST_DEBUG_FUNCPTR (gst_ttmlbase_src_query));
 
   gst_element_add_pad (GST_ELEMENT (base), base->sinkpad);
   gst_element_add_pad (GST_ELEMENT (base), base->srcpad);
@@ -1419,7 +1644,7 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   base->timeline = NULL;
 
   base->assume_ordered_spans = FALSE;
-  base->force_buffer_clear = FALSE;
+  base->force_buffer_clear = TRUE;
 
   base->state.attribute_stack = NULL;
   gst_ttml_state_reset (&base->state);

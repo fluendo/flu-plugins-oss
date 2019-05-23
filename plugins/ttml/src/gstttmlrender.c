@@ -472,6 +472,9 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender * render,
   region->originy =
       attr ? gst_ttml_attribute_get_normalized_length (&render->base.state,
       NULL, attr, 1, 1, NULL) : 0;
+  GST_LOG_OBJECT (render, "origin=%d,%d frame=%d,%d", region->originx,
+      region->originy, render->base.state.frame_width,
+      render->base.state.frame_height);
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
   if (attr) {
@@ -1456,6 +1459,9 @@ gst_ttmlrender_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
 
+  GST_DEBUG_OBJECT (render, "Generating a new buffer at%" GST_TIME_FORMAT
+      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
+
   buffer =
       gst_buffer_new_and_alloc (render->base.state.frame_width *
       render->base.state.frame_height * 4);
@@ -1530,7 +1536,8 @@ gst_ttmlrender_setcaps (GstTTMLBase * base, GstCaps * caps)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
   GstStructure *structure;
-  gint width = 0, height = 0;
+  gint width = render->base.state.frame_width;
+  gint height = render->base.state.frame_height;
 
   structure = gst_caps_get_structure (caps, 0);
   gst_structure_get_int (structure, "width", &width);
