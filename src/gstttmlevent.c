@@ -210,14 +210,20 @@ gst_ttml_event_list_flush (GList * timeline,
 {
   GstTTMLBase *base = userdata;
   GstTTMLEvent *event;
-  GstClockTime time = base->last_out_time;
 
   while (timeline) {
     timeline = gst_ttml_event_list_get_next (timeline, &event);
 
     /* if there's a gap since last buffer out, generate clear buffer */
-    if (event->timestamp > base->last_out_time && base->force_buffer_clear) {
-      gen_buffer (time, event->timestamp, base);
+    if (base->force_buffer_clear) {
+      if (event->timestamp > base->last_out_time) {
+        gen_buffer (base->last_out_time, event->timestamp, base);
+      }
+    } else {
+      if (event->timestamp > base->last_event_timestamp) {
+        gen_buffer (base->last_event_timestamp, event->timestamp, base);
+        base->last_event_timestamp = event->timestamp;
+      }
     }
     timeline = parse (event, userdata, timeline);
   }

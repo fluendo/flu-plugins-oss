@@ -319,8 +319,6 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
 
   base->timeline =
       gst_ttml_style_gen_span_events (id, &base->state.style, base->timeline);
-
-  base->last_event_timestamp = event->timestamp;
 }
 
 /* Insert into the timeline new BEGIN and END events to handle this region. */
