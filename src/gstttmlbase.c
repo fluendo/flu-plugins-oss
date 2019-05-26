@@ -145,10 +145,12 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     else
       start = base->base_time;
     gst_segment_set_newsegment (base->segment, FALSE, 1.0, GST_FORMAT_TIME,
-        start, -1, 0);
+        start, -1, clip_start);
     GST_DEBUG_OBJECT (base, "Generating a new segment start:%" GST_TIME_FORMAT
-        " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
-        GST_TIME_ARGS (base->segment->stop));
+        " stop:%" GST_TIME_FORMAT " time:%" GST_TIME_FORMAT,
+        GST_TIME_ARGS (base->segment->start),
+        GST_TIME_ARGS (base->segment->stop),
+        GST_TIME_ARGS (base->segment->time));
   }
 
   in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
@@ -165,10 +167,13 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     if (G_UNLIKELY (base->newsegment_needed)) {
       GstEvent *event;
       event = gst_event_new_new_segment (FALSE, base->segment->rate,
-          base->segment->format, base->segment->start, base->segment->stop, 0);
+          base->segment->format, base->segment->start, base->segment->stop,
+          base->segment->time);
       GST_DEBUG_OBJECT (base, "Pushing newsegment start:%" GST_TIME_FORMAT
-          " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
-          GST_TIME_ARGS (base->segment->stop));
+          " stop:%" GST_TIME_FORMAT " time:%" GST_TIME_FORMAT,
+          GST_TIME_ARGS (base->segment->start),
+          GST_TIME_ARGS (base->segment->stop),
+          GST_TIME_ARGS (base->segment->time));
       gst_pad_push_event (base->srcpad, event);
       base->newsegment_needed = FALSE;
     }
@@ -1296,7 +1301,7 @@ gst_ttmlbase_do_seek (GstTTMLBase * base, GstEvent * seek)
   GST_DEBUG_OBJECT (base, "Seeking to start:%" GST_TIME_FORMAT " stop:%"
       GST_TIME_FORMAT, GST_TIME_ARGS (start), GST_TIME_ARGS (stop));
   gst_segment_set_newsegment (base->pending_segment, FALSE, rate,
-      GST_FORMAT_TIME, start, stop, 0);
+      GST_FORMAT_TIME, start, stop, start);
   gst_event_unref (seek);
 
   /* do a 0, -1 seek upstream in bytes */
