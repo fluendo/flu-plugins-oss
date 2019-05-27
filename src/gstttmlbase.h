@@ -38,11 +38,9 @@ typedef struct _GstTTMLBase {
 
   /* Properties */
   gboolean assume_ordered_spans;
-  gboolean force_buffer_clear;
 
   /* Timeline management */
   GList *timeline;
-  GstClockTime last_event_timestamp;
   GstClockTime last_out_time;
   GstClockTime last_in_time;
 
