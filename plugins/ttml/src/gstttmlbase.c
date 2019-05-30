@@ -29,7 +29,6 @@ enum
 {
   PROP_0,
   PROP_ASSUME_ORDERED_SPANS,
-  PROP_FORCE_BUFFER_CLEAR
 };
 
 static GstStaticPadTemplate ttmlbase_sink_template =
@@ -120,11 +119,6 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
   if (base->current_gst_status != GST_FLOW_OK)
     return;
 
-  /* If there are no spans, check if a cleaning buffer if required */
-  if (!base->active_spans && !base->force_buffer_clear) {
-    return;
-  }
-
   /* Compose output buffer based on currently active spans */
   if (!klass->gen_buffer) {
     return;
@@ -145,10 +139,12 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     else
       start = base->base_time;
     gst_segment_set_newsegment (base->segment, FALSE, 1.0, GST_FORMAT_TIME,
-        start, -1, 0);
+        start, -1, clip_start);
     GST_DEBUG_OBJECT (base, "Generating a new segment start:%" GST_TIME_FORMAT
-        " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
-        GST_TIME_ARGS (base->segment->stop));
+        " stop:%" GST_TIME_FORMAT " time:%" GST_TIME_FORMAT,
+        GST_TIME_ARGS (base->segment->start),
+        GST_TIME_ARGS (base->segment->stop),
+        GST_TIME_ARGS (base->segment->time));
   }
 
   in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
@@ -165,10 +161,13 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     if (G_UNLIKELY (base->newsegment_needed)) {
       GstEvent *event;
       event = gst_event_new_new_segment (FALSE, base->segment->rate,
-          base->segment->format, base->segment->start, base->segment->stop, 0);
+          base->segment->format, base->segment->start, base->segment->stop,
+          base->segment->time);
       GST_DEBUG_OBJECT (base, "Pushing newsegment start:%" GST_TIME_FORMAT
-          " stop:%" GST_TIME_FORMAT, GST_TIME_ARGS (base->segment->start),
-          GST_TIME_ARGS (base->segment->stop));
+          " stop:%" GST_TIME_FORMAT " time:%" GST_TIME_FORMAT,
+          GST_TIME_ARGS (base->segment->start),
+          GST_TIME_ARGS (base->segment->stop),
+          GST_TIME_ARGS (base->segment->time));
       gst_pad_push_event (base->srcpad, event);
       base->newsegment_needed = FALSE;
     }
@@ -288,8 +287,7 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
 
   /* If assuming ordered spans, as soon as our begin is later than the
    * latest event in the timeline, we can flush the timeline */
-  if (base->assume_ordered_spans &&
-      base->state.begin >= base->last_event_timestamp) {
+  if (base->assume_ordered_spans && base->state.begin > base->last_out_time) {
     base->timeline = gst_ttml_event_list_flush (base->timeline,
         (GstTTMLEventParseFunc) gst_ttmlbase_parse_event,
         (GstTTMLEventGenBufferFunc) gst_ttmlbase_gen_buffer, base);
@@ -314,8 +312,6 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
 
   base->timeline =
       gst_ttml_style_gen_span_events (id, &base->state.style, base->timeline);
-
-  base->last_event_timestamp = event->timestamp;
 }
 
 /* Insert into the timeline new BEGIN and END events to handle this region. */
@@ -323,7 +319,6 @@ static void
 gst_ttmlbase_add_region (GstTTMLBase * base)
 {
   GstTTMLEvent *event;
-  GstClockTime timestamp = 0;
   GstTTMLAttribute *attr;
 
   if (GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
@@ -350,13 +345,9 @@ gst_ttmlbase_add_region (GstTTMLBase * base)
   event = gst_ttml_event_new_region_begin (base->state.begin, base->state.id,
       &base->state.style);
   base->timeline = gst_ttml_event_list_insert (base->timeline, event);
-  if (event)
-    timestamp = event->timestamp;
 
   event = gst_ttml_event_new_region_end (base->state.end, base->state.id);
   base->timeline = gst_ttml_event_list_insert (base->timeline, event);
-  if (event)
-    timestamp = event->timestamp;
 
   base->timeline =
       gst_ttml_style_gen_region_events (base->state.id, &base->state.style,
@@ -367,7 +358,6 @@ gst_ttmlbase_add_region (GstTTMLBase * base)
   gst_ttml_state_pop_attribute (&base->state, &attr);
   gst_ttml_attribute_free (attr);
 
-  base->last_event_timestamp = timestamp;
 }
 
 /* Adds the found chars to the embedded data string being constructed.
@@ -1190,7 +1180,6 @@ gst_ttmlbase_cleanup (GstTTMLBase * base)
   base->current_gst_status = GST_FLOW_OK;
   base->last_out_time = 0;
   base->last_in_time = 0;
-  base->last_event_timestamp = 0;
 
   gst_ttmlbase_reset (base);
 }
@@ -1240,7 +1229,6 @@ gst_ttmlbase_handle_sink_event (GstPad * pad, GstEvent * event)
       gst_segment_set_newsegment (base->segment, update, rate, format, start,
           stop, time);
 
-      base->last_event_timestamp = start;
       base->last_out_time = start;
 
       GST_DEBUG_OBJECT (base, "our segment now is %" GST_SEGMENT_FORMAT,
@@ -1296,7 +1284,7 @@ gst_ttmlbase_do_seek (GstTTMLBase * base, GstEvent * seek)
   GST_DEBUG_OBJECT (base, "Seeking to start:%" GST_TIME_FORMAT " stop:%"
       GST_TIME_FORMAT, GST_TIME_ARGS (start), GST_TIME_ARGS (stop));
   gst_segment_set_newsegment (base->pending_segment, FALSE, rate,
-      GST_FORMAT_TIME, start, stop, 0);
+      GST_FORMAT_TIME, start, stop, start);
   gst_event_unref (seek);
 
   /* do a 0, -1 seek upstream in bytes */
@@ -1517,9 +1505,6 @@ gst_ttmlbase_get_property (GObject * object, guint prop_id, GValue * value,
     case PROP_ASSUME_ORDERED_SPANS:
       g_value_set_boolean (value, base->assume_ordered_spans);
       break;
-    case PROP_FORCE_BUFFER_CLEAR:
-      g_value_set_boolean (value, base->force_buffer_clear);
-      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1535,11 +1520,6 @@ gst_ttmlbase_set_property (GObject * object, guint prop_id,
   switch (prop_id) {
     case PROP_ASSUME_ORDERED_SPANS:
       base->assume_ordered_spans = g_value_get_boolean (value);
-      break;
-    case PROP_FORCE_BUFFER_CLEAR:
-      base->force_buffer_clear = g_value_get_boolean (value);
-      GST_DEBUG_OBJECT (base, "force_buffer_clear=%d",
-          base->force_buffer_clear);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1598,11 +1578,6 @@ gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
           "Generate buffers as soon as possible, by assuming that text "
           "spans will arrive in chronological order", FALSE,
           G_PARAM_READWRITE));
-  g_object_class_install_property (gobject_class, PROP_FORCE_BUFFER_CLEAR,
-      g_param_spec_boolean ("force_buffer_clear", "Force buffer clear",
-          "Output an empty buffer after each text buffer to force its "
-          "removal. Only needed for text renderers which do not honor "
-          "buffer durations.", TRUE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =
@@ -1644,7 +1619,6 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
   base->timeline = NULL;
 
   base->assume_ordered_spans = FALSE;
-  base->force_buffer_clear = TRUE;
 
   base->state.attribute_stack = NULL;
   gst_ttml_state_reset (&base->state);
