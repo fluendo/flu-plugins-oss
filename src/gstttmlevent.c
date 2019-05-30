@@ -214,6 +214,9 @@ gst_ttml_event_list_flush (GList * timeline,
   while (timeline) {
     timeline = gst_ttml_event_list_get_next (timeline, &event);
 
+    if (event->timestamp > base->input_buf_stop)
+      break;
+
     /* if there's a gap since last buffer out, generate clear buffer */
     if (event->timestamp > base->last_out_time) {
       gen_buffer (base->last_out_time, event->timestamp, base);
@@ -221,8 +224,8 @@ gst_ttml_event_list_flush (GList * timeline,
     timeline = parse (event, userdata, timeline);
   }
 
-  if (base->last_out_time < base->last_in_time) {
-    gen_buffer (base->last_out_time, base->last_in_time, base);
+  if (base->last_out_time < base->input_buf_stop) {
+    gen_buffer (base->last_out_time, base->input_buf_stop, base);
   }
 
   return timeline;
