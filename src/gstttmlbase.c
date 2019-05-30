@@ -973,9 +973,16 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
       "dur %" GST_TIME_FORMAT, (guint) gst_buffer_get_size (buffer),
       GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
 
-  if (GST_CLOCK_STIME_IS_VALID (ts) && GST_CLOCK_STIME_IS_VALID (dur)) {
-    base->last_in_time = ts + dur;
+  if (GST_CLOCK_TIME_IS_VALID (ts)) {
+    base->input_buf_start = ts;
+    base->input_buf_stop = GST_CLOCK_TIME_IS_VALID (dur) ?
+        ts + dur : GST_CLOCK_TIME_NONE;
+  } else {
+    base->input_buf_start = 0;
+    base->input_buf_stop = GST_CLOCK_TIME_NONE;
   }
+  if (!GST_CLOCK_TIME_IS_VALID (base->base_time))
+    base->base_time = base->input_buf_start;
 
   gst_buffer_map (buffer, &map, GST_MAP_READ);
   buffer_data = (const char *) map.data;
@@ -983,17 +990,6 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
   do {
     const char *next_buffer_data = NULL;
     int next_buffer_len = 0;
-
-    /* Store buffer timestamp. All future timestamps we produce will be relative
-     * to this buffer time. */
-    if (!GST_CLOCK_TIME_IS_VALID (base->base_time)) {
-      if (GST_CLOCK_TIME_IS_VALID (GST_BUFFER_TIMESTAMP (buffer))) {
-        base->base_time = GST_BUFFER_TIMESTAMP (buffer);
-      } else {
-        /* If we never received a valid timestamp, ok, assume 0 */
-        base->base_time = 0;
-      }
-    }
 
     /* Look for end-of-document tags */
     next_buffer_data = g_strstr_len (buffer_data, buffer_len, "</tt>");
@@ -1178,8 +1174,8 @@ gst_ttmlbase_cleanup (GstTTMLBase * base)
 
   base->newsegment_needed = TRUE;
   base->current_gst_status = GST_FLOW_OK;
+  base->input_buf_start = 0;
   base->last_out_time = 0;
-  base->last_in_time = 0;
 
   gst_ttmlbase_reset (base);
 }
