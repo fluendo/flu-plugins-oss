@@ -22,6 +22,7 @@
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
+#define TTML_DEBUG_XML_INPUT 0
 
 static GstElementClass *parent_class = NULL;
 
@@ -578,12 +579,6 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
    * "container" for nested elements */
   base->state.container_begin = base->state.begin;
   base->state.container_end = base->state.end;
-
-  /* Handle special node types which have effect as soon as they are found */
-  if (node_type == GST_TTML_NODE_TYPE_BR) {
-    gchar br = '\n';
-    gst_ttmlbase_add_characters (base, &br, 1, TRUE);
-  }
 }
 
 /* Process a node end. Just pop previous state from the stack. */
@@ -627,12 +622,6 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
             &base->state.saved_styling_attr_stacks, base->state.id);
       break;
     case GST_TTML_NODE_TYPE_P:
-    {
-      /* P nodes represent paragraphs: they all should end with a line break
-       * (TTML spec 7.1.5) */
-      gchar br = '\n';
-      gst_ttmlbase_add_characters (base, &br, 1, TRUE);
-    }
       break;
     case GST_TTML_NODE_TYPE_LAYOUT:
       if (!base->in_layout_node) {
@@ -955,6 +944,20 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
   return TRUE;
 }
 
+void
+gst_ttmlbase_dump_buffer (GstTTMLBase * thiz, GstBuffer * buffer)
+{
+  FILE *file;
+  file = fopen ("ttml.xml", "ab");
+  if (file) {
+    fprintf (file, "----------------------------------------------------------"
+        "---------------------------------------------------------------------"
+        "\n%s\n", GST_ELEMENT_NAME (thiz));
+    fwrite (GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer), 1, file);
+    fclose (file);
+  }
+}
+
 static GstFlowReturn
 gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 {
@@ -972,6 +975,9 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
   GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT
       "dur %" GST_TIME_FORMAT, (guint) gst_buffer_get_size (buffer),
       GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
+#if TTML_DEBUG_XML_INPUT
+  gst_ttmlbase_dump_buffer (base, buffer);
+#endif
 
   if (GST_CLOCK_TIME_IS_VALID (ts)) {
     base->input_buf_start = ts;
