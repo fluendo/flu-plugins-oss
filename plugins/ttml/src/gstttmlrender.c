@@ -616,8 +616,9 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
   GstTTMLRegion *region;
   gchar *frag_start = span->chars;      /* NOT NULL-terminated! */
   int chars_left = span->length;
-  gchar *line_break = NULL;
   GstTTMLStyle final_style;
+
+  GST_MEMDUMP ("span chars:", (guint8 *) span->chars, span->length);
 
   /* Do nothing if the span is disabled */
   attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DISPLAY);
@@ -683,12 +684,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
     int markup_head_len, markup_tail_len;
     int frag_len, curr_len;
     gchar *default_font_size = render->default_font_size;
-    line_break = g_utf8_strchr (frag_start, chars_left, '\n');
-    if (line_break) {
-      frag_len = line_break - frag_start;
-    } else {
-      frag_len = chars_left;
-    }
+    frag_len = chars_left;
     if (region->current_par_content) {
       curr_len = strlen (region->current_par_content);
     } else {
@@ -717,16 +713,22 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
     region->current_par_content =
         (gchar *) g_realloc (region->current_par_content,
-        curr_len + markup_head_len + frag_len + markup_tail_len + 1);
+        curr_len + markup_head_len + frag_len + markup_tail_len + 2);
 
     ptr = region->current_par_content + curr_len;
     memcpy (ptr, markup_head, markup_head_len);
     ptr += markup_head_len;
-    memcpy (ptr, frag_start, frag_len);
-    ptr += frag_len;
+    if (frag_len) {
+      memcpy (ptr, frag_start, frag_len);
+      ptr += frag_len;
+      /* TTML spec 7.1.5: paragraphs imply a newline */
+      memcpy (ptr, "\n", 1);
+      ptr += 1;
+    }
     memcpy (ptr, markup_tail, markup_tail_len);
     ptr += markup_tail_len;
     *ptr = '\0';
+    GST_DEBUG ("span: '%s'", region->current_par_content);
 
     g_free (markup_head);
     g_free (markup_tail);
@@ -953,13 +955,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
     chars_left -= frag_len;
     frag_start += frag_len;
 
-    if (line_break) {
-      chars_left--;
-      frag_start++;
-      gst_ttmlrender_store_layout (render, region);
-    }
-
-  } while (line_break && chars_left > 0);
+  } while (chars_left > 0);
 
   gst_ttml_style_reset (&final_style);
 }
