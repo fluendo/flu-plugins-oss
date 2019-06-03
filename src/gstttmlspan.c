@@ -76,43 +76,37 @@ gst_ttml_span_new (guint id, guint length, const gchar * chars,
   span->chars = (gchar *) g_memdup (chars, length);
   gst_ttml_style_copy (&span->style, style, FALSE);
 
+  GST_MEMDUMP ("src: ", (guint8 *) span->chars, span->length);
   /* Remove CR characters (and surrounding white space) if requested */
   /* The malloc'ed memory will be bigger than 'length' */
   if (!preserve_cr) {
     gchar *src = span->chars;
     gchar *dst = span->chars;
-    gboolean collapsing = FALSE;
-    gboolean first_space = FALSE;
+    gboolean collapsing = TRUE;
     while (src < span->chars + length) {
       if (*src == '\n') {
         src++;
         collapsing = TRUE;
-        first_space = TRUE;
-
-        if (src == span->chars + 1) {
-          /* This removes ALL spaces after a line break (instead of leaving
-           * only one), if the line break is the first character in the span.
-           * This does not follow the spec and might break some (strange)
-           * scenarios, but removes the ugly single space at the beginning
-           * of spans caused by XML indentation. IMHO, this looks much nicer.
-           * Moreover, this hides a bug we have when this single space appears
-           * before a <set> node and therefore is incorrectly unaffected by
-           * the animation. */
-          first_space = FALSE;
-        }
+        /* clear space before newline */
+        while (dst > span->chars && g_ascii_isspace (*dst))
+          dst--;
       } else if (g_ascii_isspace (*src) && collapsing) {
         src++;
-        if (first_space) {
-          *dst++ = ' ';
-          first_space = FALSE;
-        }
       } else {
+        if (collapsing) {
+          collapsing = FALSE;
+          /* after a newline, add one space if this is not the first
+           * unfiltered char */
+          if (dst != span->chars)
+            *dst++ = ' ';
+        }
         *dst++ = *src++;
         collapsing = FALSE;
       }
     }
     span->length = dst - span->chars;
   }
+  GST_MEMDUMP ("dst: ", (guint8 *) span->chars, span->length);
 
   if (span->length == 0) {
     gst_ttml_span_free (span);
