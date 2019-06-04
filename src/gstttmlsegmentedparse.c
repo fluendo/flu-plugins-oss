@@ -22,6 +22,7 @@
 #include "gstttmlattribute.h"
 #include "gstttmlutils.h"
 #include "gstttmltype.h"
+#include "gstttmlnamespace.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlsegmentedparse_debug);
 #define GST_CAT_DEFAULT ttmlsegmentedparse_debug
@@ -163,6 +164,19 @@ gst_ttmlsegmentedparse_style_dump (gchar * id, GList * attrs,
   xmlTextWriterEndElement (writer);
 }
 
+static void
+gst_ttmlsegmentedparse_namespace_dump (GstTTMLNamespace * ns,
+    xmlTextWriterPtr writer)
+{
+  char name[0x100];
+  strcpy (name, "xmlns");
+  if (ns->name) {
+    strcat (name, ":");
+    strncat (name, ns->name, 0xF0);
+  }
+  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR name, LIBXML_CHAR ns->value);
+}
+
 static GstBuffer *
 gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
     GstClockTime duration)
@@ -181,8 +195,8 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlTextWriterStartDocument (writer, NULL, "utf-8", NULL);
   /* <tt xmlns="http://www.w3.org/ns/ttml" /> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "tt");
-  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "xmlns",
-      LIBXML_CHAR "http://www.w3.org/ns/ttml");
+  g_list_foreach (base->namespaces,
+      (GFunc) gst_ttmlsegmentedparse_namespace_dump, writer);
   /* <head> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "head");
 

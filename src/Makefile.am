@@ -12,6 +12,7 @@ gstttmlstate.c \
 gstttmlevent.c \
 gstttmlspan.c \
 gstttmlutils.c \
+gstttmlnamespace.c \
 gstttmlstyle.c
 
 libgstfluttml_la_CXXFLAGS = \
@@ -62,4 +63,5 @@ gstttmlenums.h \
 gstttmlutils.h \
 gstttmlsegmentedparse.h \
 gstttmlstyle.h \
+gstttmlnamespace.h \
 gstttmlforward.h

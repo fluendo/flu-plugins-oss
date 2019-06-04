@@ -54,8 +54,6 @@ gst_ttml_state_reset (GstTTMLState * state)
   state->frame_rate_num = 1;
   state->frame_rate_den = 1;
   state->sub_frame_rate = 1;
-  state->cell_resolution_x = 32;
-  state->cell_resolution_y = 15;
   state->whitespace_preserve = FALSE;
   state->sequential_time_container = FALSE;
   state->par_num = 1;
