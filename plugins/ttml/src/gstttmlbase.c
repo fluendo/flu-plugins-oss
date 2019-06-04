@@ -19,6 +19,7 @@
 #include "gstttmlevent.h"
 #include "gstttmlattribute.h"
 #include "gstttmlutils.h"
+#include "gstttmlnamespace.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
@@ -492,6 +493,32 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
       gst_ttml_utils_enum_name (node_type, NodeType));
   /* Special actions for some node types */
   switch (node_type) {
+    case GST_TTML_NODE_TYPE_TT:
+    {
+      /* store namespaces and initialize default values depending on
+       * standards identified by its namespaces */
+      gchar **nss = (gchar **) namespaces;
+      GstTTMLNamespace *ns;
+
+      base->is_std_ebu = FALSE;
+      base->state.cell_resolution_x = 32;
+      base->state.cell_resolution_y = 15;
+
+      while (nb_namespaces--) {
+        gchar *nsname = *(nss++);
+        gchar *nsvalue = *(nss++);
+        GST_DEBUG_OBJECT (base, "Storing namespace %s=%s", nsname ? nsname :
+            (gchar *) "", nsvalue);
+        ns = gst_ttml_namespace_new (nsname, nsvalue);
+        base->namespaces = g_list_append (base->namespaces, ns);
+        if (strstr (nsvalue, "ebu:tt")) {
+          base->is_std_ebu = TRUE;
+          base->state.cell_resolution_x = 40;
+          base->state.cell_resolution_y = 24;
+        }
+      }
+      break;
+    }
     case GST_TTML_NODE_TYPE_STYLING:
       base->in_styling_node = TRUE;
       break;
@@ -844,6 +871,12 @@ gst_ttmlbase_reset (GstTTMLBase * base)
     g_free (base->current_data);
     base->current_data = NULL;
     base->current_data_length = 0;
+  }
+
+  if (base->namespaces) {
+    g_list_free_full (base->namespaces,
+        (GDestroyNotify) gst_ttml_namespace_free);
+    base->namespaces = NULL;
   }
 
   if (klass->reset) {
