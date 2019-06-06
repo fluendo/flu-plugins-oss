@@ -953,7 +953,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
   } while (chars_left > 0);
 
-  GST_DEBUG ("paragraph content:\n%s", region->current_par_content);
+  GST_DEBUG_OBJECT (render, "paragraph content:\n%s",
+      region->current_par_content);
   gst_ttml_style_reset (&final_style);
 }
 

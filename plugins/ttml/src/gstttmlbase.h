@@ -51,9 +51,10 @@ typedef struct _GstTTMLBase {
   /* Active span list */
   GList *active_spans;
 
-  /* To parse embedded data like images */
-  guint8 *current_data;
-  gint current_data_length;
+  /* buffer to accumulate xml node content */
+  gchar * buf;
+  gsize buf_size;
+  gsize buf_len;
 
   /* To build demo plugins */
   GstFluDemoStatistics stats;

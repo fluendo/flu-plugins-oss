@@ -24,7 +24,7 @@ struct _GstTTMLSpan {
 void gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span);
 
 GstTTMLSpan *gst_ttml_span_new (guint id, guint length,
-    const gchar *chars, const GstTTMLStyle *style, gboolean preserve_cr);
+    const gchar *chars, const GstTTMLStyle *style);
 
 void gst_ttml_span_free (GstTTMLSpan *span);
 
