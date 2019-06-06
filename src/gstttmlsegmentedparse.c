@@ -81,6 +81,8 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
       xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
           LIBXML_CHAR begin);
       xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end", LIBXML_CHAR end);
+      g_list_foreach (span->style.attributes,
+          (GFunc) gst_ttmlsegmentedparse_attr_dump, writer);
       open = TRUE;
     }
 
@@ -197,6 +199,8 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlTextWriterStartElement (writer, LIBXML_CHAR "tt");
   g_list_foreach (base->namespaces,
       (GFunc) gst_ttmlsegmentedparse_namespace_dump, writer);
+  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "space",
+      LIBXML_CHAR "preserve");
   /* <head> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "head");
 
