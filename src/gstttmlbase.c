@@ -23,7 +23,13 @@
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
-#define TTML_DEBUG_XML_INPUT 1
+#define TTML_DEBUG_XML_INPUT 0
+
+/* We dynamically allocate and reallocate a buffer for sax chars accumulation,
+ * minimizing reallocations.
+ * This is the minimum free size in the buffer before we reallocate more */
+#define TTML_SAX_BUFFER_MIN_FREE_SIZE 0x10
+#define TTML_SAX_BUFFER_GROW_SIZE 0x400
 
 static GstElementClass *parent_class = NULL;
 
@@ -85,6 +91,40 @@ gst_segment_set_newsegment (GstSegment * segment, gboolean update,
 #endif
 
 static gboolean gst_ttmlbase_downstream_negotiation (GstTTMLBase * base);
+static void
+gst_ttmlbase_sax_characters (void *ctx, const xmlChar * ch, int len);
+
+/* Remove CR characters and surrounding white space
+ * @single_space: generate a single space on newline between non space */
+static gsize
+gst_ttmlbase_clean_whitespace (gchar * buf, gsize len, gboolean single_space)
+{
+  gchar *src = buf;
+  gchar *dst = buf;
+  gboolean collapsing = TRUE;
+  while (src < buf + len) {
+    if (*src == '\n') {
+      src++;
+      collapsing = TRUE;
+      /* clear space before newline */
+      while (dst > buf && g_ascii_isspace (*dst))
+        dst--;
+    } else if (g_ascii_isspace (*src) && collapsing) {
+      src++;
+    } else {
+      if (collapsing) {
+        collapsing = FALSE;
+        /* after a newline, add one space if this is not the first
+         * unfiltered char */
+        if (single_space && dst != buf)
+          *dst++ = ' ';
+      }
+      *dst++ = *src++;
+      collapsing = FALSE;
+    }
+  }
+  return dst - buf;
+}
 
 /* Generate and Pad push a buffer, using the correct timestamps and clipping */
 static void
@@ -248,35 +288,55 @@ gst_ttmlbase_parse_event (GstTTMLEvent * event, GstTTMLBase * base,
 }
 
 /* Allocate a new span to hold new characters, and insert into the timeline
- * BEGIN and END events to handle this new span. */
+ * BEGIN and END events to handle this new span.
+ * @newline: Append a newline (useful for <br/> and </p>, as
+ * these must generate spans ended with \n while </span> doesn't
+ */
 static void
-gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
-    int len, gboolean preserve_cr)
+gst_ttmlbase_add_span (GstTTMLBase * base, gboolean newline)
 {
   const gchar *content_end = NULL;
-  gint content_size = 0;
   GstTTMLSpan *span;
   GstTTMLEvent *event;
   guint id;
 
-  /* Start by validating UTF-8 content */
-  if (!g_utf8_validate (content, len, &content_end)) {
+  /* clean whitespace */
+  if (base->buf_len && !base->state.whitespace_preserve)
+    base->buf_len =
+        gst_ttmlbase_clean_whitespace (base->buf, base->buf_len, TRUE);
+
+  /* validate UTF-8 content. Should we care? */
+  if (!g_utf8_validate (base->buf, base->buf_len, &content_end)) {
     GST_WARNING_OBJECT (base, "Content is not valid UTF-8");
-    return;
+    goto beach;
   }
-  content_size = content_end - content;
+
+  if (newline) {
+    xmlChar ch = '\n';
+    gst_ttmlbase_sax_characters (base, &ch, 1);
+  }
+
+  if (!base->buf_len) {
+    GST_DEBUG ("Empty span. Dropping.");
+    goto beach;
+  }
+
+  /* our buffer allocator has always extra space to reduce reallocations */
+  base->buf[base->buf_len] = '\0';
+  GST_LOG_OBJECT (base, "span content: %s", base->buf);
+
 
   /* Check if timing information is present */
   if (!GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
       !GST_CLOCK_TIME_IS_VALID (base->state.end)) {
     GST_DEBUG_OBJECT (base, "Span without timing information. Dropping.");
-    return;
+    goto beach;
   }
 
   if (base->state.node_type == GST_TTML_NODE_TYPE_P &&
       base->state.sequential_time_container) {
     /* Anonymous spans have 0 duration when inside sequential containers */
-    return;
+    goto beach;
   }
 
   if (GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
@@ -284,7 +344,7 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
     GST_DEBUG ("Span with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
         ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (base->state.begin),
         GST_TIME_ARGS (base->state.end));
-    return;
+    goto beach;
   }
 
   /* If assuming ordered spans, as soon as our begin is later than the
@@ -298,11 +358,10 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
   /* Create a new span to hold these characters, with an ever-increasing
    * ID number. */
   id = base->state.last_span_id++;
-  span = gst_ttml_span_new (id, content_size, content, &base->state.style,
-      preserve_cr);
+  span = gst_ttml_span_new (id, base->buf_len, base->buf, &base->state.style);
   if (!span) {
     GST_DEBUG ("Empty span. Dropping.");
-    return;
+    goto beach;
   }
 
   /* Insert BEGIN and END events in the timeline, with the same ID */
@@ -314,13 +373,10 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
 
   base->timeline =
       gst_ttml_style_gen_span_events (id, &base->state.style, base->timeline);
-}
 
-static void
-gst_ttmlbase_add_newline (GstTTMLBase * base)
-{
-  gchar br = '\n';
-  gst_ttmlbase_add_characters (base, &br, 1, TRUE);
+beach:
+  /* empty the accumulator buffer */
+  base->buf_len = 0;
 }
 
 /* Insert into the timeline new BEGIN and END events to handle this region. */
@@ -369,30 +425,6 @@ gst_ttmlbase_add_region (GstTTMLBase * base)
 
 }
 
-/* Adds the found chars to the embedded data string being constructed.
- * Skips heading and trailing whitespace. Does not decode yet. */
-static void
-gst_ttmlbase_add_data_line (GstTTMLBase * base, const gchar * content, int len)
-{
-  /* Skip heading whitespace */
-  while (len && g_ascii_isspace (*content)) {
-    content++;
-    len--;
-  }
-
-  /* Skip trailing whitespace */
-  while (len && g_ascii_isspace (content[len - 1]))
-    len--;
-
-  /* Concatenate data */
-  if (len) {
-    base->current_data = (guint8 *) g_realloc (base->current_data,
-        base->current_data_length + len);
-    memcpy (base->current_data + base->current_data_length, content, len);
-    base->current_data_length += len;
-  }
-}
-
 /* Base64-decodes the now complete embedded data and adds it to the hash of
  * saved data, using the current ID. Data still needs to be PNG-decoded if
  * it is an image. */
@@ -402,9 +434,14 @@ gst_ttmlbase_decode_data (GstTTMLBase * base)
   gsize decoded_length;
   GstTTMLAttribute *attr;
 
-  if (!base->current_data || !base->current_data_length) {
+  /* clean whitespace */
+  if (base->buf_len)
+    base->buf_len =
+        gst_ttmlbase_clean_whitespace (base->buf, base->buf_len, FALSE);
+
+  if (!base->buf || !base->buf_len) {
     GST_WARNING_OBJECT (base, "Found empty data node. Ignoring.");
-    return;
+    goto beach;
   }
 
   attr = gst_ttml_style_get_attr (&base->state.style,
@@ -412,7 +449,7 @@ gst_ttmlbase_decode_data (GstTTMLBase * base)
   if (attr && attr->value.smpte_encoding != GST_TTML_SMPTE_ENCODING_BASE64) {
     GST_WARNING_OBJECT (base, "Only Base64 encoding is supported. "
         "Discarding data.");
-    goto error;
+    goto beach;
   }
 
   /* FIXME: This check does not belong here. The imagetype should be stored
@@ -422,35 +459,29 @@ gst_ttmlbase_decode_data (GstTTMLBase * base)
   if (attr && attr->value.smpte_image_type != GST_TTML_SMPTE_IMAGE_TYPE_PNG) {
     GST_WARNING_OBJECT (base, "Only PNG images are supported. "
         "Discarding image.");
-    goto error;
+    goto beach;
   }
 
   if (!base->state.id) {
     GST_WARNING_OBJECT (base, "Found data node without ID. "
         "Discarding data.");
-    goto error;
+    goto beach;
   }
 
-  /* Add terminator, for glib's base64 decoder */
-  base->current_data = (guint8 *) g_realloc (base->current_data,
-      base->current_data_length + 1);
-  base->current_data[base->current_data_length] = '\0';
+  /* Add terminator, for glib's base64 decoder. Our allocator ensures there's
+   * space for it, no need to reallocate */
+  base->buf[base->buf_len] = '\0';
 
   /* Decode */
-  g_base64_decode_inplace ((gchar *) base->current_data, &decoded_length);
+  g_base64_decode_inplace ((gchar *) base->buf, &decoded_length);
 
   /* Store */
-  gst_ttml_state_save_data (&base->state, base->current_data,
-      base->current_data_length, base->state.id);
+  gst_ttml_state_save_data (&base->state, (guint8 *) base->buf,
+      decoded_length, base->state.id);
   goto beach;
 
-error:
-  /* Free data */
-  g_free (base->current_data);
-
 beach:
-  base->current_data = NULL;
-  base->current_data_length = 0;
+  base->buf_len = 0;
 }
 
 /* Helper method to turn SAX2's gchar * attribute array into a GstTTMLAttribute
@@ -500,6 +531,10 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
       gst_ttml_utils_enum_name (node_type, NodeType));
   /* Special actions for some node types */
   switch (node_type) {
+    case GST_TTML_NODE_TYPE_P:
+    case GST_TTML_NODE_TYPE_SPAN:
+      base->buf_len = 0;
+      break;
     case GST_TTML_NODE_TYPE_TT:
     {
       /* store namespaces and initialize default values depending on
@@ -540,12 +575,7 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
         GST_WARNING_OBJECT (base,
             "Image node is invalid outside of metadata node. Parsing anyway.");
       }
-      if (base->current_data) {
-        GST_WARNING_OBJECT (base, "Dangling data found. Discarding.");
-        g_free (base->current_data);
-      }
-      base->current_data = NULL;
-      base->current_data_length = 0;
+      base->buf_len = 0;
       break;
     default:
       break;
@@ -616,7 +646,7 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
 
   /* Handle special node types which have effect as soon as they are found */
   if (node_type == GST_TTML_NODE_TYPE_BR) {
-    gst_ttmlbase_add_newline (base);
+    gst_ttmlbase_add_span (base, TRUE);
   }
 }
 
@@ -647,6 +677,12 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
 
   /* Special actions for some node types */
   switch (current_node_type) {
+    case GST_TTML_NODE_TYPE_P:
+      gst_ttmlbase_add_span (base, TRUE);
+      break;
+    case GST_TTML_NODE_TYPE_SPAN:
+      gst_ttmlbase_add_span (base, FALSE);
+      break;
     case GST_TTML_NODE_TYPE_STYLING:
       if (!base->in_styling_node) {
         GST_WARNING_OBJECT (base, "Unmatched closing styling node");
@@ -660,11 +696,6 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
         gst_ttml_state_save_attr_stack (&base->state,
             &base->state.saved_styling_attr_stacks, base->state.id);
       break;
-    case GST_TTML_NODE_TYPE_P:
-    {
-      gst_ttmlbase_add_newline (base);
-      break;
-    }
     case GST_TTML_NODE_TYPE_LAYOUT:
       if (!base->in_layout_node) {
         GST_WARNING_OBJECT (base, "Unmatched closing layout node");
@@ -738,25 +769,22 @@ static void
 gst_ttmlbase_sax_characters (void *ctx, const xmlChar * ch, int len)
 {
   GstTTMLBase *base = GST_TTMLBASE (ctx);
-  const gchar *content = (const gchar *) ch;
+  gsize tlen = base->buf_len + len;
 
-  GST_DEBUG_OBJECT (base, "Found %d chars inside node type %s",
-      len, gst_ttml_utils_enum_name (base->state.node_type, NodeType));
-  GST_MEMDUMP ("Content:", (guint8 *) ch, len);
-
-  switch (base->state.node_type) {
-    case GST_TTML_NODE_TYPE_P:
-    case GST_TTML_NODE_TYPE_SPAN:
-      gst_ttmlbase_add_characters (base, content, len,
-          base->state.whitespace_preserve);
-      break;
-    case GST_TTML_NODE_TYPE_SMPTE_IMAGE:
-      gst_ttmlbase_add_data_line (base, content, len);
-      break;
-    default:
-      /* Ignore characters outside relevant nodes */
-      return;
+  /* allocate or reallocate buffer if needed */
+  if (tlen + TTML_SAX_BUFFER_MIN_FREE_SIZE >= base->buf_size) {
+    gsize size = tlen + TTML_SAX_BUFFER_GROW_SIZE;
+    if (!base->buf_size) {
+      base->buf = g_malloc (size);
+    } else {
+      base->buf = g_realloc (base->buf, size);
+    }
+    base->buf_size = size;
   }
+
+  /* accumulate characters in buffer */
+  memcpy (base->buf + base->buf_len, ch, len);
+  base->buf_len = tlen;
 }
 
 /* Parse SAX warnings (simply shown as debug logs) */
@@ -880,12 +908,6 @@ gst_ttmlbase_reset (GstTTMLBase * base)
   if (base->active_spans) {
     g_list_free_full (base->active_spans, (GDestroyNotify) gst_ttml_span_free);
     base->active_spans = NULL;
-  }
-
-  if (base->current_data) {
-    g_free (base->current_data);
-    base->current_data = NULL;
-    base->current_data_length = 0;
   }
 
   if (base->namespaces) {
@@ -1595,6 +1617,10 @@ gst_ttmlbase_dispose (GObject * object)
   }
 
   GST_CALL_PARENT (G_OBJECT_CLASS, dispose, (object));
+
+  if (base->buf) {
+    g_free (base->buf);
+  }
 }
 
 static void
@@ -1672,9 +1698,6 @@ gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
 
   base->state.attribute_stack = NULL;
   gst_ttml_state_reset (&base->state);
-
-  base->current_data = NULL;
-  base->current_data_length = 0;
 
   gst_ttmlbase_cleanup (base);
   gstflu_demo_reset_statistics (&base->stats);
