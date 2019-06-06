@@ -23,7 +23,7 @@
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
-#define TTML_DEBUG_XML_INPUT 0
+#define TTML_DEBUG_XML_INPUT 1
 
 static GstElementClass *parent_class = NULL;
 
@@ -316,6 +316,13 @@ gst_ttmlbase_add_characters (GstTTMLBase * base, const gchar * content,
       gst_ttml_style_gen_span_events (id, &base->state.style, base->timeline);
 }
 
+static void
+gst_ttmlbase_add_newline (GstTTMLBase * base)
+{
+  gchar br = '\n';
+  gst_ttmlbase_add_characters (base, &br, 1, TRUE);
+}
+
 /* Insert into the timeline new BEGIN and END events to handle this region. */
 static void
 gst_ttmlbase_add_region (GstTTMLBase * base)
@@ -606,6 +613,11 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
    * "container" for nested elements */
   base->state.container_begin = base->state.begin;
   base->state.container_end = base->state.end;
+
+  /* Handle special node types which have effect as soon as they are found */
+  if (node_type == GST_TTML_NODE_TYPE_BR) {
+    gst_ttmlbase_add_newline (base);
+  }
 }
 
 /* Process a node end. Just pop previous state from the stack. */
@@ -649,7 +661,10 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
             &base->state.saved_styling_attr_stacks, base->state.id);
       break;
     case GST_TTML_NODE_TYPE_P:
+    {
+      gst_ttmlbase_add_newline (base);
       break;
+    }
     case GST_TTML_NODE_TYPE_LAYOUT:
       if (!base->in_layout_node) {
         GST_WARNING_OBJECT (base, "Unmatched closing layout node");
