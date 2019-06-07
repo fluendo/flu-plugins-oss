@@ -68,50 +68,16 @@ gst_ttml_span_free (GstTTMLSpan * span)
  * but to the event that contains it. */
 GstTTMLSpan *
 gst_ttml_span_new (guint id, guint length, const gchar * chars,
-    const GstTTMLStyle * style, gboolean preserve_cr)
+    const GstTTMLStyle * style)
 {
+  if (length == 0)
+    return NULL;
+
   GstTTMLSpan *span = g_new (GstTTMLSpan, 1);
   span->id = id;
   span->length = length;
   span->chars = (gchar *) g_memdup (chars, length);
   gst_ttml_style_copy (&span->style, style, FALSE);
-
-  GST_MEMDUMP ("src: ", (guint8 *) span->chars, span->length);
-  /* Remove CR characters (and surrounding white space) if requested */
-  /* The malloc'ed memory will be bigger than 'length' */
-  if (!preserve_cr) {
-    gchar *src = span->chars;
-    gchar *dst = span->chars;
-    gboolean collapsing = TRUE;
-    while (src < span->chars + length) {
-      if (*src == '\n') {
-        src++;
-        collapsing = TRUE;
-        /* clear space before newline */
-        while (dst > span->chars && g_ascii_isspace (*dst))
-          dst--;
-      } else if (g_ascii_isspace (*src) && collapsing) {
-        src++;
-      } else {
-        if (collapsing) {
-          collapsing = FALSE;
-          /* after a newline, add one space if this is not the first
-           * unfiltered char */
-          if (dst != span->chars)
-            *dst++ = ' ';
-        }
-        *dst++ = *src++;
-        collapsing = FALSE;
-      }
-    }
-    span->length = dst - span->chars;
-  }
-  GST_MEMDUMP ("dst: ", (guint8 *) span->chars, span->length);
-
-  if (span->length == 0) {
-    gst_ttml_span_free (span);
-    span = NULL;
-  }
 
   return span;
 }
