@@ -72,23 +72,29 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
   for (l = base->active_spans; l; l = l->next) {
     GstTTMLSpan *span = l->data;
     int chars_left = span->length;
+    int frag_len;
     gchar *frag_start = span->chars;    /* NOT NULL-terminated! */
     gchar *line_break = NULL;
 
-    if (!open) {
-      /* <p> */
-      xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
-      xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
-          LIBXML_CHAR begin);
-      xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end", LIBXML_CHAR end);
-      open = TRUE;
-    }
+    /* On parsing we merged paragraphs and spans. Now we have to 
+     * split again on newlines */
+    do {
+      line_break = g_utf8_strchr (frag_start, chars_left, '\n');
+      frag_len = line_break ? line_break - frag_start : chars_left;
 
-    while ((line_break = g_utf8_strchr (frag_start, chars_left, '\n'))) {
-      int frag_len = line_break - frag_start + 1;
+      if (!open) {
+        /* <p> */
+        xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
+            LIBXML_CHAR begin);
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end",
+            LIBXML_CHAR end);
+        g_list_foreach (span->style.attributes,
+            (GFunc) gst_ttmlsegmentedparse_attr_dump, writer);
+        open = TRUE;
+      }
 
-      /* put the contents of the fragment */
-      if (frag_len != 1) {
+      if (frag_len) {
         /* <span> */
         xmlTextWriterStartElement (writer, LIBXML_CHAR "span");
         g_list_foreach (span->style.attributes,
@@ -99,40 +105,19 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
       }
 
       /* </p> */
-      if (open) {
+      if (line_break) {
         xmlTextWriterEndElement (writer);
         open = FALSE;
+        frag_len++;
       }
 
       frag_start += frag_len;
       chars_left -= frag_len;
-
-      /* avoid creating empty <p> */
-      if (chars_left) {
-        /* <p> */
-        xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
-        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
-            LIBXML_CHAR begin);
-        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end",
-            LIBXML_CHAR end);
-        open = TRUE;
-      }
-    }
-
-    if (chars_left) {
-      /* <span> */
-      xmlTextWriterStartElement (writer, LIBXML_CHAR "span");
-      g_list_foreach (span->style.attributes,
-          (GFunc) gst_ttmlsegmentedparse_attr_dump, writer);
-      xmlTextWriterWriteFormatString (writer, "%.*s", chars_left, frag_start);
-      /* </span> */
-      xmlTextWriterEndElement (writer);
-    }
+    } while (chars_left);
   }
 
-  /* just in case */
+  /* </p> */
   if (open) {
-    /* </p> */
     xmlTextWriterEndElement (writer);
   }
 
@@ -197,6 +182,8 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlTextWriterStartElement (writer, LIBXML_CHAR "tt");
   g_list_foreach (base->namespaces,
       (GFunc) gst_ttmlsegmentedparse_namespace_dump, writer);
+  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "space",
+      LIBXML_CHAR "preserve");
   /* <head> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "head");
 

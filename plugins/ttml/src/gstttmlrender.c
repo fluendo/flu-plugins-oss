@@ -618,7 +618,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
   int chars_left = span->length;
   GstTTMLStyle final_style;
 
-  GST_MEMDUMP ("span chars:", (guint8 *) span->chars, span->length);
+  GST_MEMDUMP_OBJECT (render, "span chars:", (guint8 *) span->chars,
+      span->length);
 
   /* Do nothing if the span is disabled */
   attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DISPLAY);
@@ -711,24 +712,19 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
       g_free (default_font_size);
     }
 
-    region->current_par_content =
-        (gchar *) g_realloc (region->current_par_content,
-        curr_len + markup_head_len + frag_len + markup_tail_len + 2);
-
-    ptr = region->current_par_content + curr_len;
-    memcpy (ptr, markup_head, markup_head_len);
-    ptr += markup_head_len;
     if (frag_len) {
+      region->current_par_content =
+          (gchar *) g_realloc (region->current_par_content,
+          curr_len + markup_head_len + frag_len + markup_tail_len + 2);
+      ptr = region->current_par_content + curr_len;
+      memcpy (ptr, markup_head, markup_head_len);
+      ptr += markup_head_len;
       memcpy (ptr, frag_start, frag_len);
       ptr += frag_len;
-      /* TTML spec 7.1.5: paragraphs imply a newline */
-      memcpy (ptr, "\n", 1);
-      ptr += 1;
+      memcpy (ptr, markup_tail, markup_tail_len);
+      ptr += markup_tail_len;
+      *ptr = '\0';
     }
-    memcpy (ptr, markup_tail, markup_tail_len);
-    ptr += markup_tail_len;
-    *ptr = '\0';
-    GST_DEBUG ("span: '%s'", region->current_par_content);
 
     g_free (markup_head);
     g_free (markup_tail);
@@ -957,6 +953,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
   } while (chars_left > 0);
 
+  GST_DEBUG_OBJECT (render, "paragraph content:\n%s",
+      region->current_par_content);
   gst_ttml_style_reset (&final_style);
 }
 
