@@ -32,6 +32,8 @@ typedef struct _GstTTMLBase {
   /* XML parsing */
   xmlParserCtxtPtr xml_parser;
   GstTTMLState state;
+  GList *namespaces;
+  gboolean is_std_ebu;
   gboolean in_styling_node;
   gboolean in_layout_node;
   gboolean in_metadata_node;
