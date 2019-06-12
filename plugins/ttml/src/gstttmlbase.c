@@ -31,6 +31,9 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define TTML_SAX_BUFFER_MIN_FREE_SIZE 0x10
 #define TTML_SAX_BUFFER_GROW_SIZE 0x400
 
+/* check for white space as required for TTML & UTF-8 */
+#define is_whitespace(c) ((guchar)(c) <= 0x20)
+
 static GstElementClass *parent_class = NULL;
 
 enum
@@ -101,26 +104,30 @@ gst_ttmlbase_clean_whitespace (gchar * buf, gsize len, gboolean single_space)
 {
   gchar *src = buf;
   gchar *dst = buf;
+  gchar *end = buf + len;
+  gchar c;
   gboolean collapsing = TRUE;
-  while (src < buf + len) {
-    if (*src == '\n') {
-      src++;
+
+  while (src < end) {
+    c = *src++;
+    if (c == '\n') {
       collapsing = TRUE;
       /* clear space before newline */
-      while (dst > buf && g_ascii_isspace (*dst))
+      while (dst > buf && is_whitespace (*(dst - 1)))
         dst--;
-    } else if (g_ascii_isspace (*src) && collapsing) {
-      src++;
-    } else {
-      if (collapsing) {
+    } else if (collapsing) {
+      /* clear space after newline */
+      if (is_whitespace (c)) {
+        src++;
+      } else {
         collapsing = FALSE;
-        /* after a newline, add one space if this is not the first
-         * unfiltered char */
         if (single_space && dst != buf)
           *dst++ = ' ';
+        *dst++ = c;
       }
-      *dst++ = *src++;
-      collapsing = FALSE;
+    } else {
+      /* not collapsing, copy character */
+      *dst++ = c;
     }
   }
   return dst - buf;
