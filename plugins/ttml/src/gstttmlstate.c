@@ -197,7 +197,7 @@ gst_ttml_state_merge_attribute (GstTTMLState * state,
 
 /* Read from the state the attribute specified by type and return a new
  * attribute */
-static GstTTMLAttribute *
+GstTTMLAttribute *
 gst_ttml_state_get_attribute (GstTTMLState * state, GstTTMLAttributeType type)
 {
   const GstTTMLAttribute *curr_attr;
