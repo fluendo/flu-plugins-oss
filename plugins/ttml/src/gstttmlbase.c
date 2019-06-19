@@ -536,8 +536,9 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
       gst_ttml_utils_enum_name (node_type, NodeType));
   /* Special actions for some node types */
   switch (node_type) {
-    case GST_TTML_NODE_TYPE_P:
     case GST_TTML_NODE_TYPE_SPAN:
+      gst_ttmlbase_add_span (base, FALSE);
+    case GST_TTML_NODE_TYPE_P:
       base->buf_len = 0;
       break;
     case GST_TTML_NODE_TYPE_TT:
