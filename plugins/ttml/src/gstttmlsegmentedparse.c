@@ -47,16 +47,41 @@ gst_ttmlsegmentedparse_attr_dump (GstTTMLAttribute * attr,
   gchar *attr_val;
   const gchar *attr_name = NULL;
 
-  attr_val = gst_ttml_attribute_dump (attr);
-  attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
-
-  if (attr_val && attr_name) {
-    xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
-        LIBXML_CHAR attr_val);
-  } else if (attr_name) {
-    GST_WARNING ("couldn't dump attrib %s", attr_name);
+  switch (attr->type) {
+    case GST_TTML_ATTR_REGION:
+      break;
+    default:
+      attr_val = gst_ttml_attribute_dump (attr);
+      attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
+      if (attr_val && attr_name) {
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
+            LIBXML_CHAR attr_val);
+      }
+      g_free (attr_val);
+      break;
   }
-  g_free (attr_val);
+}
+
+static void
+gst_ttmlsegmentedparse_paragraph_attr_dump (GstTTMLAttribute * attr,
+    xmlTextWriterPtr writer)
+{
+  gchar *attr_val;
+  const gchar *attr_name = NULL;
+
+  switch (attr->type) {
+    case GST_TTML_ATTR_REGION:
+      attr_val = gst_ttml_attribute_dump (attr);
+      attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
+      if (attr_val && attr_name) {
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
+            LIBXML_CHAR attr_val);
+      }
+      g_free (attr_val);
+      break;
+    default:
+      break;
+  }
 }
 
 static void
@@ -67,7 +92,6 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
   gboolean open = FALSE;
   gchar *end = gst_ttml_attribute_dump_time_expression (ts + duration);
   gchar *begin = gst_ttml_attribute_dump_time_expression (ts);
-  GstTTMLAttribute *attr;
 
   /* for each span until a \n create a new <p> node */
   for (l = base->active_spans; l; l = l->next) {
@@ -91,13 +115,8 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
             LIBXML_CHAR begin);
         xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end",
             LIBXML_CHAR end);
-        attr = gst_ttml_state_get_attribute (&base->state,
-            GST_TTML_ATTR_REGION);
-        if (attr) {
-          xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "region",
-              LIBXML_CHAR attr->value.string);
-          g_free (attr);
-        }
+        g_list_foreach (span->style.attributes,
+            (GFunc) gst_ttmlsegmentedparse_paragraph_attr_dump, writer);
       }
 
       if (frag_len) {

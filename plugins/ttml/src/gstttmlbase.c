@@ -331,7 +331,6 @@ gst_ttmlbase_add_span (GstTTMLBase * base, gboolean newline)
   base->buf[base->buf_len] = '\0';
   GST_LOG_OBJECT (base, "span content: %s", base->buf);
 
-
   /* Check if timing information is present */
   if (!GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
       !GST_CLOCK_TIME_IS_VALID (base->state.end)) {
@@ -1053,6 +1052,9 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
       GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
 #if TTML_DEBUG_XML_INPUT
   gst_ttmlbase_dump_buffer (base, buffer);
+#else
+  GST_MEMDUMP_OBJECT (base, "xml:", (guint8 *) GST_BUFFER_DATA (buffer),
+      GST_BUFFER_SIZE (buffer));
 #endif
 
   if (GST_CLOCK_TIME_IS_VALID (ts)) {
