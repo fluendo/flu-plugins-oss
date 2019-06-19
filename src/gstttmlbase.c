@@ -117,12 +117,11 @@ gst_ttmlbase_clean_whitespace (gchar * buf, gsize len, gboolean single_space)
         dst--;
     } else if (collapsing) {
       /* clear space after newline */
-      if (is_whitespace (c)) {
-        src++;
-      } else {
+      if (!is_whitespace (c)) {
         collapsing = FALSE;
-        if (single_space && dst != buf)
+        if (single_space && src > dst + 1) {
           *dst++ = ' ';
+        }
         *dst++ = c;
       }
     } else {
