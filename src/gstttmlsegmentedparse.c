@@ -47,16 +47,41 @@ gst_ttmlsegmentedparse_attr_dump (GstTTMLAttribute * attr,
   gchar *attr_val;
   const gchar *attr_name = NULL;
 
-  attr_val = gst_ttml_attribute_dump (attr);
-  attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
-
-  if (attr_val && attr_name) {
-    xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
-        LIBXML_CHAR attr_val);
-  } else if (attr_name) {
-    GST_WARNING ("couldn't dump attrib %s", attr_name);
+  switch (attr->type) {
+    case GST_TTML_ATTR_REGION:
+      break;
+    default:
+      attr_val = gst_ttml_attribute_dump (attr);
+      attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
+      if (attr_val && attr_name) {
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
+            LIBXML_CHAR attr_val);
+      }
+      g_free (attr_val);
+      break;
   }
-  g_free (attr_val);
+}
+
+static void
+gst_ttmlsegmentedparse_paragraph_attr_dump (GstTTMLAttribute * attr,
+    xmlTextWriterPtr writer)
+{
+  gchar *attr_val;
+  const gchar *attr_name = NULL;
+
+  switch (attr->type) {
+    case GST_TTML_ATTR_REGION:
+      attr_val = gst_ttml_attribute_dump (attr);
+      attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
+      if (attr_val && attr_name) {
+        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
+            LIBXML_CHAR attr_val);
+      }
+      g_free (attr_val);
+      break;
+    default:
+      break;
+  }
 }
 
 static void
@@ -83,6 +108,7 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
       frag_len = line_break ? line_break - frag_start : chars_left;
 
       if (!open) {
+        open = TRUE;
         /* <p> */
         xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
         xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
@@ -90,8 +116,7 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
         xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end",
             LIBXML_CHAR end);
         g_list_foreach (span->style.attributes,
-            (GFunc) gst_ttmlsegmentedparse_attr_dump, writer);
-        open = TRUE;
+            (GFunc) gst_ttmlsegmentedparse_paragraph_attr_dump, writer);
       }
 
       if (frag_len) {
@@ -170,6 +195,7 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   GstMapInfo map_info;
   xmlBufferPtr buf;
   xmlTextWriterPtr writer;
+  GstTTMLAttribute *attr;
 
   GST_DEBUG_OBJECT (base, "Generating buffer at %" GST_TIME_FORMAT
       " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
@@ -184,6 +210,16 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
       (GFunc) gst_ttmlsegmentedparse_namespace_dump, writer);
   xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "space",
       LIBXML_CHAR "preserve");
+  attr = gst_ttml_state_get_attribute (&base->state,
+      GST_TTML_ATTR_CELLRESOLUTION);
+  if (attr) {
+    gchar *value = gst_ttml_attribute_dump (attr);
+    xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "cellResolution",
+        LIBXML_CHAR value);
+    g_free (value);
+    g_free (attr);
+  }
+
   /* <head> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "head");
 

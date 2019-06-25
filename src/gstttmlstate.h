@@ -95,6 +95,9 @@ void gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id);
 void gst_ttml_state_update_region_attr (GstTTMLState *state, const gchar *id,
     GstTTMLAttribute *attr);
 
+GstTTMLAttribute *
+gst_ttml_state_get_attribute (GstTTMLState * state, GstTTMLAttributeType type);
+
 G_END_DECLS
 
 #endif /* __GST_TTML_STATE_H__ */

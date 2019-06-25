@@ -385,9 +385,10 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
       prev_attr =
           gst_ttml_style_get_attr (style_override ? style_override :
           &state->style, GST_TTML_ATTR_FONT_SIZE);
-      if (prev_attr) {
-        length->f *= prev_attr->value.raw_length[0].f;
-        length->unit = prev_attr->value.raw_length[0].unit;
+      if (prev_attr && prev_attr->value.raw_length[direction].unit ==
+          GST_TTML_LENGTH_UNIT_PIXELS) {
+        length->f *= prev_attr->value.raw_length[direction].f;
+        length->unit = prev_attr->value.raw_length[direction].unit;
         return;
       }
       if (!state || state->frame_height == 0) {
@@ -1022,6 +1023,8 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
       break;
       break;
     case GST_TTML_ATTR_CELLRESOLUTION:
+      ret = g_strdup_printf ("%d %d", (int) attr->value.raw_length[0].f,
+          (int) attr->value.raw_length[1].f);
       break;
     case GST_TTML_ATTR_TEXTOUTLINE:
       break;

@@ -192,7 +192,7 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
               attr, 1, 1, &unit);
           if (unit == GST_TTML_LENGTH_UNIT_PIXELS)
             size1 = size2;
-          font_size = g_strdup_printf (" %gpx", size1);
+          font_size = g_strdup_printf (" %dpx", (int) size1);
           font_size_is_relative = FALSE;
         } else if (size1 != 1.f) {
           font_size = g_strdup (size1 > 1 ? "large" : "small");
@@ -223,8 +223,8 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
         if (attr->value.text_decoration & GST_TTML_TEXT_DECORATION_UNDERLINE)
           attrs = gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" underline=\"%s\"", "single"));
-        if (attr->value.
-            text_decoration & GST_TTML_TEXT_DECORATION_STRIKETHROUGH)
+        if (attr->
+            value.text_decoration & GST_TTML_TEXT_DECORATION_STRIKETHROUGH)
           attrs =
               gst_ttml_style_str_concat (attrs,
               g_strdup_printf (" strikethrough=\"%s\"", "true"));
