@@ -213,8 +213,10 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   attr = gst_ttml_state_get_attribute (&base->state,
       GST_TTML_ATTR_CELLRESOLUTION);
   if (attr) {
+    gchar *value = gst_ttml_attribute_dump (attr);
     xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "cellResolution",
-        LIBXML_CHAR gst_ttml_attribute_dump (attr));
+        LIBXML_CHAR value);
+    g_free (value);
     g_free (attr);
   }
 
