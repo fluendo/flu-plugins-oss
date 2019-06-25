@@ -9,5 +9,6 @@
 
 #include <fluc/ipc/flucipc.h>
 #include <fluc/license/fluclicense.h>
+#include <fluc/drm/flucdrm.h>
 
 #endif /*  _FLUC_H_  */
