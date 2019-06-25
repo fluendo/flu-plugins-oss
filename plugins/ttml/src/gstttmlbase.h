@@ -14,6 +14,17 @@
 
 G_BEGIN_DECLS
 
+typedef struct {
+  gchar * data;
+  gsize size;
+  gsize len;
+  gboolean enable;
+  gboolean preserve_whitespace;
+  gboolean insert_space;
+  gboolean collapsing;
+  gboolean line_has_chars;
+} GstTTMLBuffer;
+
 /* The GStreamer ttmlbase base element */
 typedef struct _GstTTMLBase {
   GstElement element;
@@ -52,9 +63,7 @@ typedef struct _GstTTMLBase {
   GList *active_spans;
 
   /* buffer to accumulate xml node content */
-  gchar * buf;
-  gsize buf_size;
-  gsize buf_len;
+  GstTTMLBuffer buffer;
 
   /* To build demo plugins */
   GstFluDemoStatistics stats;

@@ -1455,6 +1455,9 @@ gst_ttmlrender_gen_buffer (GstTTMLBase * base, GstClockTime ts,
 
   GST_DEBUG_OBJECT (render, "Generating a new buffer at%" GST_TIME_FORMAT
       " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
+  GST_DEBUG_OBJECT (render, "Using fame: window=%dx%d, frame=%dx%d",
+      render->window_width, render->window_height,
+      render->base.state.frame_width, render->base.state.frame_height);
 
   buffer =
       gst_buffer_new_and_alloc (render->base.state.frame_width *
@@ -1515,6 +1518,9 @@ gst_ttmlrender_fixate_caps (GstTTMLBase * base, GstCaps * caps)
   gst_structure_fixate_field_nearest_int (s, "width", render->window_width);
   gst_structure_fixate_field_nearest_int (s, "height", render->window_height);
   GST_DEBUG_OBJECT (render, "Fixated to    %" GST_PTR_FORMAT, caps);
+  GST_DEBUG_OBJECT (render, "Window size changed: window=%dx%d, frame=%dx%d",
+      render->window_width, render->window_height,
+      render->base.state.frame_width, render->base.state.frame_height);
 }
 
 static void
@@ -1537,10 +1543,11 @@ gst_ttmlrender_setcaps (GstTTMLBase * base, GstCaps * caps)
   gst_structure_get_int (structure, "width", &width);
   gst_structure_get_int (structure, "height", &height);
 
-  GST_DEBUG_OBJECT (render, "Got frame size %dx%d", width, height);
-
   render->base.state.frame_width = width;
   render->base.state.frame_height = height;
+  GST_DEBUG_OBJECT (render, "Frame size changed: window=%dx%d, frame=%dx%d",
+      render->window_width, render->window_height,
+      render->base.state.frame_width, render->base.state.frame_height);
 }
 
 static void
@@ -1602,9 +1609,17 @@ gst_ttmlrender_set_property (GObject * object, guint prop_id,
       break;
     case PROP_WINDOW_WIDTH:
       render->window_width = g_value_get_uint (value);
+      GST_DEBUG_OBJECT (render, "Window width set: window=%dx%d, frame=%dx%d",
+          render->window_width, render->window_height,
+          render->base.state.frame_width, render->base.state.frame_height);
+      render->base.state.frame_width = render->window_width;
       break;
     case PROP_WINDOW_HEIGHT:
       render->window_height = g_value_get_uint (value);
+      GST_DEBUG_OBJECT (render, "Window height set: window=%dx%d, frame=%dx%d",
+          render->window_width, render->window_height,
+          render->base.state.frame_width, render->base.state.frame_height);
+      render->base.state.frame_height = render->window_height;
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1742,6 +1757,9 @@ gst_ttmlrender_init (GstTTMLRender * render)
   render->default_font_size = NULL;
   render->window_width = DEFAULT_WINDOW_WIDTH;
   render->window_height = DEFAULT_WINDOW_HEIGHT;
+  GST_DEBUG_OBJECT (render, "Windows init: window=%dx%d, frame=%dx%d",
+      render->window_width, render->window_height,
+      render->base.state.frame_width, render->base.state.frame_height);
 
   render->cached_images = NULL;
 
