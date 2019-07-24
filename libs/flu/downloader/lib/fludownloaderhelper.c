@@ -46,8 +46,10 @@ fludownloader_helper_done_cb (FluDownloaderTaskOutcome outcome,
   downloader->success = (outcome == FLUDOWNLOADER_TASK_OK);
   downloader->finished = TRUE;
   downloader->http_status_code = http_status_code;
-  LOG ("Transfer finished with http status code=%d size=%d outcome error=%s\n", http_status_code,
-      downloader->size, fludownloader_get_outcome_string(outcome));
+  downloader->outcome = outcome;
+  LOG ("Transfer finished with http status code=%d size=%d outcome error=%s\n",
+      http_status_code, downloader->size,
+      fludownloader_get_outcome_string (outcome));
   downloader->header = fludownloader_task_get_header (task);
   g_cond_signal (downloader->done_cond);
   g_mutex_unlock (downloader->done_mutex);
@@ -209,7 +211,7 @@ fludownloader_helper_downloader_free (FluDownloaderHelper * downloader)
 
 gboolean
 fludownloader_helper_downloader_download_sync (FluDownloaderHelper * downloader,
-    const gchar * url, guint8 ** data, gint * size)
+    const gchar * url, guint8 ** data, gint * size, FluDownloaderTaskOutcome *outcome )
 {
   downloader->finished = FALSE;
   downloader->data = NULL;
@@ -232,14 +234,18 @@ fludownloader_helper_downloader_download_sync (FluDownloaderHelper * downloader,
     }
   }
 
+  if (outcome != NULL)
+    *outcome = downloader->outcome;
+
   g_mutex_unlock (downloader->done_mutex);
 
   return downloader->success;
 }
 
 gboolean
-fludownloader_helper_simple_download_sync (gchar * url, GHashTable* parameters, guint8 ** data,
-    gint * size, gint * http_status_code)
+fludownloader_helper_simple_download_sync (gchar * url, GHashTable * parameters,
+    guint8 ** data, gint * size, gint * http_status_code,
+    FluDownloaderTaskOutcome * outcome)
 {
   gboolean ret = FALSE;
   if (!url)
@@ -247,7 +253,7 @@ fludownloader_helper_simple_download_sync (gchar * url, GHashTable* parameters, 
   FluDownloaderHelper *download_helper = fludownloader_helper_downloader_new (parameters);
   ret =
       fludownloader_helper_downloader_download_sync (download_helper, url, data,
-      size);
+      size, outcome);
   if (http_status_code)
     *http_status_code = download_helper->http_status_code;
   fludownloader_helper_downloader_free (download_helper);

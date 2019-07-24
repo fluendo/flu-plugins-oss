@@ -40,7 +40,7 @@ main (int argc, char *argv[])
       ("Lets start a new download from internal url=%s\nWaiting to complete...\n",
       internal_url);
   fludownloader_helper_simple_download_sync (internal_url, NULL, &buffer, &size,
-      &http_status_code);
+      &http_status_code, NULL);
   g_free (buffer);
   g_print ("The first attempt has finished with status %d and size %d\n",
       http_status_code, size);
@@ -49,7 +49,7 @@ main (int argc, char *argv[])
     g_print ("Lets start a new download with url=%s\nWaiting to complete...\n",
         url);
     fludownloader_helper_simple_download_sync (url, NULL, &buffer, &size,
-        &http_status_code);
+        &http_status_code, NULL);
     g_print ("The second attempt has finished with status %d and size %d\n",
         http_status_code, size);
     g_free (buffer);
