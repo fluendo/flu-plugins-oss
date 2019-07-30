@@ -413,7 +413,7 @@ gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
 
     /* Load from file */
     if (fludownloader_helper_downloader_download_sync (render->downloader, url,
-            &buffer.data, &buffer.datalen)) {
+            &buffer.data, &buffer.datalen, NULL)) {
       surface = gst_ttmlrender_decode_image_from_buffer (id, &buffer);
     } else {
       /* Download error */
