@@ -20,6 +20,7 @@ struct _FluDownloaderHelper
   GCond *done_cond;
   gboolean finished;
   gint http_status_code;
+  FluDownloaderTaskOutcome outcome;
   guint8 *data;
   gint size;
   gchar **header;          /* NULL-terminated array of strings */
@@ -60,7 +61,8 @@ void fludownloader_helper_downloader_free (FluDownloaderHelper * downloader);
  * data or size can be NULL.
  * */
 gboolean fludownloader_helper_downloader_download_sync (FluDownloaderHelper *
-    downloader, const gchar * url, guint8 ** data, gint * size);
+    downloader, const gchar * url, guint8 ** data, gint * size,
+    FluDownloaderTaskOutcome * outcome);
 
 /* Launch a download with a given url with given 'parameters' and wait for its completion.
  * Returns TRUE with data(remember to free it) and size on transfer success.
@@ -68,8 +70,9 @@ gboolean fludownloader_helper_downloader_download_sync (FluDownloaderHelper *
  * Parameters can be NULL.
  * data, size or http_status_code can be NULL.
  * */
-gboolean fludownloader_helper_simple_download_sync (gchar * url, GHashTable* parameters, guint8 ** data,
-    gint * size, gint * http_status_code);
+gboolean fludownloader_helper_simple_download_sync (gchar * url,
+    GHashTable * parameters, guint8 ** data, gint * size,
+    gint * http_status_code, FluDownloaderTaskOutcome * outcome);
 
 /* Initiate sending a HEAD request and wait for response.
  * Returns TRUE and response header (a NULL-terminated array of strings,

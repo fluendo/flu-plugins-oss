@@ -90,6 +90,7 @@ struct _FluDownloaderTask
   gboolean response_ok;         /* This is an OK header */
   FluDownloaderTaskOutcome outcome;
   FluDownloaderTaskSSLStatus ssl_status;
+  gchar error_buffer[CURL_ERROR_SIZE];
 };
 
 /* forward declarations */
@@ -194,9 +195,12 @@ _task_done (FluDownloaderTask * task, CURLcode result)
     case CURLE_COULDNT_RESOLVE_HOST:
       outcome = FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST;
       break;
-    case CURLE_COULDNT_CONNECT:
-      outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
-      break;
+    case CURLE_COULDNT_CONNECT:{
+      if ( strstr( task->error_buffer, "Connection refused" ) )
+        outcome = FLUDOWNLOADER_TASK_CONNECTION_REFUSED;
+      else
+        outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
+    }break;
     case CURLE_SEND_ERROR:
       outcome = FLUDOWNLOADER_TASK_SEND_ERROR;
       break;
@@ -629,6 +633,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   /* Allow redirections */
   curl_easy_setopt (task->handle, CURLOPT_FOLLOWLOCATION, 1L);
   curl_easy_setopt (task->handle, CURLOPT_URL, url);
+  curl_easy_setopt (task->handle, CURLOPT_ERRORBUFFER, task->error_buffer);
   /* Choose if we want to send HEAD or GET request */
   task->store_header = TRUE;
   if (range != NULL && strcmp (range, "HEAD") == 0) {
@@ -801,6 +806,8 @@ fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome)
       return "Task error";
     case FLUDOWNLOADER_TASK_COULD_NOT_CONNECT:
       return "Could not connect";
+    case FLUDOWNLOADER_TASK_CONNECTION_REFUSED:
+      return "Connection refused";
     case FLUDOWNLOADER_TASK_HTTP_ERROR:
       return "HTTP error";
     case FLUDOWNLOADER_TASK_SEND_ERROR:
