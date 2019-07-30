@@ -25,8 +25,10 @@ typedef enum _FluDownloaderTaskOutcome
   FLUDOWNLOADER_TASK_ABORTED,
   /* Generic task error (error not in the list below) */
   FLUDOWNLOADER_TASK_ERROR,
-  /* Server not found or connection refused */
+  /* Could not connect / server ip not found */
   FLUDOWNLOADER_TASK_COULD_NOT_CONNECT,
+  /* connection refused */
+  FLUDOWNLOADER_TASK_CONNECTION_REFUSED,
   /* Connection OK, but server returned HTTP error */
   FLUDOWNLOADER_TASK_HTTP_ERROR,
   /* Error while writing to the socket */
