@@ -1078,15 +1078,22 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
     const char *next_buffer_data = NULL;
     int next_buffer_len = 0;
 
-    /* Look for end-of-document tags */
-    next_buffer_data = g_strstr_len (buffer_data, buffer_len, "</tt>");
+    /* Look for xml marker "<?xml" after the very first */
+    /* FIXME: This is not 100% reliable, a buffer boundary may break it,
+     * and may not be necessary because the sax parser should be able
+     * to handle multiple docs signaling doc starts and ends. We only
+     * intend to fix a previous bug (looking for </tt>), we do not intend
+     * to invest further in improving this logic right now. */
+    if (buffer_len > 6)
+      next_buffer_data = g_strstr_len (buffer_data + 1, buffer_len - 1,
+          "<?xml");
 
-    /* If one was detected, this might be a concatenated XML file (multiple
+    /* If one was detected, this is a concatenated XML file (multiple
      * XML files inside the same buffer) and we need to parse them one by one
      */
     if (next_buffer_data) {
-      next_buffer_data += 5;
-      GST_DEBUG_OBJECT (base, "Detected XML document end at position %d of %d",
+      GST_DEBUG_OBJECT (base,
+          "Detected XML document start at position %d of %d",
           (int) (next_buffer_data - buffer_data), buffer_len);
       next_buffer_len = buffer_len - (next_buffer_data - buffer_data);
       buffer_len = next_buffer_data - buffer_data;
@@ -1125,15 +1132,6 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 
       gst_ttmlbase_reset (base);
       base->base_time = GST_CLOCK_TIME_NONE;
-
-      /* Remove trailing whitespace, or the first thing the new parser will
-       * find will not be the start-of-document tag */
-      while (next_buffer_len && g_ascii_isspace (*next_buffer_data)) {
-        GST_DEBUG_OBJECT (base, "Skipping trailing whitespace char 0x%02x",
-            *next_buffer_data);
-        next_buffer_data++;
-        next_buffer_len--;
-      }
     }
 
     /* Process the next XML inside this buffer. If the end-of-document tag was
