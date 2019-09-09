@@ -16,59 +16,52 @@ static GstStaticCaps gst_ttmltype_caps = GST_STATIC_CAPS (TTML_MIME);
 static void
 gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
 {
-  static const gchar tag_xml[] = "<?xml";
+  guint64 offset = 0;
+  const guint8 *data;
+  guint checks = 0x00;
   GstTypeFindProbability prob = GST_TYPE_FIND_MAXIMUM;
-  const gchar *data, *found;
-  guint64 len, jumplen;
-  gboolean checks = FALSE;
-  gchar c;
 
-  len = gst_type_find_get_length (tf);
-  if (len > 1024)
-    len = 1024;
-
-  data = (gchar *) gst_type_find_peek (tf, 0, len);
-  if (!data)
-    return;
-
-  /* First we look for xml signature */
-  /* Some ligada tests include ttml files without the "<?xml" marker.
-   * This looks illegal, but here we will not fail on that to
-   * allow these tests passing. */
-  found = g_strstr_len (data, len, tag_xml);
-  if (found) {
-    if (found > data) {
-      /* We are only 100% sure this is a TTML file if the XML tag appears at
-       * the beginning of the buffer. Otherwise, this could be TTML embedded
-       * in some other format and therefore we lower our probability.
-       */
-      prob = GST_TYPE_FIND_LIKELY;
-    } else {
-      jumplen = found - data + 6;
-      data += jumplen;
-      len -= jumplen;
-    }
-  }
-
-  /* check for either "<tt" or ":tt" followed by xml space */
-  found = g_strstr_len (data, len, "<tt");
-  if (found && found + 3 < data + len) {
-    c = found[3];
-    if (g_ascii_isspace (c) || g_ascii_iscntrl (c)) {
-      checks = TRUE;
-    }
-  }
-  if (!checks) {
-    found = g_strstr_len (data, len, ":tt");
-    if (found && found + 3 < data + len) {
-      c = found[3];
-      if (g_ascii_isspace (c) || g_ascii_iscntrl (c)) {
-        checks = TRUE;
+  /* check for xml tag */
+  while (((data = gst_type_find_peek (tf, offset, 6)) != NULL)
+      && offset < 1024) {
+    if (!(checks & 0x01) && !memcmp (data, "<?xml", 5) &&
+        (g_ascii_isspace (data[5]) || g_ascii_iscntrl (data[5]))) {
+      if (offset) {
+        /* We are only 100% sure this is a TTML file if the XML tag appears at
+         * the beginning of the buffer. Otherwise, this could be TTML embedded
+         * in some other format and therefore we lower our probability.
+         */
+        prob = GST_TYPE_FIND_LIKELY;
       }
+      checks = 0x01;
+      offset += 6;
+      break;
     }
+    offset++;
   }
 
-  if (checks) {
+  if (!checks) {
+    /* XML tag was not found.
+     * Some test files don't have the xml tag, which looks ilegal, 
+     * be we have to accept those files if we find a ttml root node.
+     * We will lower the probability if this is the case.
+     */
+    prob = GST_TYPE_FIND_NEARLY_CERTAIN;
+    offset = 0;
+  }
+
+  /* check for ttml root node */
+  while (((data = gst_type_find_peek (tf, offset, 4)) != NULL)
+      && offset < 1024) {
+    if (!memcmp (data + 1, "tt", 2) && (data[0] == '<' || data[0] == ':') &&
+        (g_ascii_isspace (data[3]) || g_ascii_iscntrl (data[3]))) {
+      checks |= 0x02;
+      break;
+    }
+    offset++;
+  }
+
+  if (checks & 0x02) {
     gst_type_find_suggest (tf, prob, TTML_CAPS);
   }
 }
