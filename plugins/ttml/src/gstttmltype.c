@@ -31,22 +31,24 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
   if (!data)
     return;
 
-  /* first we look for xml signature */
+  /* First we look for xml signature */
+  /* Some ligada tests include ttml files without the "<?xml" marker.
+   * This looks illegal, but here we will not fail on that to
+   * allow these tests passing. */
   found = g_strstr_len (data, len, tag_xml);
-  if (!found)
-    return;
-  if (found > data) {
-    /* We are only 100% sure this is a TTML file if the XML tag appears at
-     * the beginning of the buffer. Otherwise, this could be TTML embedded
-     * in some other format and therefore we lower our probability.
-     */
-    prob = GST_TYPE_FIND_LIKELY;
+  if (found) {
+    if (found > data) {
+      /* We are only 100% sure this is a TTML file if the XML tag appears at
+       * the beginning of the buffer. Otherwise, this could be TTML embedded
+       * in some other format and therefore we lower our probability.
+       */
+      prob = GST_TYPE_FIND_LIKELY;
+    } else {
+      jumplen = found - data + 6;
+      data += jumplen;
+      len -= jumplen;
+    }
   }
-  jumplen = found - data + 6;
-  data += jumplen;
-  len -= jumplen;
-
-  /* this is an xml */
 
   /* check for either "<tt" or ":tt" followed by xml space */
   found = g_strstr_len (data, len, "<tt");
