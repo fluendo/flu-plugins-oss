@@ -1079,13 +1079,18 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
     int next_buffer_len = 0;
 
     /* Look for end-of-document tags */
-    next_buffer_data = g_strstr_len (buffer_data, buffer_len, "</tt>");
+    next_buffer_data = g_strstr_len (buffer_data, buffer_len, "tt>");
+    if (next_buffer_data && (next_buffer_data[-1] == '/' ||
+            next_buffer_data[-1] == ':')) {
+      next_buffer_data += 3;
+    } else {
+      next_buffer_data = NULL;
+    }
 
     /* If one was detected, this might be a concatenated XML file (multiple
      * XML files inside the same buffer) and we need to parse them one by one
      */
     if (next_buffer_data) {
-      next_buffer_data += 5;
       GST_DEBUG_OBJECT (base, "Detected XML document end at position %d of %d",
           (int) (next_buffer_data - buffer_data), buffer_len);
       next_buffer_len = buffer_len - (next_buffer_data - buffer_data);
