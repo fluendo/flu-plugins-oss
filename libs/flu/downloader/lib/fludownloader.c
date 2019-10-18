@@ -629,10 +629,10 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
 
   const gchar *ca_certs = g_getenv ("CA_CERTIFICATES");
   if (ca_certs != NULL) {
-    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, TRUE);
+    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt (task->handle, CURLOPT_CAPATH, ca_certs);
   } else {
-    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, 0L);
   }
   curl_easy_setopt (task->handle, CURLOPT_USERAGENT, "fludownloader");
   /* We do not want signals, since we are multithreading */
