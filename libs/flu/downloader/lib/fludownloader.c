@@ -94,10 +94,8 @@ struct _FluDownloaderTask
 };
 
 /* forward declarations */
-static void
-_task_done (FluDownloaderTask * task, CURLcode result);
-static void
-_process_curl_messages (FluDownloader * context);
+static void _task_done (FluDownloaderTask * task, CURLcode result);
+static void _process_curl_messages (FluDownloader * context);
 
 /* Removes a task. Transfer will NOT be interrupted if it had already started.
  * Call with the lock taken. */
@@ -159,7 +157,7 @@ _abort_all_tasks_unlocked (FluDownloader * context, gboolean including_current)
 static void
 _task_done (FluDownloaderTask * task, CURLcode result)
 {
-  FluDownloader * context;
+  FluDownloader *context;
   FluDownloaderTaskOutcome outcome;
   long http_status_code;
 
@@ -173,18 +171,18 @@ _task_done (FluDownloaderTask * task, CURLcode result)
   switch (result) {
     case CURLE_OK:
       outcome = FLUDOWNLOADER_TASK_OK;
-      if (!task->is_file ) {
+      if (!task->is_file) {
         curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
-        &http_status_code);
+            &http_status_code);
         if (http_status_code >= 300 || http_status_code < 200)
           outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
       }
       break;
     case CURLE_WRITE_ERROR:
       outcome = FLUDOWNLOADER_TASK_ERROR;
-      if (!task->is_file ) {
+      if (!task->is_file) {
         curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
-        &http_status_code);
+            &http_status_code);
         if (http_status_code >= 300 || http_status_code < 200)
           outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
       }
@@ -196,11 +194,12 @@ _task_done (FluDownloaderTask * task, CURLcode result)
       outcome = FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST;
       break;
     case CURLE_COULDNT_CONNECT:{
-      if ( strstr( task->error_buffer, "Connection refused" ) )
+      if (strstr (task->error_buffer, "Connection refused"))
         outcome = FLUDOWNLOADER_TASK_CONNECTION_REFUSED;
       else
         outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
-    }break;
+    }
+      break;
     case CURLE_SEND_ERROR:
       outcome = FLUDOWNLOADER_TASK_SEND_ERROR;
       break;
@@ -629,10 +628,10 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
 
   const gchar *ca_certs = g_getenv ("CA_CERTIFICATES");
   if (ca_certs != NULL) {
-    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, TRUE);
+    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, 1L);
     curl_easy_setopt (task->handle, CURLOPT_CAPATH, ca_certs);
   } else {
-    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_easy_setopt (task->handle, CURLOPT_SSL_VERIFYPEER, 0L);
   }
   curl_easy_setopt (task->handle, CURLOPT_USERAGENT, "fludownloader");
   /* We do not want signals, since we are multithreading */
@@ -783,7 +782,8 @@ fludownloader_get_polling_period (FluDownloader * context)
 }
 
 gboolean
-fludownloader_task_get_abort (FluDownloaderTask* task) {
+fludownloader_task_get_abort (FluDownloaderTask * task)
+{
   return task->abort;
 }
 
@@ -928,4 +928,3 @@ fludownloader_get_tasks_count (FluDownloader * context)
 
   return ret;
 }
-

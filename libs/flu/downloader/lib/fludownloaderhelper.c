@@ -36,7 +36,8 @@ fludownloader_helper_data_cb (void *buffer, size_t size,
 static void
 fludownloader_helper_done_cb (FluDownloaderTaskOutcome outcome,
     int http_status_code, size_t downloaded_size,
-    FluDownloaderHelper * downloader, FluDownloaderTask * task, gboolean * cancel_remaining_downloads)
+    FluDownloaderHelper * downloader, FluDownloaderTask * task,
+    gboolean * cancel_remaining_downloads)
 {
   g_mutex_lock (downloader->done_mutex);
   if (outcome != FLUDOWNLOADER_TASK_OK) {
@@ -56,15 +57,16 @@ fludownloader_helper_done_cb (FluDownloaderTaskOutcome outcome,
 }
 
 static void
-fludownloader_helper_downloader_parameter_destroy(void* param)
+fludownloader_helper_downloader_parameter_destroy (void *param)
 {
-  GValue* value = (GValue*)param;
-  g_value_unset(value);
+  GValue *value = (GValue *) param;
+  g_value_unset (value);
   g_free (value);
 }
 
 static void
-fludownloader_helper_downloader_parameters_set_valist(GHashTable* table, const gchar * fieldname, va_list varargs)
+fludownloader_helper_downloader_parameters_set_valist (GHashTable * table,
+    const gchar * fieldname, va_list varargs)
 {
   gchar *err = NULL;
   GType type;
@@ -72,7 +74,7 @@ fludownloader_helper_downloader_parameters_set_valist(GHashTable* table, const g
   GQuark name;
 
   while (fieldname) {
-    value = g_new0(GValue,1);
+    value = g_new0 (GValue, 1);
     name = g_quark_from_string (fieldname);
 
     type = va_arg (varargs, GType);
@@ -82,57 +84,67 @@ fludownloader_helper_downloader_parameters_set_valist(GHashTable* table, const g
       g_critical ("%s", err);
       return;
     }
-    g_hash_table_insert(table, (gpointer)g_quark_to_string(name),value);
+    g_hash_table_insert (table, (gpointer) g_quark_to_string (name), value);
 
     fieldname = va_arg (varargs, gchar *);
   }
 }
 
 static GHashTable *
-fludownloader_helper_downloader_parameters_add_valist (GHashTable* table, const gchar * firstfield, va_list varargs)
+fludownloader_helper_downloader_parameters_add_valist (GHashTable * table,
+    const gchar * firstfield, va_list varargs)
 {
   g_return_val_if_fail (table != NULL, NULL);
 
-  fludownloader_helper_downloader_parameters_set_valist (table, firstfield, varargs);
+  fludownloader_helper_downloader_parameters_set_valist (table, firstfield,
+      varargs);
   return table;
 }
 
 static GHashTable *
-fludownloader_helper_downloader_parameters_new_valist (const gchar * firstfield, va_list varargs)
+fludownloader_helper_downloader_parameters_new_valist (const gchar * firstfield,
+    va_list varargs)
 {
-  GHashTable* table;
-  table = g_hash_table_new_full(g_str_hash, g_str_equal, NULL, fludownloader_helper_downloader_parameter_destroy);
-  fludownloader_helper_downloader_parameters_set_valist (table, firstfield, varargs);
+  GHashTable *table;
+  table =
+      g_hash_table_new_full (g_str_hash, g_str_equal, NULL,
+      fludownloader_helper_downloader_parameter_destroy);
+  fludownloader_helper_downloader_parameters_set_valist (table, firstfield,
+      varargs);
   return table;
 }
 
 static void
-fludownloader_helper_downloader_set_parameters (FluDownloaderHelper * downloader, GHashTable* parameters)
+fludownloader_helper_downloader_set_parameters (FluDownloaderHelper *
+    downloader, GHashTable * parameters)
 {
   g_return_if_fail (downloader);
   g_return_if_fail (downloader->fludownloader);
 
   if (parameters) {
-    GValue* value = NULL;
+    GValue *value = NULL;
     value = g_hash_table_lookup (parameters, "cookies");
     if (value) {
       if (G_VALUE_HOLDS (value, G_TYPE_STRV))
-        fludownloader_set_cookies (downloader->fludownloader, g_value_get_boxed (value));
+        fludownloader_set_cookies (downloader->fludownloader,
+            g_value_get_boxed (value));
       else
         g_warning ("Invalid type: 'cookies' should be G_TYPE_STRV");
     }
-    value = g_hash_table_lookup(parameters,"user-agent");
+    value = g_hash_table_lookup (parameters, "user-agent");
     if (value) {
       if (G_VALUE_HOLDS (value, G_TYPE_STRING))
-        fludownloader_set_user_agent (downloader->fludownloader, g_value_get_string(value));
+        fludownloader_set_user_agent (downloader->fludownloader,
+            g_value_get_string (value));
       else
         g_warning ("Invalid type: 'user-agent' should be G_TYPE_STRING");
 
     }
-    value = g_hash_table_lookup(parameters,"proxy");
+    value = g_hash_table_lookup (parameters, "proxy");
     if (value) {
       if (G_VALUE_HOLDS (value, G_TYPE_STRING))
-        fludownloader_set_proxy (downloader->fludownloader, g_value_get_string(value));
+        fludownloader_set_proxy (downloader->fludownloader,
+            g_value_get_string (value));
       else
         g_warning ("Invalid type: 'proxy' should be G_TYPE_STRING");
     }
@@ -144,12 +156,15 @@ fludownloader_helper_downloader_set_parameters (FluDownloaderHelper * downloader
  *****************************************************************************/
 
 GHashTable *
-fludownloader_helper_downloader_parameters_add (GHashTable * table, const gchar * firstfield, ...)
+fludownloader_helper_downloader_parameters_add (GHashTable * table,
+    const gchar * firstfield, ...)
 {
   va_list varargs;
 
   va_start (varargs, firstfield);
-  table = fludownloader_helper_downloader_parameters_add_valist (table, firstfield, varargs);
+  table =
+      fludownloader_helper_downloader_parameters_add_valist (table, firstfield,
+      varargs);
   va_end (varargs);
 
   return table;
@@ -162,14 +177,16 @@ fludownloader_helper_downloader_parameters_new (const gchar * firstfield, ...)
   va_list varargs;
 
   va_start (varargs, firstfield);
-  table = fludownloader_helper_downloader_parameters_new_valist (firstfield, varargs);
+  table =
+      fludownloader_helper_downloader_parameters_new_valist (firstfield,
+      varargs);
   va_end (varargs);
 
   return table;
 }
 
 FluDownloaderHelper *
-fludownloader_helper_downloader_new (GHashTable* parameters)
+fludownloader_helper_downloader_new (GHashTable * parameters)
 {
   FluDownloaderHelper *downloader = g_new0 (FluDownloaderHelper, 1);
 
@@ -179,7 +196,7 @@ fludownloader_helper_downloader_new (GHashTable* parameters)
       (FluDownloaderDataCallback) fludownloader_helper_data_cb,
       (FluDownloaderDoneCallback) fludownloader_helper_done_cb);
 
-  fludownloader_helper_downloader_set_parameters(downloader, parameters);
+  fludownloader_helper_downloader_set_parameters (downloader, parameters);
 
   downloader->done_mutex = g_mutex_new ();
   downloader->done_cond = g_cond_new ();
@@ -211,7 +228,8 @@ fludownloader_helper_downloader_free (FluDownloaderHelper * downloader)
 
 gboolean
 fludownloader_helper_downloader_download_sync (FluDownloaderHelper * downloader,
-    const gchar * url, guint8 ** data, gint * size, FluDownloaderTaskOutcome *outcome )
+    const gchar * url, guint8 ** data, gint * size,
+    FluDownloaderTaskOutcome * outcome)
 {
   downloader->finished = FALSE;
   downloader->data = NULL;
@@ -229,8 +247,8 @@ fludownloader_helper_downloader_download_sync (FluDownloaderHelper * downloader,
       *data = downloader->data;
       *size = downloader->size;
     } else {
-        *data = NULL;
-        *size = 0;
+      *data = NULL;
+      *size = 0;
     }
   }
 
@@ -250,7 +268,8 @@ fludownloader_helper_simple_download_sync (gchar * url, GHashTable * parameters,
   gboolean ret = FALSE;
   if (!url)
     return ret;
-  FluDownloaderHelper *download_helper = fludownloader_helper_downloader_new (parameters);
+  FluDownloaderHelper *download_helper =
+      fludownloader_helper_downloader_new (parameters);
   ret =
       fludownloader_helper_downloader_download_sync (download_helper, url, data,
       size, outcome);
@@ -261,13 +280,14 @@ fludownloader_helper_simple_download_sync (gchar * url, GHashTable * parameters,
 }
 
 gboolean
-fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downloader,
-    const gchar * url, gchar *** header)
+fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper *
+    downloader, const gchar * url, gchar *** header)
 {
   downloader->finished = FALSE;
   if (!url)
     return FALSE;
-  fludownloader_new_task (downloader->fludownloader, url, "HEAD", downloader, FALSE);
+  fludownloader_new_task (downloader->fludownloader, url, "HEAD", downloader,
+      FALSE);
 
   g_mutex_lock (downloader->done_mutex);
   while (!downloader->finished)
@@ -276,8 +296,7 @@ fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downlo
     if (downloader->header) {
       *header = downloader->header;
       downloader->header = NULL;
-    }
-    else
+    } else
       *header = NULL;
   }
 
@@ -287,15 +306,17 @@ fludownloader_helper_downloader_download_head_sync (FluDownloaderHelper * downlo
 }
 
 gboolean
-fludownloader_helper_simple_download_head_sync (gchar * url, GHashTable* parameters, gchar *** header,
-    gint * http_status_code)
+fludownloader_helper_simple_download_head_sync (gchar * url,
+    GHashTable * parameters, gchar *** header, gint * http_status_code)
 {
   gboolean ret = FALSE;
   if (!url)
     return ret;
-  FluDownloaderHelper *download_helper = fludownloader_helper_downloader_new (parameters);
+  FluDownloaderHelper *download_helper =
+      fludownloader_helper_downloader_new (parameters);
   ret =
-    fludownloader_helper_downloader_download_head_sync (download_helper, url, header);
+      fludownloader_helper_downloader_download_head_sync (download_helper, url,
+      header);
   if (http_status_code)
     *http_status_code = download_helper->http_status_code;
   fludownloader_helper_downloader_free (download_helper);
