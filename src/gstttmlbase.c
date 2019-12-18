@@ -1078,6 +1078,16 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
     const char *next_buffer_data = NULL;
     int next_buffer_len = 0;
 
+    /* Look for start-of-document tag */
+    /* This might happen because two XML files come in different buffers
+     * but there's no ending /tt> tag but an empty /> one
+     */
+    if (base->xml_parser &&
+        ((buffer_len >= 3 && g_strstr_len (buffer_data, 3, "<tt")) ||
+            (buffer_len && g_strstr_len (buffer_data, 5, "<?xml")))) {
+      xmlParseChunk (base->xml_parser, NULL, 0, 1);
+    }
+
     /* Look for end-of-document tags */
     next_buffer_data = g_strstr_len (buffer_data, buffer_len, "tt>");
     if (next_buffer_data && (next_buffer_data[-1] == '/' ||
