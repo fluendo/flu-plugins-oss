@@ -1083,9 +1083,11 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
      * but there's no ending /tt> tag but an empty /> one
      */
     if (base->xml_parser &&
-        ((buffer_len >= 3 && g_strstr_len (buffer_data, 3, "<tt")) ||
-            (buffer_len && g_strstr_len (buffer_data, 5, "<?xml")))) {
+        (g_strstr_len (buffer_data, buffer_len, "<tt") ||
+            g_strstr_len (buffer_data, buffer_len, "<?xml"))) {
       xmlParseChunk (base->xml_parser, NULL, 0, 1);
+      xmlFreeParserCtxt (base->xml_parser);
+      base->xml_parser = NULL;
     }
 
     /* Look for end-of-document tags */
