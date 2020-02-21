@@ -86,9 +86,10 @@ struct _FluDownloaderTask
   CURL *handle;                 /* CURL easy handler */
 
   /* Header parsing */
-  gboolean first_header_line;   /* Next header line will be a status line */
-  gboolean response_ok;         /* This is an OK header */
+  gboolean http_status_received; /* http status received */
+  gboolean http_status_ok;       /* This is an OK header */
   FluDownloaderTaskOutcome outcome;
+  gint http_status;
   FluDownloaderTaskSSLStatus ssl_status;
   gchar error_buffer[CURL_ERROR_SIZE];
 };
@@ -178,16 +179,8 @@ _task_done (FluDownloaderTask * task, CURLcode result)
           outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
       }
       break;
-    case CURLE_WRITE_ERROR:
-      outcome = FLUDOWNLOADER_TASK_ERROR;
-      if (!task->is_file) {
-        curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
-            &http_status_code);
-        if (http_status_code >= 300 || http_status_code < 200)
-          outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
-      }
-      break;
     case CURLE_ABORTED_BY_CALLBACK:
+    case CURLE_WRITE_ERROR:
       outcome = FLUDOWNLOADER_TASK_ABORTED;
       break;
     case CURLE_COULDNT_RESOLVE_HOST:
@@ -298,22 +291,21 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   /* Do not pass data if https status is not OK.
    * We may be streaming the data, and we must not
    * stream error bodies. */
-  if (!task->response_ok) {
-    return 0;
-  }
-
+  if (!task->http_status_ok)
+    goto beach;
+ 
   g_static_rec_mutex_lock (&task->context->mutex);
   task->downloaded_size += total_size;
 
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task)) {
-      g_static_rec_mutex_unlock (&task->context->mutex);
-      return -1;
+      total_size = -1;
     }
   }
 
   g_static_rec_mutex_unlock (&task->context->mutex);
+beach:
   return total_size;
 }
 
@@ -326,27 +318,29 @@ _header_function (const char *line, size_t size, size_t nmemb,
 
   g_static_rec_mutex_lock (&task->context->mutex);
 
-  if (task->first_header_line) {
+  if (!task->http_status_received) {
     /* This is the status line */
-    gint code;
-    if (sscanf (line, "%*s %d", &code) == 1) {
-      task->response_ok = (code >= 200) && (code <= 299);
+    if (sscanf (line, "%*s %d", &task->http_status) == 1) {
+      task->http_status_ok = (task->http_status >= 200) &&
+          (task->http_status <= 299);
+      task->http_status_received = TRUE;
     }
-  } else if (task->response_ok) {
+  } else {
     /* This is another header line */
-    size_t size;
-    if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
-      /* Context length parsed ok */
-      task->total_size = size;
-    } else if (g_strrstr_len (line, 5, "Date:")) {
+    if (g_strrstr_len (line, 5, "Date:")) {
       strncpy (task->date, line + 5, DATE_MAX_LENGTH - 1);
+    }
+    else if (task->http_status_ok) {
+      size_t size;
+      if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
+        /* Context length parsed ok */
+        task->total_size = size;
+      }
     }
   }
 
   if (task->store_header)
     task->header_lines = g_list_append (task->header_lines, g_strdup (line));
-
-  task->first_header_line = (total_size > 1 && line[0] == 13 && line[1] == 10);
 
   g_static_rec_mutex_unlock (&task->context->mutex);
 
@@ -593,8 +587,7 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   task->outcome = FLUDOWNLOADER_TASK_PENDING;
   task->user_data = user_data;
   task->context = context;
-  task->first_header_line = TRUE;
-  task->response_ok = TRUE;
+  task->http_status_ok = TRUE;
   task->is_file = g_str_has_prefix (url, "file://");
   memset (task->date, '\0', DATE_MAX_LENGTH);
   if (task->is_file) {
