@@ -31,6 +31,8 @@
 
 #define TIMEOUT 100000          /* 100ms */
 #define DATE_MAX_LENGTH 48
+#define DEFAULT_CONNECT_TIMEOUT 30000 /* ms, 30s */
+#define DEFAULT_RECEIVE_TIMEOUT 3000 /* ms, 3s */
 
 /*****************************************************************************
  * Private functions and structs
@@ -58,6 +60,8 @@ struct _FluDownloader
   /* CPU control stuff */
   gboolean use_polling;         /* Do not use select() */
   gint polling_period;          /* uSeconds to wait between curl checks */
+  gint64 connect_timeout;
+  gint64 receive_timeout;
 
   gchar **cookies;              /* NULL-terminated array of strings with cookies */
   gchar *user_agent;            /* String containing the user-agent used optionally by cURL */
@@ -70,6 +74,7 @@ struct _FluDownloaderTask
   /* Homekeeping stuff */
   FluDownloader *context;
   gpointer user_data;           /* Application's user data */
+  gboolean finished;            /* finished and done_cb notified */
   gboolean abort;               /* Signal the write callback to return error */
   gboolean running;             /* Has it already been passed to libCurl? */
   gboolean is_file;             /* URL starts with file:// */
@@ -81,6 +86,10 @@ struct _FluDownloaderTask
 
   gboolean store_header;        /* Store response header or no */
   GList *header_lines;          /* List with lines from response header */
+
+  /* timeouts control */
+  gint64 idle_timeout;
+  gint64 last_event_time;
 
   /* CURL stuff */
   CURL *handle;                 /* CURL easy handler */
@@ -159,111 +168,115 @@ static void
 _task_done (FluDownloaderTask * task, CURLcode result)
 {
   FluDownloader *context;
-  FluDownloaderTaskOutcome outcome;
-  long http_status_code;
 
-  if (task->outcome != FLUDOWNLOADER_TASK_PENDING)
+  if (task->finished)
     return;
 
   context = task->context;
-  http_status_code = 0;
 
-  /* Turn some of CURL's error codes into our possible task outcomes */
-  switch (result) {
-    case CURLE_OK:
-      outcome = FLUDOWNLOADER_TASK_OK;
-      if (!task->is_file) {
-        curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
-            &http_status_code);
-        if (http_status_code >= 300 || http_status_code < 200)
-          outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
+  if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
+  {
+    FluDownloaderTaskOutcome outcome;
+
+    /* Turn some of CURL's error codes into our possible task outcomes */
+    switch (result) {
+      case CURLE_OK:
+        outcome = FLUDOWNLOADER_TASK_OK;
+        if (!task->is_file) {
+          if (!task->http_status) {
+            curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
+                &task->http_status);
+          }
+          if (task->http_status >= 300 || task->http_status < 200)
+            outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
+        }
+        break;
+      case CURLE_ABORTED_BY_CALLBACK:
+      case CURLE_WRITE_ERROR:
+        outcome = FLUDOWNLOADER_TASK_ABORTED;
+        break;
+      case CURLE_COULDNT_RESOLVE_HOST:
+        outcome = FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST;
+        break;
+      case CURLE_COULDNT_CONNECT:{
+        if (strstr (task->error_buffer, "Connection refused"))
+          outcome = FLUDOWNLOADER_TASK_CONNECTION_REFUSED;
+        else
+          outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
       }
-      break;
-    case CURLE_ABORTED_BY_CALLBACK:
-    case CURLE_WRITE_ERROR:
-      outcome = FLUDOWNLOADER_TASK_ABORTED;
-      break;
-    case CURLE_COULDNT_RESOLVE_HOST:
-      outcome = FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST;
-      break;
-    case CURLE_COULDNT_CONNECT:{
-      if (strstr (task->error_buffer, "Connection refused"))
-        outcome = FLUDOWNLOADER_TASK_CONNECTION_REFUSED;
-      else
-        outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
+        break;
+      case CURLE_SEND_ERROR:
+        outcome = FLUDOWNLOADER_TASK_SEND_ERROR;
+        break;
+      case CURLE_RECV_ERROR:
+        outcome = FLUDOWNLOADER_TASK_RECV_ERROR;
+        break;
+      case CURLE_OPERATION_TIMEDOUT:
+        outcome = FLUDOWNLOADER_TASK_TIMEOUT;
+        break;
+      case CURLE_FILE_COULDNT_READ_FILE:
+        outcome = FLUDOWNLOADER_TASK_FILE_NOT_FOUND;
+        break;
+      case CURLE_SSL_CONNECT_ERROR:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CONNECT_ERROR;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_ENGINE_NOTFOUND:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_NOT_FOUND;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_ENGINE_SETFAILED:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_SET_FAILED;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CERTPROBLEM:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CERTPROBLEM;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CACERT:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CACERT;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_ENGINE_INITFAILED:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_INIT_FAILED;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CACERT_BADFILE:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CACERT_BADFILE;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_SHUTDOWN_FAILED:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_SHUTDOWN_FAILED;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_CRL_BADFILE:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_CRL_BADFILE;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_PINNEDPUBKEYNOTMATCH:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_PINNEDPUBKEYNOTMATCH;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      case CURLE_SSL_INVALIDCERTSTATUS:
+        task->ssl_status = FLUDOWNLOADER_TASK_SSL_INVALIDCERTSTATUS;
+        outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
+        break;
+      default:
+        outcome = FLUDOWNLOADER_TASK_ERROR;
+        break;
     }
-      break;
-    case CURLE_SEND_ERROR:
-      outcome = FLUDOWNLOADER_TASK_SEND_ERROR;
-      break;
-    case CURLE_RECV_ERROR:
-      outcome = FLUDOWNLOADER_TASK_RECV_ERROR;
-      break;
-    case CURLE_OPERATION_TIMEDOUT:
-      outcome = FLUDOWNLOADER_TASK_TIMEOUT;
-      break;
-    case CURLE_FILE_COULDNT_READ_FILE:
-      outcome = FLUDOWNLOADER_TASK_FILE_NOT_FOUND;
-      break;
-    case CURLE_SSL_CONNECT_ERROR:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_CONNECT_ERROR;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_ENGINE_NOTFOUND:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_NOT_FOUND;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_ENGINE_SETFAILED:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_SET_FAILED;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_CERTPROBLEM:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_CERTPROBLEM;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_CACERT:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_CACERT;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_ENGINE_INITFAILED:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_ENGINE_INIT_FAILED;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_CACERT_BADFILE:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_CACERT_BADFILE;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_SHUTDOWN_FAILED:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_SHUTDOWN_FAILED;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_CRL_BADFILE:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_CRL_BADFILE;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_PINNEDPUBKEYNOTMATCH:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_PINNEDPUBKEYNOTMATCH;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    case CURLE_SSL_INVALIDCERTSTATUS:
-      task->ssl_status = FLUDOWNLOADER_TASK_SSL_INVALIDCERTSTATUS;
-      outcome = FLUDOWNLOADER_TASK_SSL_ERROR;
-      break;
-    default:
-      outcome = FLUDOWNLOADER_TASK_ERROR;
-      break;
+    task->outcome = outcome;
   }
-  task->outcome = outcome;
 
+  task->finished = TRUE;
   if (context->done_cb) {
     gboolean cancel_remaining_downloads = FALSE;
-    task->context->done_cb (outcome, http_status_code,
+    context->done_cb (task->outcome, task->http_status,
         task->downloaded_size, task->user_data, task,
         &cancel_remaining_downloads);
     if (cancel_remaining_downloads)
-      _abort_all_tasks_unlocked (task->context, FALSE);
+      _abort_all_tasks_unlocked (context, FALSE);
   }
-
   _remove_task (context, task);
 }
 
@@ -273,10 +286,22 @@ _progress_function (void *p, double dltotal, double dlnow,
     double ultotal, double ulnow)
 {
   FluDownloaderTask *task = (FluDownloaderTask *) p;
-  int ret;
+  int ret = 0;
   g_static_rec_mutex_lock (&task->context->mutex);
   _process_curl_messages (task->context);
-  ret = task->abort ? -1 : 0;
+  if (task->abort) {
+    if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
+      task->outcome = FLUDOWNLOADER_TASK_ABORTED;
+    ret = -1;
+  } else {
+    int now = g_get_monotonic_time ();
+    if (now - task->last_event_time > task->idle_timeout) {
+      if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
+        task->outcome = task->http_status_received ?
+          FLUDOWNLOADER_TASK_RECV_ERROR : FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
+      ret = -1;
+    }
+  }
   g_static_rec_mutex_unlock (&task->context->mutex);
   return ret;
 }
@@ -288,11 +313,19 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 {
   size_t total_size = size * nmemb;
 
+  if (!total_size)
+    goto beach;
+  
   /* Do not pass data if https status is not OK.
    * We may be streaming the data, and we must not
    * stream error bodies. */
-  if (!task->http_status_ok)
+  if (!task->http_status_ok) {
+    if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
+      task->outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
+    total_size = -1;
+    task->last_event_time = g_get_monotonic_time ();
     goto beach;
+  }
  
   g_static_rec_mutex_lock (&task->context->mutex);
   task->downloaded_size += total_size;
@@ -300,12 +333,22 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task)) {
+      task->outcome = FLUDOWNLOADER_TASK_ABORTED;
       total_size = -1;
     }
   }
 
   g_static_rec_mutex_unlock (&task->context->mutex);
-beach:
+
+  /* Currently the data callback may block, so we have to update the last
+   * event time AFTER the callback to prevent a receive timeout because the
+   * callback blocking.
+   * The progress and data callbacks can never nest, we don't need to be locked
+   */
+  task->idle_timeout = task->context->receive_timeout;
+  task->last_event_time = g_get_monotonic_time ();
+
+  beach:
   return total_size;
 }
 
@@ -411,6 +454,7 @@ _schedule_tasks (FluDownloader * context)
   }
 
   if (next_task) {
+    next_task->last_event_time = g_get_monotonic_time ();
     next_task->running = TRUE;
     curl_multi_add_handle (context->handle, next_task->handle);
   }
@@ -504,6 +548,8 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
   context->done_cb = done_cb;
   context->use_polling = FALSE;
   context->polling_period = TIMEOUT;
+  context->connect_timeout = DEFAULT_CONNECT_TIMEOUT;
+  context->receive_timeout = DEFAULT_RECEIVE_TIMEOUT;
 
   context->handle = curl_multi_init ();
   if (!context->handle)
@@ -588,6 +634,8 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
   task->user_data = user_data;
   task->context = context;
   task->http_status_ok = TRUE;
+  task->idle_timeout = context->connect_timeout;
+  task->last_event_time = g_get_monotonic_time ();
   task->is_file = g_str_has_prefix (url, "file://");
   memset (task->date, '\0', DATE_MAX_LENGTH);
   if (task->is_file) {
