@@ -325,6 +325,9 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     total_size = -1;
     task->last_event_time = g_get_monotonic_time ();
     goto beach;
+  } else if (task->http_status >= 300) {
+    task->last_event_time = g_get_monotonic_time ();
+    goto beach;
   }
  
   g_static_rec_mutex_lock (&task->context->mutex);
@@ -365,7 +368,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
     /* This is the status line */
     if (sscanf (line, "%*s %d", &task->http_status) == 1) {
       task->http_status_ok = (task->http_status >= 200) &&
-          (task->http_status <= 299);
+          (task->http_status <= 399);
       task->http_status_received = TRUE;
     }
   } else {
