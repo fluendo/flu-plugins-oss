@@ -364,14 +364,11 @@ _header_function (const char *line, size_t size, size_t nmemb,
 
   g_static_rec_mutex_lock (&task->context->mutex);
 
-  if (!task->http_status_received) {
-    /* This is the status line */
-    if (sscanf (line, "%*s %d", &task->http_status) == 1) {
-      task->http_status_ok = (task->http_status >= 200) &&
-          (task->http_status <= 399);
-      task->http_status_received = TRUE;
-    }
-  } else {
+  if (sscanf (line, "HTTP/%*s %d", &task->http_status) == 1) {
+    task->http_status_ok = (task->http_status >= 200) &&
+        (task->http_status <= 399);
+    task->http_status_received = TRUE;
+  } else {  
     /* This is another header line */
     if (g_strrstr_len (line, 5, "Date:")) {
       strncpy (task->date, line + 5, DATE_MAX_LENGTH - 1);
