@@ -31,7 +31,7 @@
 
 #define TIMEOUT 100000          /* 100ms */
 #define DATE_MAX_LENGTH 48
-#define DEFAULT_CONNECT_TIMEOUT 30000 /* ms, 30s */
+#define DEFAULT_CONNECT_TIMEOUT 20000 /* ms, 20s */
 #define DEFAULT_RECEIVE_TIMEOUT 3000 /* ms, 3s */
 
 /*****************************************************************************
@@ -95,8 +95,8 @@ struct _FluDownloaderTask
   CURL *handle;                 /* CURL easy handler */
 
   /* Header parsing */
-  gboolean http_status_received; /* http status received */
-  gboolean http_status_ok;       /* This is an OK header */
+  gboolean http_status_ok;       /* http status 2xx, OK */
+  gboolean http_status_error;    /* http status >= 400, final error */
   FluDownloaderTaskOutcome outcome;
   gint http_status;
   FluDownloaderTaskSSLStatus ssl_status;
@@ -181,15 +181,8 @@ _task_done (FluDownloaderTask * task, CURLcode result)
     /* Turn some of CURL's error codes into our possible task outcomes */
     switch (result) {
       case CURLE_OK:
-        outcome = FLUDOWNLOADER_TASK_OK;
-        if (!task->is_file) {
-          if (!task->http_status) {
-            curl_easy_getinfo (task->handle, CURLINFO_RESPONSE_CODE,
-                &task->http_status);
-          }
-          if (task->http_status >= 300 || task->http_status < 200)
-            outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
-        }
+        outcome = task->http_status_ok ? FLUDOWNLOADER_TASK_OK :
+            FLUDOWNLOADER_TASK_HTTP_ERROR;
         break;
       case CURLE_ABORTED_BY_CALLBACK:
       case CURLE_WRITE_ERROR:
@@ -297,7 +290,7 @@ _progress_function (void *p, double dltotal, double dlnow,
     int now = g_get_monotonic_time ();
     if (now - task->last_event_time > task->idle_timeout) {
       if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
-        task->outcome = task->http_status_received ?
+        task->outcome = (task->http_status >= 200 && task->http_status <= 299) ?
           FLUDOWNLOADER_TASK_RECV_ERROR : FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
       ret = -1;
     }
@@ -320,13 +313,13 @@ _write_function (void *buffer, size_t size, size_t nmemb,
    * We may be streaming the data, and we must not
    * stream error bodies. */
   if (!task->http_status_ok) {
-    if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
-      task->outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
-    total_size = -1;
-    task->last_event_time = g_get_monotonic_time ();
-    goto beach;
-  } else if (task->http_status >= 300) {
-    task->last_event_time = g_get_monotonic_time ();
+    /* We must only finish the transfer with final error. With provisional
+     * errors we must ignore the data without terminating */
+    if (task->http_status_error) {
+      if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
+        task->outcome = FLUDOWNLOADER_TASK_HTTP_ERROR;
+      total_size = -1;
+    }
     goto beach;
   }
  
@@ -343,15 +336,13 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 
   g_static_rec_mutex_unlock (&task->context->mutex);
 
+  beach:
   /* Currently the data callback may block, so we have to update the last
    * event time AFTER the callback to prevent a receive timeout because the
    * callback blocking.
    * The progress and data callbacks can never nest, we don't need to be locked
    */
-  task->idle_timeout = task->context->receive_timeout;
   task->last_event_time = g_get_monotonic_time ();
-
-  beach:
   return total_size;
 }
 
@@ -361,13 +352,18 @@ _header_function (const char *line, size_t size, size_t nmemb,
     FluDownloaderTask * task)
 {
   size_t total_size = size * nmemb;
+  gint http_status;
 
   g_static_rec_mutex_lock (&task->context->mutex);
 
-  if (sscanf (line, "HTTP/%*s %d", &task->http_status) == 1) {
-    task->http_status_ok = (task->http_status >= 200) &&
-        (task->http_status <= 399);
-    task->http_status_received = TRUE;
+  task->last_event_time = g_get_monotonic_time ();
+  if (sscanf (line, "HTTP/%*s %d", &http_status) == 1) {
+    task->http_status = http_status;
+    task->http_status_ok = http_status >= 200 && http_status <= 299;
+    task->http_status_error = http_status >= 400;
+    if (task->http_status_ok) {
+      task->idle_timeout = task->context->receive_timeout;
+    }
   } else {  
     /* This is another header line */
     if (g_strrstr_len (line, 5, "Date:")) {
