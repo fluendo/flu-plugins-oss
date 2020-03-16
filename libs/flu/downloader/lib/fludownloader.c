@@ -31,8 +31,8 @@
 
 #define TIMEOUT 100000          /* 100ms */
 #define DATE_MAX_LENGTH 48
-#define DEFAULT_CONNECT_TIMEOUT 20000 /* ms, 20s */
-#define DEFAULT_RECEIVE_TIMEOUT 3000 /* ms, 3s */
+#define DEFAULT_CONNECT_TIMEOUT (20 * 1000 * 1000) /* us, 20s */
+#define DEFAULT_RECEIVE_TIMEOUT (30 * 1000 * 2000) /* us, 3s */
 
 /*****************************************************************************
  * Private functions and structs
