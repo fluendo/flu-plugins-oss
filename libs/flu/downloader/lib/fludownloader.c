@@ -287,7 +287,7 @@ _progress_function (void *p, double dltotal, double dlnow,
       task->outcome = FLUDOWNLOADER_TASK_ABORTED;
     ret = -1;
   } else {
-    int now = g_get_monotonic_time ();
+    gint64 now = g_get_monotonic_time ();
     if (now - task->last_event_time > task->idle_timeout) {
       if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
         task->outcome = (task->http_status >= 200 && task->http_status <= 299) ?
