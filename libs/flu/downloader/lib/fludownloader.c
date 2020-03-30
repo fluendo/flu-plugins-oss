@@ -329,7 +329,8 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task)) {
-      task->outcome = FLUDOWNLOADER_TASK_ABORTED;
+      if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
+        task->outcome = FLUDOWNLOADER_TASK_ABORTED;
       total_size = -1;
     }
   }
@@ -832,6 +833,14 @@ fludownloader_task_get_outcome (FluDownloaderTask * task)
     return task->outcome;
   else
     return FLUDOWNLOADER_TASK_NO_TASK;
+}
+
+void
+fludownloader_task_set_outcome (FluDownloaderTask * task,
+    FluDownloaderTaskOutcome outcome)
+{
+  if (task)
+    task->outcome = outcome;
 }
 
 const gchar *
