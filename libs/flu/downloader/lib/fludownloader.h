@@ -159,6 +159,11 @@ gboolean fludownloader_task_get_abort (FluDownloaderTask* task);
 /* Get task outcome.*/
 FluDownloaderTaskOutcome fludownloader_task_get_outcome (FluDownloaderTask* task);
 
+/* Set the task outcome, useful to simulate errors for testing. */
+void
+fludownloader_task_set_outcome (FluDownloaderTask * task,
+    FluDownloaderTaskOutcome outcome);
+
 /* Get a text string describing a task outcome.
  * Useful for debugging and messages .*/
 const gchar *fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome);
