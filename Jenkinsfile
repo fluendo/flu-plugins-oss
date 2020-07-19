@@ -1,4 +1,7 @@
-node('docker-jenkins-ssh-slave') {
-    sh "git archive --remote=git@bitbucket.org:fluendo/flu-codec-ci.git master Jenkinsfile | tar -x -O > commonJenkinsfile"
-    load 'commonJenkinsfile'
+node('master') {
+    build(job: 'flu-codec-ci/master', parameters: [
+            string(name: 'PLUGIN', value: 'ttml'),
+            string(name: 'TAG', value: env.BRANCH_NAME),
+            string(name: 'FLUENDO_CERBERO_BRANCH', value: env.BRANCH_NAME),
+            booleanParam(name: 'IS_RELEASE', value: false)])
 }
