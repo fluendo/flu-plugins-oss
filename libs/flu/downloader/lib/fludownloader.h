@@ -130,6 +130,12 @@ void fludownloader_lock (FluDownloader * context);
 /* Unlock the library */
 void fludownloader_unlock (FluDownloader * context);
 
+/* Task pause */
+void fludownloader_task_pause (FluDownloaderTask * task);
+
+/* Task resume */
+void fludownloader_task_resume (FluDownloaderTask * task);
+
 /* Retrieve the URL thas was used for a given task */
 const gchar *fludownloader_task_get_url (FluDownloaderTask * task);
 

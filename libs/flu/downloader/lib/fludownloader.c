@@ -28,7 +28,7 @@
 #include <string.h>
 
 #include <glib/gstdio.h>        /* g_stat */
-#include <fluc/bandwidth_meter/bandwidth_meter.h>
+#include <fluc/bwmeter/fluc_bwmeter.h>
 
 #define TIMEOUT 100000          /* 100ms */
 #define DATE_MAX_LENGTH 48
@@ -549,7 +549,7 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
   context->connect_timeout = DEFAULT_CONNECT_TIMEOUT;
   context->receive_timeout = DEFAULT_RECEIVE_TIMEOUT;
   
-  flu_bwmeter_init ();
+  fluc_bwmeter_init ();
 
   context->handle = curl_multi_init ();
   if (!context->handle)
