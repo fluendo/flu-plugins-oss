@@ -28,6 +28,7 @@
 #include <string.h>
 
 #include <glib/gstdio.h>        /* g_stat */
+#include <fluc/bwmeter/fluc_bwmeter.h>
 
 #define TIMEOUT 100000          /* 100ms */
 #define DATE_MAX_LENGTH 48
@@ -547,6 +548,8 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
   context->polling_period = TIMEOUT;
   context->connect_timeout = DEFAULT_CONNECT_TIMEOUT;
   context->receive_timeout = DEFAULT_RECEIVE_TIMEOUT;
+  
+  fluc_bwmeters_init ();
 
   context->handle = curl_multi_init ();
   if (!context->handle)

@@ -39,8 +39,8 @@ esac
 AM_CONDITIONAL(HAVE_WINDOWS, [test "x$os_type" = "xwindows"])
 AC_SUBST(WIN32_LDFLAGS)
 
-dnl Dependencies check 
-REQUIREMENTS_PC="glib-2.0 gthread-2.0 gobject-2.0"
+dnl Dependencies check
+REQUIREMENTS_PC="glib-2.0 gthread-2.0 gobject-2.0 flu-codec-sdk"
 # Checks to build curl sttically or depend on the system version
 AC_ARG_WITH(system-curl,
             [AS_HELP_STRING([--with-system-curl=ARG], [use system cURL libraries])],
@@ -67,6 +67,7 @@ AC_SUBST(FLUDOWNLOADER_LIBS)
 AC_SUBST(FLUDOWNLOADER_LDFLAGS)
 AC_SUBST(FLUDOWNLOADER_CURL_LIB)
 AC_SUBST(CURL_LIBS)
+AC_SUBST(FLUC_LIBS)
 
 AC_ARG_ENABLE(examples,
   AC_HELP_STRING([--disable-examples], [disable building examples]),
@@ -123,7 +124,7 @@ AC_CONFIG_COMMANDS_PRE([
     # In case of static curl, append the local flags/libs
     CURL_LIBS=$($PKG_CONFIG --static --libs-only-l "$ac_top_build_prefix"ext/curl/libcurl.pc | sed 's/-lcurl//g')
     FLUDOWNLOADER_CFLAGS="${FLUDOWNLOADER_CFLAGS} -DCURL_STATICLIB -I \$(top_srcdir)/ext/curl/include -I \$(top_builddir)/ext/curl/include/curl"
-    FLUDOWNLOADER_LIBS="${FLUDOWNLOADER_LIBS} ${CURL_LIBS}"
+    FLUDOWNLOADER_LIBS="${FLUDOWNLOADER_LIBS} ${CURL_LIBS} ${FLUC_LIBS}"
     FLUDOWNLOADER_CURL_LIB="\${top_builddir}/ext/curl/lib/.libs/libcurl.la"
     AC_MSG_NOTICE([Using included cURL code])
   fi
