@@ -549,7 +549,7 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
   context->connect_timeout = DEFAULT_CONNECT_TIMEOUT;
   context->receive_timeout = DEFAULT_RECEIVE_TIMEOUT;
   
-  fluc_bwmeter_init ();
+  fluc_bwmeters_init ();
 
   context->handle = curl_multi_init ();
   if (!context->handle)
