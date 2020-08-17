@@ -5,7 +5,8 @@ nobase_libfluc_bwmeterinclude_HEADERS = \
 	fluc_bwmeter.h
 
 libfluc_bwmeterincludedir = $(includedir)/fluc/bwmeter
-libfluc_bwmeter_la_SOURCES = fluc_bwmeter.c
+libfluc_bwmeter_la_SOURCES = fluc_bwmeter.c fluc_bwmeter_base.c \
+	fluc_bwmeter_sock.c
 
 EXTRA_CFLAGS =
 EXTRA_LIBS =
