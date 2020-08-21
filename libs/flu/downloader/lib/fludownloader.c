@@ -22,12 +22,11 @@
 
 #include "fludownloader.h"
 
-#include "glib-compat.h"
-
-#include "curl/curl.h"
-#include <string.h>
-
+#include <glib-compat.h>
 #include <glib/gstdio.h>        /* g_stat */
+#include <curl/curl.h>
+#include <string.h>
+#include <fluc/threads/fluc_barrier.h>
 #include <fluc/bwmeter/fluc_bwmeter.h>
 
 #define TIMEOUT 100000          /* 100ms */
@@ -67,6 +66,16 @@ struct _FluDownloader
   gchar **cookies;              /* NULL-terminated array of strings with cookies */
   gchar *user_agent;            /* String containing the user-agent used optionally by cURL */
   gchar *proxy;                 /* String containing the proxy server used optionally by cURL */
+  
+  /* bandwidth meter */
+  FlucBwMeter *bwmeter;
+  
+  gboolean running;
+  gboolean paused;
+  FlucBarrier paused_barrier;
+  gboolean discarding;
+  guint32 discard;
+  guint32 discarded;
 };
 
 /* Takes care of one task (file) */
@@ -262,6 +271,8 @@ _task_done (FluDownloaderTask * task, CURLcode result)
     task->outcome = outcome;
   }
 
+  fluc_bwmeter_update (task->context->bwmeter);
+  fluc_bwmeter_end (task->context->bwmeter);
   task->finished = TRUE;
   if (context->done_cb) {
     gboolean cancel_remaining_downloads = FALSE;
@@ -306,6 +317,7 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     FluDownloaderTask * task)
 {
   size_t total_size = size * nmemb;
+  FluDownloader *context;
 
   if (!total_size)
     goto beach;
@@ -323,10 +335,22 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     }
     goto beach;
   }
- 
-  g_static_rec_mutex_lock (&task->context->mutex);
+  
+  context = task->context;
+  g_static_rec_mutex_lock (&context->mutex);
   task->downloaded_size += total_size;
-
+  
+  if (context->discarding) {
+    context->discarded += total_size;
+    if (context->discarded >= context->discard)
+      context->discarding = FALSE;
+  }
+  if (!context->discarding && !context->paused) {
+      fluc_bwmeter_data (context->bwmeter, total_size);
+  } else {
+    fluc_barrier_trypass_for (&context->paused_barrier, G_TIME_SPAN_SECOND * 4);
+  }
+  
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task)) {
@@ -335,7 +359,7 @@ _write_function (void *buffer, size_t size, size_t nmemb,
       total_size = -1;
     }
   }
-
+  
   g_static_rec_mutex_unlock (&task->context->mutex);
 
   beach:
@@ -455,6 +479,7 @@ _schedule_tasks (FluDownloader * context)
     next_task->last_event_time = g_get_monotonic_time ();
     next_task->running = TRUE;
     curl_multi_add_handle (context->handle, next_task->handle);
+    fluc_bwmeter_start (context->bwmeter);
   }
 }
 
@@ -550,6 +575,11 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
   context->receive_timeout = DEFAULT_RECEIVE_TIMEOUT;
   
   fluc_bwmeters_init ();
+  context->bwmeter = fluc_bwmeters_get_read ();
+  context->paused = FALSE;
+  context->discarding = FALSE;
+  context->discard = 32 * 1024;
+  fluc_barrier_init (&context->paused_barrier, TRUE);
 
   context->handle = curl_multi_init ();
   if (!context->handle)
@@ -592,6 +622,8 @@ fludownloader_destroy (FluDownloader * context)
     link = next;
   }
 
+  fluc_barrier_dispose (&context->paused_barrier);
+  fluc_bwmeters_dispose ();
   g_static_rec_mutex_free (&context->mutex);
 
   if (context->cookies)
@@ -730,6 +762,23 @@ fludownloader_abort_task (FluDownloaderTask * task)
   g_static_rec_mutex_lock (&context->mutex);
   _abort_task (context, task);
   g_static_rec_mutex_unlock (&context->mutex);
+}
+
+void fludownloader_pause (FluDownloader * context) {
+  if (!context->paused) {
+    context->paused = TRUE;
+    fluc_barrier_close (&context->paused_barrier);
+    fluc_bwmeter_end (context->bwmeter);
+  }
+}
+
+void fludownloader_resume (FluDownloader * context) {
+  if (context->paused) {
+    context->discarded = 0;
+    context->discarding = TRUE;
+    context->paused = FALSE;
+    fluc_barrier_open (&context->paused_barrier);
+  }
 }
 
 void
