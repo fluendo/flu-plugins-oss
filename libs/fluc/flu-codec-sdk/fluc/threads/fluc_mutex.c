@@ -22,7 +22,7 @@ TRY_ACQUIRE (TRUE)
 }
 
 void
-fluc_rmutex_clear (FlucRMutex * mutex)
+fluc_rmutex_dispose (FlucRMutex * mutex)
 {
   g_rec_mutex_clear (&mutex->lock);
 }
@@ -55,7 +55,7 @@ TRY_ACQUIRE (TRUE)
 }
 
 void
-fluc_nrmutex_clear (FlucNRMutex * mutex)
+fluc_nrmutex_dispose (FlucNRMutex * mutex)
 {
   g_mutex_clear (&mutex->lock);
 }
