@@ -41,15 +41,15 @@ G_BEGIN_DECLS
 #define NO_THREAD_SAFETY_ANALYSIS \
   ANNOTATION(no_thread_safety_analysis)
 
-struct FlucRMutex_ {
+struct CAPABILITY ("mutex") FlucRMutex_ {
   GRecMutex lock;
 };
-typedef struct CAPABILITY ("mutex") FlucRMutex_ FlucRMutex;
+typedef struct FlucRMutex_ FlucRMutex;
 
-struct FlucNRMutex_ {
+struct CAPABILITY ("mutex") FlucNRMutex_ {
   GMutex lock;
 };
-typedef struct CAPABILITY ("mutex") FlucNRMutex_ FlucNRMutex;
+typedef struct FlucNRMutex_ FlucNRMutex;
 
 FLUC_EXPORT void flu_rmutex_lock (FlucRMutex * mutex) ACQUIRE (mutex);
 

@@ -64,5 +64,5 @@ gboolean
 fluc_barrier_trypass_for (FlucBarrier * thiz, gint64 time)
 {
   gint64 until = g_get_monotonic_time () + time;
-  return fluc_barrier_trypass_for (thiz, until);
+  return fluc_barrier_trypass_until (thiz, until);
 }
