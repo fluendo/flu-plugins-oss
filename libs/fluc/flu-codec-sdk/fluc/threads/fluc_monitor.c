@@ -47,12 +47,21 @@ fluc_monitor_wait (FlucMonitor * thiz)
 gboolean
 fluc_monitor_wait_until (FlucMonitor * thiz, gint64 time)
 {
+#if GLIB_VERSION_CUR_STABLE >= GLIB_VERSION_2_32
   return g_cond_wait_until (&thiz->cond, &thiz->mutex, time);
+#else
+  gint64 t = time - g_get_monotonic_time ();
+  GTimeVal tv;
+  if (t < 0)
+    t = 0;
+  tv.tv_sec = (glong) (t / G_TIME_SPAN_SECOND);
+  tv.tv_usec = (glong) (t % G_TIME_SPAN_SECOND);
+  return g_cond_timed_wait (&thiz->cond, &thiz->mutex, &tv);
+#endif
 }
 
 gboolean
 fluc_monitor_wait_for (FlucMonitor * thiz, gint64 time)
 {
-  return g_cond_wait_until (&thiz->cond, &thiz->mutex,
-      g_get_monotonic_time () + time);
+  return fluc_monitor_wait_until (thiz, g_get_monotonic_time () + time);
 };
