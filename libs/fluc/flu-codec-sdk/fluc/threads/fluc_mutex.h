@@ -51,25 +51,18 @@ struct CAPABILITY ("mutex") FlucNRMutex_ {
 };
 typedef struct FlucNRMutex_ FlucNRMutex;
 
-FLUC_EXPORT void flu_rmutex_lock (FlucRMutex * mutex) ACQUIRE (mutex);
-
+FLUC_EXPORT void fluc_rmutex_init (FlucRMutex * mutex);
+FLUC_EXPORT void fluc_rmutex_dispose (FlucRMutex * mutex);
+FLUC_EXPORT void fluc_rmutex_lock (FlucRMutex * mutex) ACQUIRE (mutex);
 FLUC_EXPORT void fluc_rmutex_unlock (FlucRMutex * mutex) RELEASE (mutex);
-
 FLUC_EXPORT gboolean fluc_rmutex_try_lock (FlucRMutex *mutex) TRY_ACQUIRE (TRUE, mutex);
 
-FLUC_EXPORT void fluc_rmutex_clear (FlucRMutex * mutex);
-
-FLUC_EXPORT void fluc_rmutex_init (FlucRMutex * mutex);
-
-FLUC_EXPORT void fluc_nrmutex_lock (FlucNRMutex * mutex) ACQUIRE (mutex);
-
-FLUC_EXPORT void fluc_nrmutex_unlock (FlucNRMutex * mutex) RELEASE (mutex);
-
-FLUC_EXPORT gboolean fluc_nrmutex_try_lock (FlucNRMutex * mutex) TRY_ACQUIRE (TRUE, mutex);
-
-FLUC_EXPORT void fluc_nrmutex_clear (FlucNRMutex * mutex);
 
 FLUC_EXPORT void fluc_nrmutex_init (FlucNRMutex * mutex);
+FLUC_EXPORT void fluc_nrmutex_dispose (FlucNRMutex * mutex);
+FLUC_EXPORT void fluc_nrmutex_lock (FlucNRMutex * mutex) ACQUIRE (mutex);
+FLUC_EXPORT void fluc_nrmutex_unlock (FlucNRMutex * mutex) RELEASE (mutex);
+FLUC_EXPORT gboolean fluc_nrmutex_try_lock (FlucNRMutex * mutex) TRY_ACQUIRE (TRUE, mutex);
 
 /* Define macros for tracing the locks */
 #define FLUC_LOCK(lock_type, lock) do {                      \
