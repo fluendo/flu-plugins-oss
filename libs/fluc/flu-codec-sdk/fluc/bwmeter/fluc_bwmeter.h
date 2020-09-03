@@ -18,7 +18,7 @@ typedef struct {
 typedef struct FlucBwMeter_ FlucBwMeter;
 
 FLUC_EXPORT void fluc_bwmeters_init ();
-FLUC_EXPORT void fluc_bwmeters_terminate ();
+FLUC_EXPORT void fluc_bwmeters_dispose ();
 
 FLUC_EXPORT FlucBwMeter * fluc_bwmeters_get_read ();
 
