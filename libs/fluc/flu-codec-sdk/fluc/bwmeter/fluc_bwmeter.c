@@ -1,3 +1,4 @@
+#include <string.h>
 #include "fluc_bwmeter_sock.h"
 
 /* context singleton */
