@@ -117,6 +117,9 @@ FLUC_CHECK(yes)
 dnl define CPU_TUNE_CFLAGS and CPU_TUNE_CCASFLAGS
 AG_GST_CPU_TUNE
 
+dnl add option to enable building with static libstdc++
+ARG_WITH_STATIC_LIBSTDCPP
+
 dnl make GST_MAJORMINOR available in Makefile.am
 AC_SUBST(GST_MAJORMINOR)
 
