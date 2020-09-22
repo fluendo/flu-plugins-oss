@@ -133,7 +133,9 @@ AC_CONFIG_COMMANDS_PRE([
     cd "$origdir"
     echo "${top_srcdir}"
     # In case of static curl, append the local flags/libs
-    CURL_LIBS=$($PKG_CONFIG --static --libs-only-l "$ac_top_build_prefix"ext/curl/libcurl.pc | sed 's/-lcurl//g')
+    if test "x$with_system_curl" = "xyes"; then
+        CURL_LIBS=$($PKG_CONFIG --static --libs-only-l "$ac_top_build_prefix"ext/curl/libcurl.pc | sed 's/-lcurl//g')
+    fi
     FLUDOWNLOADER_CFLAGS="${FLUDOWNLOADER_CFLAGS} -DCURL_STATICLIB -I \$(top_srcdir)/ext/curl/include -I \$(top_builddir)/ext/curl/include/curl"
     FLUDOWNLOADER_LIBS="${FLUDOWNLOADER_LIBS} ${CURL_LIBS} ${FLUC_LIBS}"
     FLUDOWNLOADER_CURL_LIB="\${top_builddir}/ext/curl/lib/.libs/libcurl.la"
