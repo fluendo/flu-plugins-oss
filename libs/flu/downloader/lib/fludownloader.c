@@ -292,7 +292,6 @@ _progress_function (void *p, double dltotal, double dlnow,
 {
   FluDownloaderTask *task = (FluDownloaderTask *) p;
   int ret = 0;
-  g_static_rec_mutex_lock (&task->context->mutex);
   _process_curl_messages (task->context);
   if (task->abort) {
     if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
@@ -307,7 +306,6 @@ _progress_function (void *p, double dltotal, double dlnow,
       ret = -1;
     }
   }
-  g_static_rec_mutex_unlock (&task->context->mutex);
   return ret;
 }
 
