@@ -1022,18 +1022,37 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
   return TRUE;
 }
 
-void
-gst_ttmlbase_dump_buffer (GstTTMLBase * thiz, GstBuffer * buffer)
+static void
+gst_ttmlbase_dump_data (GstTTMLBase * base, guint8 * data, gsize size)
 {
+#ifdef TTML_DEBUG_XML_INPUT
   FILE *file;
   file = fopen ("ttml.xml", "ab");
   if (file) {
     fprintf (file, "----------------------------------------------------------"
         "---------------------------------------------------------------------"
-        "\n%s\n", GST_ELEMENT_NAME (thiz));
-    fwrite (GST_BUFFER_DATA (buffer), GST_BUFFER_SIZE (buffer), 1, file);
+        "\n%s\n", GST_ELEMENT_NAME (base));
+    fwrite (data, size, 1, file);
     fclose (file);
   }
+#else
+  GST_MEMDUMP_OBJECT (base, "xml:", data, size);
+#endif
+}
+
+static void
+gst_ttmlbase_dump_buffer (GstTTMLBase * base, GstBuffer * buffer)
+{
+  GstMapInfo map;
+
+  if (G_UNLIKELY (!gst_buffer_map (buffer, &map, GST_MAP_READ))) {
+    GST_DEBUG_OBJECT (base, "Failed to read data from buffer %p. Cannot dump.",
+        buffer);
+    return;
+  }
+
+  gst_ttmlbase_dump_data (base, map.data, map.size);
+  gst_buffer_unmap (buffer, &map);
 }
 
 static GstFlowReturn
@@ -1053,12 +1072,8 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
   GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT
       "dur %" GST_TIME_FORMAT, (guint) gst_buffer_get_size (buffer),
       GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
-#if TTML_DEBUG_XML_INPUT
+
   gst_ttmlbase_dump_buffer (base, buffer);
-#else
-  GST_MEMDUMP_OBJECT (base, "xml:", (guint8 *) GST_BUFFER_DATA (buffer),
-      GST_BUFFER_SIZE (buffer));
-#endif
 
   if (GST_CLOCK_TIME_IS_VALID (ts)) {
     base->input_buf_start = ts;
