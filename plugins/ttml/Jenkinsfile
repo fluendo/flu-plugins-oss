@@ -1,8 +1,5 @@
 node('master') {
-    build(job: 'flu-codec-ci/master', parameters: [
-            string(name: 'PLUGIN', value: 'ttml'),
-            string(name: 'TAG', value: env.BRANCH_NAME),
-            string(name: 'BRANCH_NAME', value: env.BRANCH_NAME),
-            string(name: 'FLUENDO_CERBERO_BRANCH', value: env.BRANCH_NAME),
-            booleanParam(name: 'IS_RELEASE', value: false)])
+    sh "git archive --remote=git@bitbucket.org:fluendo/flu-codec-ci.git master codecs-ci.groovy | tar -x -O > codecs-ci.groovy"
+    def codecs = load 'codecs-ci.groovy'
+    codecs.run_all()
 }
