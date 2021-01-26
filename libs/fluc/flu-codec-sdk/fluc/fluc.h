@@ -15,4 +15,6 @@
 #include <fluc/drm/flucdrm.h>
 #endif
 
+#include <fluc/compat/fluc_compat.h>
+
 #endif /*  _FLUC_H_  */
