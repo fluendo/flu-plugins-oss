@@ -1311,6 +1311,14 @@ gst_ttmlbase_handle_sink_event (GstPad * pad, GstEvent * event)
 
   switch (GST_EVENT_TYPE (event)) {
 #if GST_CHECK_VERSION (1,0,0)
+    case GST_EVENT_CAPS:
+    {
+      GstCaps *caps = NULL;
+
+      gst_event_parse_caps (event, &caps);
+      GST_DEBUG_OBJECT (base, "Dropping caps event %" GST_PTR_FORMAT, caps);
+    }
+      break;
     case GST_EVENT_SEGMENT:
 #else
     case GST_EVENT_NEWSEGMENT:
