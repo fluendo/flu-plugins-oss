@@ -7,7 +7,8 @@
 
 G_BEGIN_DECLS
 
-struct FlucMonitor_ {
+struct FlucMonitor_
+{
   GMutex mutex;
   GCond cond;
 };
