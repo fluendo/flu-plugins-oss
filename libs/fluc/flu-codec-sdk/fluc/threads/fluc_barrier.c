@@ -1,26 +1,26 @@
 #include "fluc_barrier.h"
 
 void
-fluc_barrier_init (FlucBarrier * thiz, gboolean open)
+fluc_barrier_init (FlucBarrier *thiz, gboolean open)
 {
   fluc_monitor_init (&thiz->monitor);
   thiz->open = open;
 }
 
 void
-fluc_barrier_dispose (FlucBarrier * thiz)
+fluc_barrier_dispose (FlucBarrier *thiz)
 {
   fluc_monitor_dispose (&thiz->monitor);
 }
 
 gboolean
-fluc_barrier_is_opened (FlucBarrier * thiz)
+fluc_barrier_is_opened (FlucBarrier *thiz)
 {
   return thiz->open;
 }
 
 void
-fluc_barrier_open (FlucBarrier * thiz)
+fluc_barrier_open (FlucBarrier *thiz)
 {
   FlucMonitor *mon = &thiz->monitor;
   fluc_monitor_lock (mon);
@@ -30,13 +30,13 @@ fluc_barrier_open (FlucBarrier * thiz)
 }
 
 void
-fluc_barrier_close (FlucBarrier * thiz)
+fluc_barrier_close (FlucBarrier *thiz)
 {
   thiz->open = FALSE;
 }
 
 void
-fluc_barrier_pass (FlucBarrier * thiz)
+fluc_barrier_pass (FlucBarrier *thiz)
 {
   FlucMonitor *mon = &thiz->monitor;
   fluc_monitor_lock (mon);
@@ -47,7 +47,7 @@ fluc_barrier_pass (FlucBarrier * thiz)
 }
 
 gboolean
-fluc_barrier_trypass_until (FlucBarrier * thiz, gint64 time)
+fluc_barrier_trypass_until (FlucBarrier *thiz, gint64 time)
 {
   FlucMonitor *mon = &thiz->monitor;
   fluc_monitor_lock (mon);
@@ -61,7 +61,7 @@ fluc_barrier_trypass_until (FlucBarrier * thiz, gint64 time)
 }
 
 gboolean
-fluc_barrier_trypass_for (FlucBarrier * thiz, gint64 time)
+fluc_barrier_trypass_for (FlucBarrier *thiz, gint64 time)
 {
   gint64 until = g_get_monotonic_time () + time;
   return fluc_barrier_trypass_until (thiz, until);

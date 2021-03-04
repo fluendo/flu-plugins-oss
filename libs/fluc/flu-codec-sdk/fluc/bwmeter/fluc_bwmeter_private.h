@@ -7,7 +7,8 @@
 
 G_BEGIN_DECLS
 
-typedef struct {
+typedef struct
+{
   float time_min;
   float time_max;
   guint32 bytes_min;
@@ -15,25 +16,28 @@ typedef struct {
   float avg_fall_factor;
 } FlucBwMeterConfig;
 
-typedef struct {
+typedef struct
+{
   guint sessions_active;
   gint64 time_start;
   guint32 bytes;
 } FlucBwMeterState;
 
-struct FlucBwMeter_ {
-  void (*delete)(FlucBwMeter *meter);
-  void (*start)(FlucBwMeter *meter);
-  void (*end)(FlucBwMeter *meter);
-  void (*update)(FlucBwMeter *meter);
-  void (*data)(FlucBwMeter *meter, guint32 size);
+struct FlucBwMeter_
+{
+  void (*delete) (FlucBwMeter *meter);
+  void (*start) (FlucBwMeter *meter);
+  void (*end) (FlucBwMeter *meter);
+  void (*update) (FlucBwMeter *meter);
+  void (*data) (FlucBwMeter *meter, guint32 size);
   FlucBwMeterStats stats;
   FlucBwMeterState state;
   FlucBwMeterConfig config;
   FlucRMutex lock;
 };
 
-typedef struct {
+typedef struct
+{
   FlucBwMeter *read;
 } FlucBwMeters;
 

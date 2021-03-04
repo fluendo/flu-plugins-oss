@@ -37,25 +37,25 @@ fluc_bwmeters_get_read ()
 }
 
 void
-fluc_bwmeter_lock (FlucBwMeter * meter)
+fluc_bwmeter_lock (FlucBwMeter *meter)
 {
   fluc_rmutex_lock (&meter->lock);
 }
 
 void
-fluc_bwmeter_unlock (FlucBwMeter * meter)
+fluc_bwmeter_unlock (FlucBwMeter *meter)
 {
   fluc_rmutex_unlock (&meter->lock);
 }
 
 const FlucBwMeterStats *
-fluc_bwmeter_stats_get (FlucBwMeter * meter)
+fluc_bwmeter_stats_get (FlucBwMeter *meter)
 {
   return &meter->stats;
 }
 
 void
-fluc_bwmeter_stats_copy (FlucBwMeter * meter, FlucBwMeterStats * stats)
+fluc_bwmeter_stats_copy (FlucBwMeter *meter, FlucBwMeterStats *stats)
 {
   fluc_rmutex_lock (&meter->lock);
   memcpy (stats, &meter->stats, sizeof (FlucBwMeterStats));
@@ -63,25 +63,25 @@ fluc_bwmeter_stats_copy (FlucBwMeter * meter, FlucBwMeterStats * stats)
 }
 
 void
-fluc_bwmeter_start (FlucBwMeter * meter)
+fluc_bwmeter_start (FlucBwMeter *meter)
 {
   meter->start (meter);
 }
 
 void
-fluc_bwmeter_end (FlucBwMeter * meter)
+fluc_bwmeter_end (FlucBwMeter *meter)
 {
   meter->end (meter);
 }
 
 void
-fluc_bwmeter_update (FlucBwMeter * meter)
+fluc_bwmeter_update (FlucBwMeter *meter)
 {
   meter->update (meter);
 }
 
 void
-fluc_bwmeter_data (FlucBwMeter * meter, guint32 size)
+fluc_bwmeter_data (FlucBwMeter *meter, guint32 size)
 {
   meter->data (meter, size);
 }

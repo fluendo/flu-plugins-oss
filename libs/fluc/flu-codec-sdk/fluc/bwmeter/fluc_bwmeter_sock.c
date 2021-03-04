@@ -2,7 +2,7 @@
 #include "fluc_bwmeter_private.h"
 
 static void
-fluc_bwmeter_sock_data (FlucBwMeter * meter, guint32 size)
+fluc_bwmeter_sock_data (FlucBwMeter *meter, guint32 size)
 {
   fluc_rmutex_lock (&meter->lock);
   meter->state.bytes += size;

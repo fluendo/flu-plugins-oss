@@ -5,7 +5,8 @@
 
 G_BEGIN_DECLS
 
-struct FlucBarrier_ {
+struct FlucBarrier_
+{
   FlucMonitor monitor;
   gboolean open;
 };
@@ -17,10 +18,10 @@ FLUC_EXPORT gboolean fluc_barrier_is_open (FlucBarrier *thiz);
 FLUC_EXPORT void fluc_barrier_open (FlucBarrier *thiz);
 FLUC_EXPORT void fluc_barrier_close (FlucBarrier *thiz);
 FLUC_EXPORT void fluc_barrier_pass (FlucBarrier *thiz);
-FLUC_EXPORT gboolean fluc_barrier_trypass_until (FlucBarrier *thiz, gint64 time);
+FLUC_EXPORT gboolean fluc_barrier_trypass_until (
+    FlucBarrier *thiz, gint64 time);
 FLUC_EXPORT gboolean fluc_barrier_trypass_for (FlucBarrier *thiz, gint64 time);
 
 G_END_DECLS
 
 #endif /* FLUC_BARRIER_H */
-

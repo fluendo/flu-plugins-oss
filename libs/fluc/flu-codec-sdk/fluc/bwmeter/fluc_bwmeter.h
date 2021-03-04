@@ -6,9 +6,10 @@
 G_BEGIN_DECLS
 
 /* Structure with measured bandwidth values, in bits per second */
-typedef struct {
-  float raw;  /* bits per second, last measured */
-  float avg;  /* bits per second, averaged */
+typedef struct
+{
+  float raw; /* bits per second, last measured */
+  float avg; /* bits per second, averaged */
 } FlucBwMeterStats;
 
 /* Opaque structure representing a bwmeter.
@@ -20,13 +21,14 @@ typedef struct FlucBwMeter_ FlucBwMeter;
 FLUC_EXPORT void fluc_bwmeters_init ();
 FLUC_EXPORT void fluc_bwmeters_dispose ();
 
-FLUC_EXPORT FlucBwMeter * fluc_bwmeters_get_read ();
+FLUC_EXPORT FlucBwMeter *fluc_bwmeters_get_read ();
 
 FLUC_EXPORT void fluc_bwmeter_lock (FlucBwMeter *meter);
 FLUC_EXPORT void fluc_bwmeter_unlock (FlucBwMeter *meter);
-FLUC_EXPORT const FlucBwMeterStats* fluc_bwmeter_stats_get (FlucBwMeter *meter);
-FLUC_EXPORT void fluc_bwmeter_stats_copy (FlucBwMeter *meter,
-    FlucBwMeterStats *stats);
+FLUC_EXPORT const FlucBwMeterStats *fluc_bwmeter_stats_get (
+    FlucBwMeter *meter);
+FLUC_EXPORT void fluc_bwmeter_stats_copy (
+    FlucBwMeter *meter, FlucBwMeterStats *stats);
 
 FLUC_EXPORT void fluc_bwmeter_start (FlucBwMeter *meter);
 FLUC_EXPORT void fluc_bwmeter_end (FlucBwMeter *meter);
