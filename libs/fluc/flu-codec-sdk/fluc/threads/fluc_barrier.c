@@ -1,3 +1,13 @@
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "fluc_barrier.h"
 
 void
@@ -8,60 +18,70 @@ fluc_barrier_init (FlucBarrier *thiz, gboolean open)
 }
 
 void
-fluc_barrier_dispose (FlucBarrier *thiz)
+fluc_barrier_clear (FlucBarrier *thiz)
 {
-  fluc_monitor_dispose (&thiz->monitor);
+  fluc_monitor_clear (&thiz->monitor);
 }
 
 gboolean
-fluc_barrier_is_opened (FlucBarrier *thiz)
+fluc_barrier_is_open (FlucBarrier *thiz)
 {
   return thiz->open;
 }
 
 void
-fluc_barrier_open (FlucBarrier *thiz)
+fluc_barrier_open (FlucBarrier *thiz) EXCLUDES (&thiz->monitor)
 {
-  FlucMonitor *mon = &thiz->monitor;
-  fluc_monitor_lock (mon);
+  FlucMonitor *monitor = &thiz->monitor;
+  fluc_monitor_lock (monitor);
   thiz->open = TRUE;
-  fluc_monitor_signal_all (mon);
-  fluc_monitor_unlock (mon);
+  fluc_monitor_signal_all (monitor);
+  fluc_monitor_unlock (monitor);
 }
 
 void
-fluc_barrier_close (FlucBarrier *thiz)
+fluc_barrier_close (FlucBarrier *thiz) EXCLUDES (&thiz->monitor)
 {
+  FlucMonitor *monitor = &thiz->monitor;
+  fluc_monitor_lock (monitor);
   thiz->open = FALSE;
+  fluc_monitor_unlock (monitor);
 }
 
 void
-fluc_barrier_pass (FlucBarrier *thiz)
+fluc_barrier_pass (FlucBarrier *thiz) EXCLUDES (&thiz->monitor)
 {
-  FlucMonitor *mon = &thiz->monitor;
-  fluc_monitor_lock (mon);
+  FlucMonitor *monitor = &thiz->monitor;
+  fluc_monitor_lock (monitor);
   while (!thiz->open) {
-    fluc_monitor_wait (mon);
+    fluc_monitor_wait (monitor);
   }
-  fluc_monitor_unlock (mon);
+  fluc_monitor_unlock (monitor);
 }
 
 gboolean
 fluc_barrier_trypass_until (FlucBarrier *thiz, gint64 time)
+    EXCLUDES (&thiz->monitor)
 {
-  FlucMonitor *mon = &thiz->monitor;
-  fluc_monitor_lock (mon);
+  gboolean ret;
+  FlucMonitor *monitor = &thiz->monitor;
+
+  fluc_monitor_lock (monitor);
   while (!thiz->open) {
-    fluc_monitor_wait_until (mon, time);
-    if (g_get_monotonic_time () > time)
+    if (!fluc_monitor_wait_until (monitor, time) ||
+        (g_get_monotonic_time () > time)) {
       break;
+    }
   }
-  fluc_monitor_unlock (mon);
-  return thiz->open;
+  ret = thiz->open;
+  fluc_monitor_unlock (monitor);
+
+  return ret;
 }
 
 gboolean
 fluc_barrier_trypass_for (FlucBarrier *thiz, gint64 time)
+    EXCLUDES (&thiz->monitor)
 {
   gint64 until = g_get_monotonic_time () + time;
   return fluc_barrier_trypass_until (thiz, until);

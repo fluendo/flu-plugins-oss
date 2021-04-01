@@ -1,78 +1,72 @@
-#ifndef FLUC_MUTEX_H
-#define FLUC_MUTEX_H
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
 
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif
+#ifndef _FLUC_MUTEX_H_
+#define _FLUC_MUTEX_H_
 
-#include "../fluc_common.h"
+#include <fluc/fluc_export.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
-
-// Enable thread safety attributes only with clang.
-// The attributes can be safely erased when compiling with other compilers.
+/**
+ * Enable thread safety attributes for clang.
+ * Thread safety analysis can be performed by calling:
+ *   clang -c -Wthread-safety file_to_analyse.c
+ *
+ * These attributes can be safely erased when compiling with other compilers.
+ */
 #if defined(__clang__) && (!defined(SWIG))
-#define ANNOTATION(x) __attribute__ ((x))
+#define FLUC_THREADS_ANNOTATION(x) __attribute__ ((x))
 #else
-#define ANNOTATION(x) // no-op
+#define FLUC_THREADS_ANNOTATION(x) /* no-op */
 #endif
 
-#define CAPABILITY(x) ANNOTATION (capability (x))
+#define CAPABILITY(x) FLUC_THREADS_ANNOTATION (capability (x))
+#define REQUIRES(...)                                                         \
+  FLUC_THREADS_ANNOTATION (requires_capability (__VA_ARGS__))
+#define ACQUIRE(...) FLUC_THREADS_ANNOTATION (acquire_capability (__VA_ARGS__))
+#define RELEASE(...) FLUC_THREADS_ANNOTATION (release_capability (__VA_ARGS__))
+#define TRY_ACQUIRE(...)                                                      \
+  FLUC_THREADS_ANNOTATION (try_acquire_capability (__VA_ARGS__))
+#define EXCLUDES(...) FLUC_THREADS_ANNOTATION (locks_excluded (__VA_ARGS__))
+#define RETURN_CAPABILITY(x) FLUC_THREADS_ANNOTATION (lock_returned (x))
+#define NO_THREAD_SAFETY_ANALYSIS                                             \
+  FLUC_THREADS_ANNOTATION (no_thread_safety_analysis)
 
-#define REQUIRES(...) ANNOTATION (requires_capability (__VA_ARGS__))
-
-#define ACQUIRE(...) ANNOTATION (acquire_capability (__VA_ARGS__))
-
-#define RELEASE(...) ANNOTATION (release_capability (__VA_ARGS__))
-
-#define TRY_ACQUIRE(...) ANNOTATION (try_acquire_capability (__VA_ARGS__))
-
-#define EXCLUDES(...) ANNOTATION (locks_excluded (__VA_ARGS__))
-
-#define RETURN_CAPABILITY(x) ANNOTATION (lock_returned (x))
-
-#define NO_THREAD_SAFETY_ANALYSIS ANNOTATION (no_thread_safety_analysis)
-
-struct CAPABILITY ("mutex") FlucRMutex_
-{
-  GRecMutex lock;
-};
-typedef struct FlucRMutex_ FlucRMutex;
-
-struct CAPABILITY ("mutex") FlucNRMutex_
+/**
+ * Simple mutex.
+ */
+typedef struct CAPABILITY ("mutex")
 {
   GMutex lock;
-};
-typedef struct FlucNRMutex_ FlucNRMutex;
+} FlucMutex;
 
-FLUC_EXPORT void fluc_rmutex_init (FlucRMutex *mutex);
-FLUC_EXPORT void fluc_rmutex_dispose (FlucRMutex *mutex);
-FLUC_EXPORT void fluc_rmutex_lock (FlucRMutex *mutex) ACQUIRE (mutex);
-FLUC_EXPORT void fluc_rmutex_unlock (FlucRMutex *mutex) RELEASE (mutex);
-FLUC_EXPORT gboolean fluc_rmutex_try_lock (FlucRMutex *mutex)
-    TRY_ACQUIRE (TRUE, mutex);
+FLUC_EXPORT void fluc_mutex_init (FlucMutex *thiz);
+FLUC_EXPORT void fluc_mutex_clear (FlucMutex *thiz);
 
-FLUC_EXPORT void fluc_nrmutex_init (FlucNRMutex *mutex);
-FLUC_EXPORT void fluc_nrmutex_dispose (FlucNRMutex *mutex);
-FLUC_EXPORT void fluc_nrmutex_lock (FlucNRMutex *mutex) ACQUIRE (mutex);
-FLUC_EXPORT void fluc_nrmutex_unlock (FlucNRMutex *mutex) RELEASE (mutex);
-FLUC_EXPORT gboolean fluc_nrmutex_try_lock (FlucNRMutex *mutex)
-    TRY_ACQUIRE (TRUE, mutex);
+FLUC_EXPORT void fluc_mutex_lock (FlucMutex *thiz) ACQUIRE (thiz);
+FLUC_EXPORT void fluc_mutex_unlock (FlucMutex *thiz) RELEASE (thiz);
+FLUC_EXPORT gboolean fluc_mutex_trylock (FlucMutex *thiz)
+    TRY_ACQUIRE (TRUE, thiz);
 
-/* Define macros for tracing the locks */
-#define FLUC_LOCK(lock_type, lock)                                            \
-  do {                                                                        \
-    GST_TRACE ("LOCK %s (%p)", #lock, lock);                                  \
-    lock_type##_lock (lock);                                                  \
-    GST_TRACE ("LOCKED %s (%p)", #lock, lock);                                \
-  } while (0)
+/**
+ * Recursive mutex.
+ */
+typedef struct CAPABILITY ("mutex")
+{
+  GRecMutex lock;
+} FlucRecMutex;
 
-#define FLUC_UNLOCK(lock_type, lock)                                          \
-  do {                                                                        \
-    GST_TRACE ("UNLOCK %s (%p)", #lock, lock);                                \
-    lock_type##_unlock (lock);                                                \
-  } while (0)
+FLUC_EXPORT void fluc_rec_mutex_init (FlucRecMutex *thiz);
+FLUC_EXPORT void fluc_rec_mutex_clear (FlucRecMutex *thiz);
+
+FLUC_EXPORT void fluc_rec_mutex_lock (FlucRecMutex *thiz) ACQUIRE (thiz);
+FLUC_EXPORT void fluc_rec_mutex_unlock (FlucRecMutex *thiz) RELEASE (thiz);
+FLUC_EXPORT gboolean fluc_rec_mutex_trylock (FlucRecMutex *thiz)
+    TRY_ACQUIRE (TRUE, thiz);
 
 G_END_DECLS
-
-#endif // FLUC_MUTEX_H
+#endif /* _FLUC_MUTEX_H_ */
