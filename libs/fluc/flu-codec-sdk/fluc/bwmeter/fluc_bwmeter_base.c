@@ -1,12 +1,24 @@
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "fluc_bwmeter_base.h"
 
-GST_DEBUG_CATEGORY (bwmeter_debug);
+#include <gst/gst.h>
+
+GST_DEBUG_CATEGORY_STATIC (bwmeter_debug);
 #define GST_CAT_DEFAULT bwmeter_debug
 
 void
 fluc_bwmeter_base_init (FlucBwMeter *meter)
 {
-  fluc_rmutex_init (&meter->lock);
+  fluc_rec_mutex_init (&meter->lock);
   meter->config.time_max = 0.5;
   meter->config.time_min = 0.1;
   meter->config.bytes_min = 64 * 1024;
@@ -23,7 +35,7 @@ fluc_bwmeter_base_init (FlucBwMeter *meter)
 void
 fluc_bwmeter_base_dispose (FlucBwMeter *meter)
 {
-  fluc_rmutex_dispose (&meter->lock);
+  fluc_rec_mutex_clear (&meter->lock);
 }
 
 void
@@ -36,20 +48,20 @@ fluc_bwmeter_base_delete (FlucBwMeter *meter)
 void
 fluc_bwmeter_base_start (FlucBwMeter *meter)
 {
-  fluc_rmutex_lock (&meter->lock);
+  fluc_rec_mutex_lock (&meter->lock);
   if (!meter->state.sessions_active) {
     meter->state.time_start = g_get_monotonic_time ();
     meter->state.bytes = 0;
     GST_DEBUG ("bwmeter start");
   }
   meter->state.sessions_active++;
-  fluc_rmutex_unlock (&meter->lock);
+  fluc_rec_mutex_unlock (&meter->lock);
 }
 
 void
 fluc_bwmeter_base_end (FlucBwMeter *meter)
 {
-  fluc_rmutex_lock (&meter->lock);
+  fluc_rec_mutex_lock (&meter->lock);
   meter->state.sessions_active--;
   if (!meter->state.sessions_active) {
 
@@ -59,7 +71,7 @@ fluc_bwmeter_base_end (FlucBwMeter *meter)
     }
     GST_DEBUG ("bwmeter end");
   }
-  fluc_rmutex_unlock (&meter->lock);
+  fluc_rec_mutex_unlock (&meter->lock);
 }
 
 void
@@ -68,7 +80,7 @@ fluc_bwmeter_base_update (FlucBwMeter *meter)
   gint64 time = g_get_monotonic_time ();
   float elapsed;
 
-  fluc_rmutex_lock (&meter->lock);
+  fluc_rec_mutex_lock (&meter->lock);
   elapsed =
       (float) (time - meter->state.time_start) / (float) G_TIME_SPAN_SECOND;
   if (elapsed >= meter->config.time_min &&
@@ -76,7 +88,7 @@ fluc_bwmeter_base_update (FlucBwMeter *meter)
     fluc_bwmeter_base_compute (meter, time);
   }
   GST_DEBUG ("bwmeter update");
-  fluc_rmutex_unlock (&meter->lock);
+  fluc_rec_mutex_unlock (&meter->lock);
 }
 
 void

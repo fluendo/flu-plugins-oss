@@ -1,13 +1,22 @@
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "fluc_bwmeter_sock.h"
-#include "fluc_bwmeter_private.h"
 
 static void
 fluc_bwmeter_sock_data (FlucBwMeter *meter, guint32 size)
 {
-  fluc_rmutex_lock (&meter->lock);
+  fluc_rec_mutex_lock (&meter->lock);
   meter->state.bytes += size;
   fluc_bwmeter_base_data (meter);
-  fluc_rmutex_unlock (&meter->lock);
+  fluc_rec_mutex_unlock (&meter->lock);
 }
 
 FlucBwMeter *

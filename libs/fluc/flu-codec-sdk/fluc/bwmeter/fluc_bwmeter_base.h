@@ -1,5 +1,11 @@
-#ifndef FLUC_BWMETER_BASE_H
-#define FLUC_BWMETER_BASE_H
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
+#ifndef _FLUC_BWMETER_BASE_H_
+#define _FLUC_BWMETER_BASE_H_
 
 #include "fluc_bwmeter_private.h"
 
@@ -15,5 +21,4 @@ void fluc_bwmeter_base_data (FlucBwMeter *meter);
 void fluc_bwmeter_base_compute (FlucBwMeter *meter, gint64 time);
 
 G_END_DECLS
-
-#endif /* FLUC_BWMETER_BASE_H */
+#endif /* _FLUC_BWMETER_BASE_H_ */
