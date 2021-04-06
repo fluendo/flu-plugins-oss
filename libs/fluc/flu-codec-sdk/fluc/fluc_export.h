@@ -1,3 +1,9 @@
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
 #ifndef _FLUC_EXPORT_H_
 #define _FLUC_EXPORT_H_
 
@@ -19,4 +25,4 @@
 #endif
 #endif
 
-#endif /*  _FLUC_EXPORT_H_  */
+#endif /* _FLUC_EXPORT_H_ */

@@ -1,7 +1,14 @@
-#ifndef FLUC_BWMETER_H
-#define FLUC_BWMETER_H
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
 
-#include <fluc/fluc_common.h>
+#ifndef _FLUC_BWMETER_H_
+#define _FLUC_BWMETER_H_
+
+#include <fluc/fluc_export.h>
+#include <glib.h>
 
 G_BEGIN_DECLS
 
@@ -12,11 +19,13 @@ typedef struct
   float avg; /* bits per second, averaged */
 } FlucBwMeterStats;
 
-/* Opaque structure representing a bwmeter.
+/**
+ * Opaque structure representing a bwmeter.
  * Currently we only need a read meter, but this API is designed to easily
  * add a write meter if needed.
- * Each is a singleton, as a meter accounts for global traffic. */
-typedef struct FlucBwMeter_ FlucBwMeter;
+ * Each is a singleton, as a meter accounts for global traffic.
+ */
+typedef struct _FlucBwMeter FlucBwMeter;
 
 FLUC_EXPORT void fluc_bwmeters_init ();
 FLUC_EXPORT void fluc_bwmeters_dispose ();
@@ -35,13 +44,18 @@ FLUC_EXPORT void fluc_bwmeter_end (FlucBwMeter *meter);
 FLUC_EXPORT void fluc_bwmeter_data (FlucBwMeter *meter, guint32 size);
 FLUC_EXPORT void fluc_bwmeter_update (FlucBwMeter *meter);
 
-/* Subscription may be useful, but for now we don't need it. */
+/**
+ * Subscription API teaser
+ * (may be useful one day, but for now we don't need it)
+ */
 #if 0
 typedef void (*FluBwMeterOnUpdate)(void *user, const FluBwMeterStats* stats);
+
 typedef struct {
   FluBwMeterOnUpdate on_update;
   void *user;
 } FluBwMeterSubscriber;
+
 FLUC_EXPORT void flu_bwmeter_subscribe (FlucBwMeter *meter,
     FluBwMeterSubscriber subscriber);
 FLUC_EXPORT void flu_bwmeter_unsubscribe (FlucBwMeter *meter,
@@ -49,5 +63,4 @@ FLUC_EXPORT void flu_bwmeter_unsubscribe (FlucBwMeter *meter,
 #endif
 
 G_END_DECLS
-
-#endif /* FLUC_BWMETER_H */
+#endif /* _FLUC_BWMETER_H_ */

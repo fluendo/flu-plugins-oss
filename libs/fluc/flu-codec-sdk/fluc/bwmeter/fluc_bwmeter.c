@@ -1,33 +1,45 @@
-#include <string.h>
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include "fluc_bwmeter_sock.h"
 
-/* context singleton */
-FlucRMutex ctx_lock;
-gint32 ctx_init_count = 0;
-FlucBwMeters ctx;
+#include <string.h>
+
+/* Context singleton */
+static FlucRecMutex ctx_lock;
+static gint32 ctx_init_count = 0;
+static FlucBwMeters ctx;
 
 /*********************************************************************
  * public functions
  ********************************************************************/
+
 void
 fluc_bwmeters_init ()
 {
-  fluc_rmutex_lock (&ctx_lock);
+  fluc_rec_mutex_lock (&ctx_lock);
   if (!ctx_init_count++) {
     ctx.read = fluc_bwmeter_sock_new ();
   }
-  fluc_rmutex_unlock (&ctx_lock);
+  fluc_rec_mutex_unlock (&ctx_lock);
 }
 
 void
 fluc_bwmeters_dispose ()
 {
-  fluc_rmutex_lock (&ctx_lock);
+  fluc_rec_mutex_lock (&ctx_lock);
   if (!--ctx_init_count) {
     ctx.read->delete (ctx.read);
     ctx.read = NULL;
   }
-  fluc_rmutex_unlock (&ctx_lock);
+  fluc_rec_mutex_unlock (&ctx_lock);
 }
 
 FlucBwMeter *
@@ -39,13 +51,13 @@ fluc_bwmeters_get_read ()
 void
 fluc_bwmeter_lock (FlucBwMeter *meter)
 {
-  fluc_rmutex_lock (&meter->lock);
+  fluc_rec_mutex_lock (&meter->lock);
 }
 
 void
 fluc_bwmeter_unlock (FlucBwMeter *meter)
 {
-  fluc_rmutex_unlock (&meter->lock);
+  fluc_rec_mutex_unlock (&meter->lock);
 }
 
 const FlucBwMeterStats *
@@ -57,9 +69,9 @@ fluc_bwmeter_stats_get (FlucBwMeter *meter)
 void
 fluc_bwmeter_stats_copy (FlucBwMeter *meter, FlucBwMeterStats *stats)
 {
-  fluc_rmutex_lock (&meter->lock);
+  fluc_rec_mutex_lock (&meter->lock);
   memcpy (stats, &meter->stats, sizeof (FlucBwMeterStats));
-  fluc_rmutex_unlock (&meter->lock);
+  fluc_rec_mutex_unlock (&meter->lock);
 }
 
 void

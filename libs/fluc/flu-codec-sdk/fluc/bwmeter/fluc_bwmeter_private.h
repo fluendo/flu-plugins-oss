@@ -1,8 +1,13 @@
-#ifndef FLUC_BWMETER_PRIVATE_H
-#define FLUC_BWMETER_PRIVATE_H
+/*
+ * Fluendo Codec SDK
+ * Copyright (C) 2021, Fluendo S.A.
+ * support@fluendo.com
+ */
+
+#ifndef _FLUC_BWMETER_PRIVATE_H_
+#define _FLUC_BWMETER_PRIVATE_H_
 
 #include "fluc_bwmeter.h"
-
 #include "../threads/fluc_mutex.h"
 
 G_BEGIN_DECLS
@@ -23,7 +28,7 @@ typedef struct
   guint32 bytes;
 } FlucBwMeterState;
 
-struct FlucBwMeter_
+struct _FlucBwMeter
 {
   void (*delete) (FlucBwMeter *meter);
   void (*start) (FlucBwMeter *meter);
@@ -33,7 +38,7 @@ struct FlucBwMeter_
   FlucBwMeterStats stats;
   FlucBwMeterState state;
   FlucBwMeterConfig config;
-  FlucRMutex lock;
+  FlucRecMutex lock;
 };
 
 typedef struct
@@ -42,5 +47,4 @@ typedef struct
 } FlucBwMeters;
 
 G_END_DECLS
-
-#endif /* FLUC_BWMETER_PRIVATE_H */
+#endif /* _FLUC_BWMETER_PRIVATE_H_ */
