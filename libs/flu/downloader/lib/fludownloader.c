@@ -26,8 +26,7 @@
 #include <glib/gstdio.h>        /* g_stat */
 #include <curl/curl.h>
 #include <string.h>
-#include <fluc/threads/fluc_barrier.h>
-#include <fluc/bwmeter/fluc_bwmeter.h>
+#include <fluc/fluc.h>
 
 #define TIMEOUT 100000          /* 100ms */
 #define DATE_MAX_LENGTH 48
@@ -46,7 +45,7 @@ struct _FluDownloader
 {
   /* Threading stuff */
   GThread *thread;
-  FlucRMutex lock;
+  FlucRecMutex lock;
   gboolean shutdown;            /* Tell the worker thread to quit */
 
   /* API stuff */
@@ -335,7 +334,7 @@ _write_function (void *buffer, size_t size, size_t nmemb,
   }
   
   context = task->context;
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
   task->downloaded_size += total_size;
   
   if (context->discarding) {
@@ -344,10 +343,10 @@ _write_function (void *buffer, size_t size, size_t nmemb,
       context->discarding = FALSE;
   }
   if (!context->discarding && !context->paused) {
-      fluc_rmutex_unlock (&task->context->lock);
+      fluc_rec_mutex_unlock (&task->context->lock);
       fluc_bwmeter_data (context->bwmeter, total_size);
   } else {
-    fluc_rmutex_unlock (&task->context->lock);
+    fluc_rec_mutex_unlock (&task->context->lock);
     fluc_barrier_trypass_for (&context->paused_barrier, G_TIME_SPAN_SECOND * 4);
   }
   
@@ -379,7 +378,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
   size_t total_size = size * nmemb;
   gint http_status;
 
-  fluc_rmutex_lock (&task->context->lock);
+  fluc_rec_mutex_lock (&task->context->lock);
 
   task->last_event_time = g_get_monotonic_time ();
   if (sscanf (line, "HTTP/%*s %d", &http_status) == 1) {
@@ -406,7 +405,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
   if (task->store_header)
     task->header_lines = g_list_append (task->header_lines, g_strdup (line));
 
-  fluc_rmutex_unlock (&task->context->lock);
+  fluc_rec_mutex_unlock (&task->context->lock);
 
   return total_size;
 }
@@ -493,7 +492,7 @@ _thread_function (FluDownloader * context)
   int max_fd;
   int num_queued_tasks;
 
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
   while (!context->shutdown) {
     FD_ZERO (&rfds);
     FD_ZERO (&wfds);
@@ -501,7 +500,7 @@ _thread_function (FluDownloader * context)
     curl_multi_fdset (context->handle, &rfds, &wfds, &efds, &max_fd);
     if (max_fd == -1 || context->use_polling) {
       /* There is nothing happening: wait a bit (and release the mutex) */
-      fluc_rmutex_unlock(&context->lock);
+      fluc_rec_mutex_unlock(&context->lock);
       g_usleep (context->polling_period);
     } else if (max_fd > 0) {
       /* There are some active fd's: wait for them (and release the mutex) */
@@ -509,11 +508,11 @@ _thread_function (FluDownloader * context)
 
       tv.tv_sec = 0;
       tv.tv_usec = TIMEOUT;
-      fluc_rmutex_unlock(&context->lock);
+      fluc_rec_mutex_unlock(&context->lock);
       select (max_fd + 1, &rfds, NULL, NULL, &tv);
     } else {
       /* max_fd should never be 0, but better be safe than sorry. */
-      fluc_rmutex_unlock(&context->lock);
+      fluc_rec_mutex_unlock(&context->lock);
     }
 
     /* Perform transfers */
@@ -523,10 +522,10 @@ _thread_function (FluDownloader * context)
     _process_curl_messages (context);
 
     /* See if any queued task can be started */
-    fluc_rmutex_lock(&context->lock);
+    fluc_rec_mutex_lock(&context->lock);
     _schedule_tasks (context);
   }
-  fluc_rmutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock(&context->lock);
   return NULL;
 }
 
@@ -585,7 +584,7 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
     goto error;
   curl_multi_setopt (context->handle, CURLMOPT_PIPELINING, 1);
 
-  fluc_rmutex_init (&context->lock);
+  fluc_rec_mutex_init (&context->lock);
 
   context->thread = g_thread_create ((GThreadFunc) _thread_function, context,
       TRUE, NULL);
@@ -621,9 +620,9 @@ fludownloader_destroy (FluDownloader * context)
     link = next;
   }
 
-  fluc_barrier_dispose (&context->paused_barrier);
+  fluc_barrier_clear (&context->paused_barrier);
   fluc_bwmeters_dispose ();
-  fluc_rmutex_dispose (&context->lock);
+  fluc_rec_mutex_clear (&context->lock);
 
   if (context->cookies)
     g_strfreev (context->cookies);
@@ -737,11 +736,11 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
     curl_easy_setopt (task->handle, CURLOPT_PROXY, context->proxy);
 
   if (locked)
-    fluc_rmutex_lock(&context->lock);
+    fluc_rec_mutex_lock(&context->lock);
   context->queued_tasks = g_list_append (context->queued_tasks, task);
   _schedule_tasks (context);
   if (locked)
-    fluc_rmutex_unlock(&context->lock);
+    fluc_rec_mutex_unlock(&context->lock);
 
   return task;
 }
@@ -782,21 +781,21 @@ void
 fludownloader_abort_all_tasks (FluDownloader * context,
     gboolean including_current)
 {
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
   _abort_all_tasks_unlocked (context, including_current);
-  fluc_rmutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock(&context->lock);
 }
 
 void
 fludownloader_lock (FluDownloader * context)
 {
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
 }
 
 void
 fludownloader_unlock (FluDownloader * context)
 {
-  fluc_rmutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock(&context->lock);
 }
 
 const gchar *
@@ -851,19 +850,19 @@ fludownloader_task_get_header (FluDownloaderTask * task)
 void
 fludownloader_set_polling_period (FluDownloader * context, gint period)
 {
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
   context->use_polling = period > 0;
   context->polling_period = period > 0 ? period : TIMEOUT;
-  fluc_rmutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock(&context->lock);
 }
 
 gint
 fludownloader_get_polling_period (FluDownloader * context)
 {
   gint ret;
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
   ret = context->use_polling ? context->polling_period : 0;
-  fluc_rmutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock(&context->lock);
 
   return ret;
 }
@@ -1016,10 +1015,10 @@ fludownloader_get_tasks_count (FluDownloader * context)
 {
   gint ret = 0;
 
-  fluc_rmutex_lock(&context->lock);
+  fluc_rec_mutex_lock(&context->lock);
   if (context)
     ret = g_list_length (context->queued_tasks);
-  fluc_rmutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock(&context->lock);
 
   return ret;
 }
