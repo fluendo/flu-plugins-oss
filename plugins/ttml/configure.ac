@@ -7,8 +7,8 @@ dnl fill in your package name and version here
 dnl the fourth (nano) number should be 0 for a release, 1 for CVS,
 dnl and 2... for a prerelease
 dnl releases only do -Wall, cvs and prerelease does -Werror too
-AC_INIT(GStreamer Fluendo TTML Element, 
-    m4_esyscmd([common/git-version-gen .tarball-version]),,
+AC_INIT(GStreamer Fluendo TTML Element,
+    m4_esyscmd([common/git-product-version gst-fluendo-ttml- "common/git-version-gen .tarball-version"]), ,
     gst-fluendo-ttml)
 
 AG_GST_INIT
@@ -110,9 +110,6 @@ AM_CONDITIONAL([BUILD_TTMLRENDER], [test "$BUILD_TTMLRENDER" = "yes"])
 
 dnl append ERROR_CFLAGS cflags to GST_CFLAGS
 GST_CFLAGS="$GST_CFLAGS $ERROR_CFLAGS"
-
-dnl Check for the libraries
-FLUC_CHECK(yes)
 
 dnl define CPU_TUNE_CFLAGS and CPU_TUNE_CCASFLAGS
 AG_GST_CPU_TUNE
