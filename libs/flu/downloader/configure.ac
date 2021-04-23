@@ -28,9 +28,6 @@ if test "x$HAVE_PKGCONFIG" = "xno"; then
   AC_MSG_ERROR(you need to have pkgconfig installed !)
 fi
 
-dnl Check for the libraries
-FLUC_CHECK(yes)
-
 os_type=""
 case "$host" in
   *mingw*)
@@ -66,10 +63,13 @@ fi
 
 PKG_CHECK_MODULES([REQUIREMENTS], [${REQUIREMENTS_PC}])
 
+AG_GST_DETECT_VERSION([1.0.0], [0.10.23])
+AG_GST_CHECK_GST($GST_MAJORMINOR, [$GST_REQ])
+
 dnl Add the correct pkg-config flags into our own .pc files
-FLUDOWNLOADER_CFLAGS="${REQUIREMENTS_CFLAGS} -I\${top_srcdir}/common -Wall -Werror -DGLIB_DISABLE_DEPRECATION_WARNINGS"
-FLUDOWNLOADER_LIBS="${REQUIREMENTS_LIBS}"
 FLUDOWNLOADER_CURL_LIB=""
+FLUDOWNLOADER_CFLAGS="${REQUIREMENTS_CFLAGS} ${GST_CFLAGS} -I\${top_srcdir}/common -Wall -Werror -DGLIB_DISABLE_DEPRECATION_WARNINGS"
+FLUDOWNLOADER_LIBS="${REQUIREMENTS_LIBS} ${GST_LIBS}"
 CURL_LIBS=""
 
 AC_SUBST(REQUIREMENTS_PC)
@@ -145,7 +145,6 @@ AC_CONFIG_COMMANDS_PRE([
 
 AC_CONFIG_FILES([
   Makefile
-  ext/Makefile
   lib/Makefile
   examples/Makefile
   fludownloader.pc

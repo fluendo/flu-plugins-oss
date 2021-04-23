@@ -8,8 +8,8 @@ libcurl_objects = $(wildcard $(top_builddir)/ext/curl/lib/libcurl_la-*.lo) $(wil
 endif
 
 libfludownloader_la_SOURCES = fludownloader.c fludownloader.h fludownloaderhelper.c fludownloaderhelper.h
-libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS)
-libfludownloader_la_LIBADD = $(FLUDOWNLOADER_CURL_LIB) $(FLUDOWNLOADER_LIBS)
+libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS) -I${top_srcdir}/../../libs/flu-codec-sdk
+libfludownloader_la_LIBADD = $(FLUDOWNLOADER_LIBS) $(top_builddir)/../../libs/flu-codec-sdk/fluc/libfluc.la
 libfludownloader_la_LDFLAGS = $(WIN32_LDFLAGS) -shared
 
 libfludownloader_static_la_SOURCES = $(libfludownloader_la_SOURCES)
@@ -18,4 +18,4 @@ if !HAVE_WINDOWS
 libfludownloader_static_la_CFLAGS += -fPIC
 endif
 libfludownloader_static_la_LDFLAGS = $(WIN32_LDFLAGS) -static
-libfludownloader_static_la_LIBADD = $(libcurl_objects) $(FLUDOWNLOADER_LIBS)
+libfludownloader_static_la_LIBADD = ${libcurl_objects} $(FLUDOWNLOADER_LIBS) $(top_builddir)/../../libs/flu-codec-sdk/fluc/libfluc-static.la

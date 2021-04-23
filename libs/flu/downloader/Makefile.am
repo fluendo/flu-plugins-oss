@@ -11,7 +11,7 @@ configure \
 depcomp \
 compile
 
-SUBDIRS = ext lib examples
+SUBDIRS = lib examples
 pcfiles = \
 	$(top_builddir)/fludownloader.pc \
 	$(top_builddir)/fludownloader_static.pc

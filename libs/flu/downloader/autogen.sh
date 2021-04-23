@@ -10,9 +10,8 @@ git submodule update
 rm -rf autom4te.cache
 rm -f aclocal.m4 ltmain.sh
 
-autoreconf -f -i -v -I common/m4 $ACLOCAL_FLAGS --warnings=all || exit 1
+# autoreconf -f -i -v -I common/m4 $ACLOCAL_FLAGS --warnings=all || exit 1
+. common/gst-autogen.sh
+. common/flu-autoreconf.sh
 
-if [ -z "$NOCONFIGURE" ]; then
-  ./configure "$@"
-fi
-
+flu_autoreconf $@
