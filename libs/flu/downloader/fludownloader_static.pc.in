@@ -7,6 +7,5 @@ Name: fludownloader
 Version: @VERSION@
 Description: Fluendo Downloader Library for static linking
 Requires: @REQUIREMENTS_PC@
-Libs: -L${libdir} -lfludownloader_static @CURL_LIBS@
+Libs: -L${libdir} -lfludownloader_static
 Cflags: -I${includedir} @REQUIREMENTS_CFLAGS@
-

@@ -3,10 +3,6 @@ MAINTAINERCLEANFILES = Makefile.in
 lib_LTLIBRARIES = libfludownloader.la libfludownloader_static.la
 include_HEADERS = fludownloader.h fludownloaderhelper.h
 
-if !USE_SYSTEM_CURL
-libcurl_objects = $(wildcard $(top_builddir)/ext/curl/lib/libcurl_la-*.lo) $(wildcard $(top_builddir)/ext/curl/lib/vtls/libcurl_la-*.lo)
-endif
-
 libfludownloader_la_SOURCES = fludownloader.c fludownloader.h fludownloaderhelper.c fludownloaderhelper.h
 libfludownloader_la_CFLAGS = $(FLUDOWNLOADER_CFLAGS) -I${top_srcdir}/../../libs/flu-codec-sdk
 libfludownloader_la_LIBADD = $(FLUDOWNLOADER_LIBS) $(top_builddir)/../../libs/flu-codec-sdk/fluc/libfluc.la
@@ -18,4 +14,4 @@ if !HAVE_WINDOWS
 libfludownloader_static_la_CFLAGS += -fPIC
 endif
 libfludownloader_static_la_LDFLAGS = $(WIN32_LDFLAGS) -static
-libfludownloader_static_la_LIBADD = ${libcurl_objects} $(FLUDOWNLOADER_LIBS) $(top_builddir)/../../libs/flu-codec-sdk/fluc/libfluc-static.la
+libfludownloader_static_la_LIBADD = $(FLUDOWNLOADER_LIBS) $(top_builddir)/../../libs/flu-codec-sdk/fluc/libfluc-static.la

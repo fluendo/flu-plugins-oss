@@ -7,7 +7,6 @@ Name: fludownloader
 Version: @VERSION@
 Description: Fluendo Downloader Library
 Requires.private: @REQUIREMENTS_PC@
-Libs.private: @REQUIREMENTS_LIBS@ @CURL_LIBS@
+Libs.private: @REQUIREMENTS_LIBS@
 Libs: -L${libdir} -lfludownloader
 Cflags: -I${includedir} @REQUIREMENTS_CFLAGS@
-
