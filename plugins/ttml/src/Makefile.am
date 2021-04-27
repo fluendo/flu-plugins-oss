@@ -40,8 +40,8 @@ endif
 
 if BUILD_TTMLRENDER
 libgstfluttml_la_SOURCES += gstttmlrender.c gstttmlblur.c
-libgstfluttml_la_CFLAGS += $(PANGO_CFLAGS) $(PIXMAN_CFLAGS) $(FLUDOWNLOADER_CFLAGS)
-libgstfluttml_la_LIBADD += $(PANGO_LIBS) $(PIXMAN_LIBS) $(FLUDOWNLOADER_LIBS)
+libgstfluttml_la_CFLAGS += $(PANGO_CFLAGS) $(PIXMAN_CFLAGS) -I${top_srcdir}/../../libs/libfludownloader/lib
+libgstfluttml_la_LIBADD += $(PANGO_LIBS) $(PIXMAN_LIBS) $(top_builddir)/../../libs/libfludownloader/lib/libfludownloader_static.la
 endif
 
 libgstfluttml_la_LDFLAGS = $(GST_PLUGIN_LDFLAGS) $(CPU_TUNE_LDFLAGS) \
