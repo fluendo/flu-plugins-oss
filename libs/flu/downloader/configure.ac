@@ -37,7 +37,6 @@ case "$host" in
 esac
 
 AM_CONDITIONAL(HAVE_WINDOWS, [test "x$os_type" = "xwindows"])
-AM_CONDITIONAL(WITH_STATIC_FLUC, [test "x$with_static_fluc"])
 AC_SUBST(WIN32_LDFLAGS)
 
 dnl Dependencies check
