@@ -1,0 +1,228 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug_0.10|Win32">
+      <Configuration>Debug_0.10</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_0.10|x64">
+      <Configuration>Debug_0.10</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_0.10|Win32">
+      <Configuration>Release_0.10</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_0.10|x64">
+      <Configuration>Release_0.10</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_1.x|Win32">
+      <Configuration>Debug_1.x</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug_1.x|x64">
+      <Configuration>Debug_1.x</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_1.x|Win32">
+      <Configuration>Release_1.x</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release_1.x|x64">
+      <Configuration>Release_1.x</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\fluttml.c" />
+    <ClCompile Include="..\..\src\gstttmlattribute.c" />
+    <ClCompile Include="..\..\src\gstttmlbase.c" />
+    <ClCompile Include="..\..\src\gstttmlblur.c" />
+    <ClCompile Include="..\..\src\gstttmldownloader.c" />
+    <ClCompile Include="..\..\src\gstttmlevent.c" />
+    <ClCompile Include="..\..\src\gstttmlparse.c" />
+    <ClCompile Include="..\..\src\gstttmlrender.c" />
+    <ClCompile Include="..\..\src\gstttmlspan.c" />
+    <ClCompile Include="..\..\src\gstttmlstate.c" />
+    <ClCompile Include="..\..\src\gstttmlstyle.c" />
+    <ClCompile Include="..\..\src\gstttmltype.c" />
+    <ClCompile Include="..\..\src\gstttmlutils.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\gstttmlattribute.h" />
+    <ClInclude Include="..\..\src\gstttmlbase.h" />
+    <ClInclude Include="..\..\src\gstttmlblur.h" />
+    <ClInclude Include="..\..\src\gstttmldownloader.h" />
+    <ClInclude Include="..\..\src\gstttmlenums.h" />
+    <ClInclude Include="..\..\src\gstttmlevent.h" />
+    <ClInclude Include="..\..\src\gstttmlforward.h" />
+    <ClInclude Include="..\..\src\gstttmlparse.h" />
+    <ClInclude Include="..\..\src\gstttmlrender.h" />
+    <ClInclude Include="..\..\src\gstttmlspan.h" />
+    <ClInclude Include="..\..\src\gstttmlstate.h" />
+    <ClInclude Include="..\..\src\gstttmlstyle.h" />
+    <ClInclude Include="..\..\src\gstttmltype.h" />
+    <ClInclude Include="..\..\src\gstttmlutils.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectName>libgstfluttml</ProjectName>
+    <ProjectGuid>
+    </ProjectGuid>
+    <RootNamespace>libgstfluttml</RootNamespace>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_0.10|Win32' or '$(Configuration)|$(Platform)'=='Release_1.x|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_0.10|x64' or '$(Configuration)|$(Platform)'=='Release_1.x|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|Win32' or '$(Configuration)|$(Platform)'=='Debug_1.x|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|x64' or '$(Configuration)|$(Platform)'=='Debug_1.x|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>Windows7.1SDK</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|Win32' or '$(Configuration)|$(Platform)'=='Release_0.10|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-0.10.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-base-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\gstreamer-base-0.10.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\libs\pixman-1.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\msvc\x86.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86)\share\vs\2010\msvc\x86.props')" />
+    <Import Project="..\..\common\fluendo-plugins-sdk.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|x64' or '$(Configuration)|$(Platform)'=='Release_0.10|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-0.10.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-0.10.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-0.10.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props')" />
+    <Import Project="$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props" Condition="exists('$(GSTREAMER_SDK_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props')" />
+    <Import Project="..\..\common\fluendo-plugins-sdk.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_1.x|Win32' or '$(Configuration)|$(Platform)'=='Release_1.x|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-1.0.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-base-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\gstreamer-base-1.0.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\pixman-1.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\msvc\x86.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\msvc\x86.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\libxml-2.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86)\share\vs\2010\libs\libxml-2.0.props')" />
+    <Import Project="..\..\common\fluendo-plugins-sdk.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug_1.x|x64' or '$(Configuration)|$(Platform)'=='Release_1.x|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-1.0.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-1.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\gstreamer-base-1.0.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pangocairo.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\pixman-1.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\msvc\x86_64.props')" />
+    <Import Project="$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\libxml-2.0.props" Condition="exists('$(GSTREAMER_1_0_ROOT_X86_64)\share\vs\2010\libs\libxml-2.0.props')" />
+    <Import Project="..\..\common\fluendo-plugins-sdk.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|Win32' or '$(Configuration)|$(Platform)'=='Debug_1.x|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ShowIncludes Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|Win32'">false</ShowIncludes>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>fludownloader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_0.10|x64' or '$(Configuration)|$(Platform)'=='Debug_1.x|x64'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>fludownloader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_0.10|Win32' or '$(Configuration)|$(Platform)'=='Release_1.x|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>fludownloader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+      <TargetMachine>MachineX86</TargetMachine>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_0.10|x64' or '$(Configuration)|$(Platform)'=='Release_1.x|x64'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <AdditionalIncludeDirectories>.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PrecompiledHeader>
+      </PrecompiledHeader>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>fludownloader.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention>
+      </DataExecutionPrevention>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>
