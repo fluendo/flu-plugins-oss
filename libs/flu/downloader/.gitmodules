@@ -1,6 +1,0 @@
-[submodule "common"]
-	path = common
-	url = git@bitbucket.org:fluendo/common.git
-[submodule "ext/curl"]
-	path = ext/curl
-	url = git://github.com/curl/curl.git
