@@ -11,10 +11,10 @@
 #include "gstttmltype.h"
 
 static GstStaticCaps gst_ttmltype_caps = GST_STATIC_CAPS (TTML_MIME);
-#define TTML_CAPS (gst_static_caps_get(&gst_ttmltype_caps))
+#define TTML_CAPS (gst_static_caps_get (&gst_ttmltype_caps))
 
 static void
-gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
+gst_ttmltype_find (GstTypeFind *tf, gpointer unused)
 {
   guint64 offset = 0;
   const guint8 *data;
@@ -22,8 +22,8 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
   GstTypeFindProbability prob = GST_TYPE_FIND_MAXIMUM;
 
   /* check for xml tag */
-  while (((data = gst_type_find_peek (tf, offset, 6)) != NULL)
-      && offset < 1024) {
+  while (
+      ((data = gst_type_find_peek (tf, offset, 6)) != NULL) && offset < 1024) {
     if (!(checks & 0x01) && !memcmp (data, "<?xml", 5) &&
         (g_ascii_isspace (data[5]) || g_ascii_iscntrl (data[5]))) {
       if (offset) {
@@ -42,7 +42,7 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
 
   if (!checks) {
     /* XML tag was not found.
-     * Some test files don't have the xml tag, which looks ilegal, 
+     * Some test files don't have the xml tag, which looks ilegal,
      * be we have to accept those files if we find a ttml root node.
      * We will lower the probability if this is the case.
      */
@@ -51,8 +51,8 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
   }
 
   /* check for ttml root node */
-  while (((data = gst_type_find_peek (tf, offset, 4)) != NULL)
-      && offset < 1024) {
+  while (
+      ((data = gst_type_find_peek (tf, offset, 4)) != NULL) && offset < 1024) {
     if (!memcmp (data + 1, "tt", 2) && (data[0] == '<' || data[0] == ':') &&
         (g_ascii_isspace (data[3]) || g_ascii_iscntrl (data[3]))) {
       checks |= 0x02;
@@ -67,9 +67,9 @@ gst_ttmltype_find (GstTypeFind * tf, gpointer unused)
 }
 
 gboolean
-gst_ttmltype_init (GstPlugin * plugin)
+gst_ttmltype_init (GstPlugin *plugin)
 {
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
   static const gchar *exts = "ttml, xml, dfxp";
 
   if (!gst_type_find_register (plugin, TTML_MIME, GST_RANK_PRIMARY,

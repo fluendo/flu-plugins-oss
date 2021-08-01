@@ -14,8 +14,9 @@
 
 G_BEGIN_DECLS
 
-typedef struct {
-  gchar * data;
+typedef struct
+{
+  gchar *data;
   gsize size;
   gsize len;
   gboolean enable;
@@ -26,7 +27,8 @@ typedef struct {
 } GstTTMLBuffer;
 
 /* The GStreamer ttmlbase base element */
-typedef struct _GstTTMLBase {
+typedef struct _GstTTMLBase
+{
   GstElement element;
 
   /* Sink pad */
@@ -70,49 +72,50 @@ typedef struct _GstTTMLBase {
 } GstTTMLBase;
 
 /* The GStreamer ttmlbase element's class */
-typedef struct _GstTTMLBaseClass {
+typedef struct _GstTTMLBaseClass
+{
   GstElementClass parent_class;
 
   /* Passed a list of active text spans (with attributes), the derived class
    * must generate a GstBuffer (with whatever caps it declared when created
    * the src pad template).
    */
-  GstBuffer *(*gen_buffer)(GstTTMLBase *base, GstClockTime ts,
-      GstClockTime duration);
+  GstBuffer *(*gen_buffer) (
+      GstTTMLBase *base, GstClockTime ts, GstClockTime duration);
 
   /* Derived classes can set any unfixed value to whatever they please.
    * Used to set a default video size, if downstream does not request one,
    * for example. */
-  void (*fixate_caps)(GstTTMLBase *base, GstCaps *caps);
+  void (*fixate_caps) (GstTTMLBase *base, GstCaps *caps);
 
   /* Before downstream negotiation, derived classes can use this method to
    * complete the caps they advertised in the pad template, to add info
    * found during parsing which was not present in class_init. */
-  void (*complete_caps)(GstTTMLBase *base, GstCaps *caps);
+  void (*complete_caps) (GstTTMLBase *base, GstCaps *caps);
 
   /* Inform the derived class of the final negotiated caps on its srcpad */
-  void (*src_setcaps)(GstTTMLBase *base, GstCaps *caps);
+  void (*src_setcaps) (GstTTMLBase *base, GstCaps *caps);
 
   /* Tell the derived class to clear all internal data and go back to the
    * reset state. */
-  void (*reset)(GstTTMLBase *base);
+  void (*reset) (GstTTMLBase *base);
 } GstTTMLBaseClass;
 
-#define GST_TYPE_TTMLBASE            (gst_ttmlbase_get_type())
-#define GST_TTMLBASE(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),\
-                                         GST_TYPE_TTMLBASE, GstTTMLBase))
-#define GST_TTMLBASE_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass),\
-                                         GST_TYPE_TTMLBASE, GstTTMLBaseClass))
-#define GST_TTMLBASE_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),\
-                                         GST_TYPE_TTMLBASE, GstTTMLBaseClass))
-#define GST_IS_TTMLBASE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),\
-                                         GST_TYPE_TTMLBASE))
-#define GST_IS_TTMLBASE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass),\
-                                         GST_TYPE_TTMLBASE))
+#define GST_TYPE_TTMLBASE (gst_ttmlbase_get_type ())
+#define GST_TTMLBASE(obj)                                                     \
+  (G_TYPE_CHECK_INSTANCE_CAST ((obj), GST_TYPE_TTMLBASE, GstTTMLBase))
+#define GST_TTMLBASE_CLASS(klass)                                             \
+  (G_TYPE_CHECK_CLASS_CAST ((klass), GST_TYPE_TTMLBASE, GstTTMLBaseClass))
+#define GST_TTMLBASE_GET_CLASS(obj)                                           \
+  (G_TYPE_INSTANCE_GET_CLASS ((obj), GST_TYPE_TTMLBASE, GstTTMLBaseClass))
+#define GST_IS_TTMLBASE(obj)                                                  \
+  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GST_TYPE_TTMLBASE))
+#define GST_IS_TTMLBASE_CLASS(klass)                                          \
+  (G_TYPE_CHECK_CLASS_TYPE ((klass), GST_TYPE_TTMLBASE))
 
 GType gst_ttmlbase_get_type (void);
 
-gchar *gst_ttmlbase_uri_get (GstPad * pad);
+gchar *gst_ttmlbase_uri_get (GstPad *pad);
 
 G_END_DECLS
 #endif /* __GST_TTMLBASE_H__ */

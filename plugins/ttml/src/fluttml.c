@@ -29,7 +29,7 @@ GST_DEBUG_CATEGORY (ttmlrender_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
 
 static gboolean
-plugin_init (GstPlugin * plugin)
+plugin_init (GstPlugin *plugin)
 {
   GST_DEBUG_CATEGORY_INIT (ttmlbase_debug, "ttmlbase",
       GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML base element");
@@ -38,8 +38,8 @@ plugin_init (GstPlugin * plugin)
   GST_DEBUG_CATEGORY_INIT (ttmlparse_debug, "ttmlparse",
       GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML parser");
 
-  if (!gst_element_register (plugin, "ttmlparse", GST_RANK_SECONDARY,
-          gst_ttmlparse_get_type ()))
+  if (!gst_element_register (
+          plugin, "ttmlparse", GST_RANK_SECONDARY, gst_ttmlparse_get_type ()))
     return FALSE;
 
   GST_DEBUG_CATEGORY_INIT (ttmlsegmentedparse_debug, "ttmlsegmentedparse",
@@ -54,8 +54,8 @@ plugin_init (GstPlugin * plugin)
   GST_DEBUG_CATEGORY_INIT (ttmlrender_debug, "ttmlrender",
       GST_DEBUG_BOLD | GST_DEBUG_FG_WHITE, "Fluendo TTML renderer");
 
-  if (!gst_element_register (plugin, "ttmlrender", GST_RANK_MARGINAL,
-          gst_ttmlrender_get_type ()))
+  if (!gst_element_register (
+          plugin, "ttmlrender", GST_RANK_MARGINAL, gst_ttmlrender_get_type ()))
     return FALSE;
 #endif
 
@@ -66,7 +66,6 @@ plugin_init (GstPlugin * plugin)
 
 /* this is the structure that gstreamer looks for to register plugins
  */
-FLUENDO_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR,
-    "fluttml", fluttml, "Fluendo TTML Plugin",
-    plugin_init, VERSION, GST_LICENSE_UNKNOWN, PACKAGE_NAME,
-    "http://www.fluendo.com");
+FLUENDO_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, "fluttml",
+    fluttml, "Fluendo TTML Plugin", plugin_init, VERSION, GST_LICENSE_UNKNOWN,
+    PACKAGE_NAME, "http://www.fluendo.com");

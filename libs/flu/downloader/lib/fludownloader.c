@@ -23,15 +23,15 @@
 #include "fludownloader.h"
 
 #include <glib-compat.h>
-#include <glib/gstdio.h>        /* g_stat */
+#include <glib/gstdio.h> /* g_stat */
 #include <curl/curl.h>
 #include <string.h>
 #include <fluc/fluc.h>
 
-#define TIMEOUT 100000          /* 100ms */
+#define TIMEOUT 100000 /* 100ms */
 #define DATE_MAX_LENGTH 48
 #define DEFAULT_CONNECT_TIMEOUT (20 * 1000 * 1000) /* us, 20s */
-#define DEFAULT_RECEIVE_TIMEOUT (3 * 1000 * 1000) /* us, 3s */
+#define DEFAULT_RECEIVE_TIMEOUT (3 * 1000 * 1000)  /* us, 3s */
 
 /*****************************************************************************
  * Private functions and structs
@@ -46,29 +46,31 @@ struct _FluDownloader
   /* Threading stuff */
   GThread *thread;
   FlucRecMutex lock;
-  gboolean shutdown;            /* Tell the worker thread to quit */
+  gboolean shutdown; /* Tell the worker thread to quit */
 
   /* API stuff */
   FluDownloaderDataCallback data_cb;
   FluDownloaderDoneCallback done_cb;
 
   /* CURL stuff */
-  CURLM *handle;                /* CURL multi handler */
+  CURLM *handle; /* CURL multi handler */
   GList *queued_tasks;
 
   /* CPU control stuff */
-  gboolean use_polling;         /* Do not use select() */
-  gint polling_period;          /* uSeconds to wait between curl checks */
+  gboolean use_polling; /* Do not use select() */
+  gint polling_period;  /* uSeconds to wait between curl checks */
   gint64 connect_timeout;
   gint64 receive_timeout;
 
-  gchar **cookies;              /* NULL-terminated array of strings with cookies */
-  gchar *user_agent;            /* String containing the user-agent used optionally by cURL */
-  gchar *proxy;                 /* String containing the proxy server used optionally by cURL */
-  
+  gchar **cookies;   /* NULL-terminated array of strings with cookies */
+  gchar *user_agent; /* String containing the user-agent used optionally by
+                        cURL */
+  gchar
+      *proxy; /* String containing the proxy server used optionally by cURL */
+
   /* bandwidth meter */
   FlucBwMeter *bwmeter;
-  
+
   gboolean running;
   gboolean paused;
   FlucBarrier paused_barrier;
@@ -82,30 +84,30 @@ struct _FluDownloaderTask
 {
   /* Homekeeping stuff */
   FluDownloader *context;
-  gpointer user_data;           /* Application's user data */
-  gboolean finished;            /* finished and done_cb notified */
-  gboolean abort;               /* Signal the write callback to return error */
-  gboolean running;             /* Has it already been passed to libCurl? */
-  gboolean is_file;             /* URL starts with file:// */
+  gpointer user_data; /* Application's user data */
+  gboolean finished;  /* finished and done_cb notified */
+  gboolean abort;     /* Signal the write callback to return error */
+  gboolean running;   /* Has it already been passed to libCurl? */
+  gboolean is_file;   /* URL starts with file:// */
 
   /* Download control */
-  size_t total_size;            /* File size reported by HTTP headers */
-  size_t downloaded_size;       /* Amount of bytes downloaded */
-  gchar date[DATE_MAX_LENGTH];  /* Http header date field value */
+  size_t total_size;           /* File size reported by HTTP headers */
+  size_t downloaded_size;      /* Amount of bytes downloaded */
+  gchar date[DATE_MAX_LENGTH]; /* Http header date field value */
 
-  gboolean store_header;        /* Store response header or no */
-  GList *header_lines;          /* List with lines from response header */
+  gboolean store_header; /* Store response header or no */
+  GList *header_lines;   /* List with lines from response header */
 
   /* timeouts control */
   gint64 idle_timeout;
   gint64 last_event_time;
 
   /* CURL stuff */
-  CURL *handle;                 /* CURL easy handler */
+  CURL *handle; /* CURL easy handler */
 
   /* Header parsing */
-  gboolean http_status_ok;       /* http status 2xx, OK */
-  gboolean http_status_error;    /* http status >= 400, final error */
+  gboolean http_status_ok;    /* http status 2xx, OK */
+  gboolean http_status_error; /* http status >= 400, final error */
   FluDownloaderTaskOutcome outcome;
   gint http_status;
   FluDownloaderTaskSSLStatus ssl_status;
@@ -113,13 +115,13 @@ struct _FluDownloaderTask
 };
 
 /* forward declarations */
-static void _task_done (FluDownloaderTask * task, CURLcode result);
-static void _process_curl_messages (FluDownloader * context);
+static void _task_done (FluDownloaderTask *task, CURLcode result);
+static void _process_curl_messages (FluDownloader *context);
 
 /* Removes a task. Transfer will NOT be interrupted if it had already started.
  * Call with the lock taken. */
 static void
-_remove_task (FluDownloader * context, FluDownloaderTask * task)
+_remove_task (FluDownloader *context, FluDownloaderTask *task)
 {
   if (task->running) {
     /* If the task has already been submitted to libCurl, remove it.
@@ -142,7 +144,7 @@ _remove_task (FluDownloader * context, FluDownloaderTask * task)
  * once data for this task starts arriving (so previous downloads are allowed
  * to finish). Call with the lock taken. */
 static void
-_abort_task (FluDownloader * context, FluDownloaderTask * task)
+_abort_task (FluDownloader *context, FluDownloaderTask *task)
 {
   task->abort = TRUE;
   if (!task->running) {
@@ -153,7 +155,7 @@ _abort_task (FluDownloader * context, FluDownloaderTask * task)
 
 /*Abort all the tasks. Call with the lock taken.*/
 static void
-_abort_all_tasks_unlocked (FluDownloader * context, gboolean including_current)
+_abort_all_tasks_unlocked (FluDownloader *context, gboolean including_current)
 {
   GList *link;
 
@@ -174,7 +176,7 @@ _abort_all_tasks_unlocked (FluDownloader * context, gboolean including_current)
 }
 
 static void
-_task_done (FluDownloaderTask * task, CURLcode result)
+_task_done (FluDownloaderTask *task, CURLcode result)
 {
   FluDownloader *context;
 
@@ -183,15 +185,14 @@ _task_done (FluDownloaderTask * task, CURLcode result)
 
   context = task->context;
 
-  if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
-  {
+  if (task->outcome == FLUDOWNLOADER_TASK_PENDING) {
     FluDownloaderTaskOutcome outcome;
 
     /* Turn some of CURL's error codes into our possible task outcomes */
     switch (result) {
       case CURLE_OK:
-        outcome = task->http_status_ok ? FLUDOWNLOADER_TASK_OK :
-            FLUDOWNLOADER_TASK_HTTP_ERROR;
+        outcome = task->http_status_ok ? FLUDOWNLOADER_TASK_OK
+                                       : FLUDOWNLOADER_TASK_HTTP_ERROR;
         break;
       case CURLE_ABORTED_BY_CALLBACK:
       case CURLE_WRITE_ERROR:
@@ -200,13 +201,12 @@ _task_done (FluDownloaderTask * task, CURLcode result)
       case CURLE_COULDNT_RESOLVE_HOST:
         outcome = FLUDOWNLOADER_TASK_COULD_NOT_RESOLVE_HOST;
         break;
-      case CURLE_COULDNT_CONNECT:{
+      case CURLE_COULDNT_CONNECT: {
         if (strstr (task->error_buffer, "Connection refused"))
           outcome = FLUDOWNLOADER_TASK_CONNECTION_REFUSED;
         else
           outcome = FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
-      }
-        break;
+      } break;
       case CURLE_SEND_ERROR:
         outcome = FLUDOWNLOADER_TASK_SEND_ERROR;
         break;
@@ -275,9 +275,8 @@ _task_done (FluDownloaderTask * task, CURLcode result)
   task->finished = TRUE;
   if (context->done_cb) {
     gboolean cancel_remaining_downloads = FALSE;
-    context->done_cb (task->outcome, task->http_status,
-        task->downloaded_size, task->user_data, task,
-        &cancel_remaining_downloads);
+    context->done_cb (task->outcome, task->http_status, task->downloaded_size,
+        task->user_data, task, &cancel_remaining_downloads);
     if (cancel_remaining_downloads)
       _abort_all_tasks_unlocked (context, FALSE);
   }
@@ -286,8 +285,8 @@ _task_done (FluDownloaderTask * task, CURLcode result)
 
 /* Gets called by libCurl when idle */
 static int
-_progress_function (void *p, double dltotal, double dlnow,
-    double ultotal, double ulnow)
+_progress_function (
+    void *p, double dltotal, double dlnow, double ultotal, double ulnow)
 {
   FluDownloaderTask *task = (FluDownloaderTask *) p;
   int ret = 0;
@@ -300,8 +299,9 @@ _progress_function (void *p, double dltotal, double dlnow,
     gint64 now = g_get_monotonic_time ();
     if (now - task->last_event_time > task->idle_timeout) {
       if (task->outcome == FLUDOWNLOADER_TASK_PENDING)
-        task->outcome = (task->http_status >= 200 && task->http_status <= 299) ?
-          FLUDOWNLOADER_TASK_RECV_ERROR : FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
+        task->outcome = (task->http_status >= 200 && task->http_status <= 299)
+                            ? FLUDOWNLOADER_TASK_RECV_ERROR
+                            : FLUDOWNLOADER_TASK_COULD_NOT_CONNECT;
       ret = -1;
     }
   }
@@ -310,15 +310,15 @@ _progress_function (void *p, double dltotal, double dlnow,
 
 /* Gets called by libCurl when new data is received */
 static size_t
-_write_function (void *buffer, size_t size, size_t nmemb,
-    FluDownloaderTask * task)
+_write_function (
+    void *buffer, size_t size, size_t nmemb, FluDownloaderTask *task)
 {
   size_t total_size = size * nmemb;
   FluDownloader *context;
 
   if (!total_size)
     goto beach;
-  
+
   /* Do not pass data if https status is not OK.
    * We may be streaming the data, and we must not
    * stream error bodies. */
@@ -332,24 +332,25 @@ _write_function (void *buffer, size_t size, size_t nmemb,
     }
     goto beach;
   }
-  
+
   context = task->context;
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
   task->downloaded_size += total_size;
-  
+
   if (context->discarding) {
     context->discarded += total_size;
     if (context->discarded >= context->discard)
       context->discarding = FALSE;
   }
   if (!context->discarding && !context->paused) {
-      fluc_rec_mutex_unlock (&task->context->lock);
-      fluc_bwmeter_data (context->bwmeter, total_size);
+    fluc_rec_mutex_unlock (&task->context->lock);
+    fluc_bwmeter_data (context->bwmeter, total_size);
   } else {
     fluc_rec_mutex_unlock (&task->context->lock);
-    fluc_barrier_trypass_for (&context->paused_barrier, G_TIME_SPAN_SECOND * 4);
+    fluc_barrier_trypass_for (
+        &context->paused_barrier, G_TIME_SPAN_SECOND * 4);
   }
-  
+
   FluDownloaderDataCallback cb = task->context->data_cb;
   if (cb) {
     if (!cb (buffer, total_size, task->user_data, task)) {
@@ -358,9 +359,8 @@ _write_function (void *buffer, size_t size, size_t nmemb,
       total_size = -1;
     }
   }
-  
 
-  beach:
+beach:
   /* Currently the data callback may block, so we have to update the last
    * event time AFTER the callback to prevent a receive timeout because the
    * callback blocking.
@@ -372,8 +372,8 @@ _write_function (void *buffer, size_t size, size_t nmemb,
 
 /* Gets called by libCurl for each received HTTP header line */
 static size_t
-_header_function (const char *line, size_t size, size_t nmemb,
-    FluDownloaderTask * task)
+_header_function (
+    const char *line, size_t size, size_t nmemb, FluDownloaderTask *task)
 {
   size_t total_size = size * nmemb;
   gint http_status;
@@ -388,12 +388,11 @@ _header_function (const char *line, size_t size, size_t nmemb,
     if (task->http_status_ok) {
       task->idle_timeout = task->context->receive_timeout;
     }
-  } else {  
+  } else {
     /* This is another header line */
     if (g_strrstr_len (line, 5, "Date:")) {
       strncpy (task->date, line + 5, DATE_MAX_LENGTH - 1);
-    }
-    else if (task->http_status_ok) {
+    } else if (task->http_status_ok) {
       size_t size;
       if (sscanf (line, "Content-Length:%" G_GSIZE_FORMAT, &size) == 1) {
         /* Context length parsed ok */
@@ -414,7 +413,7 @@ _header_function (const char *line, size_t size, size_t nmemb,
  * Inform the user about finished tasks and remove them from internal list.
  * Call with lock taken. */
 static void
-_process_curl_messages (FluDownloader * context)
+_process_curl_messages (FluDownloader *context)
 {
   CURLMsg *msg;
   int nmsgs;
@@ -441,7 +440,7 @@ _process_curl_messages (FluDownloader * context)
 /* Examine the list of queued tasks to see if there is any that can be started.
  * Call with the lock taken. */
 static void
-_schedule_tasks (FluDownloader * context)
+_schedule_tasks (FluDownloader *context)
 {
   FluDownloaderTask *first_task, *next_task = NULL;
 
@@ -486,13 +485,13 @@ _schedule_tasks (FluDownloader * context)
  * "shutdown" var. Releases the lock when sleeping so other threads can
  * interact with the FluDownloader structure. */
 static gpointer
-_thread_function (FluDownloader * context)
+_thread_function (FluDownloader *context)
 {
   fd_set rfds, wfds, efds;
   int max_fd;
   int num_queued_tasks;
 
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
   while (!context->shutdown) {
     FD_ZERO (&rfds);
     FD_ZERO (&wfds);
@@ -500,7 +499,7 @@ _thread_function (FluDownloader * context)
     curl_multi_fdset (context->handle, &rfds, &wfds, &efds, &max_fd);
     if (max_fd == -1 || context->use_polling) {
       /* There is nothing happening: wait a bit (and release the mutex) */
-      fluc_rec_mutex_unlock(&context->lock);
+      fluc_rec_mutex_unlock (&context->lock);
       g_usleep (context->polling_period);
     } else if (max_fd > 0) {
       /* There are some active fd's: wait for them (and release the mutex) */
@@ -508,11 +507,11 @@ _thread_function (FluDownloader * context)
 
       tv.tv_sec = 0;
       tv.tv_usec = TIMEOUT;
-      fluc_rec_mutex_unlock(&context->lock);
+      fluc_rec_mutex_unlock (&context->lock);
       select (max_fd + 1, &rfds, NULL, NULL, &tv);
     } else {
       /* max_fd should never be 0, but better be safe than sorry. */
-      fluc_rec_mutex_unlock(&context->lock);
+      fluc_rec_mutex_unlock (&context->lock);
     }
 
     /* Perform transfers */
@@ -522,10 +521,10 @@ _thread_function (FluDownloader * context)
     _process_curl_messages (context);
 
     /* See if any queued task can be started */
-    fluc_rec_mutex_lock(&context->lock);
+    fluc_rec_mutex_lock (&context->lock);
     _schedule_tasks (context);
   }
-  fluc_rec_mutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock (&context->lock);
   return NULL;
 }
 
@@ -561,8 +560,8 @@ fludownloader_shutdown ()
 }
 
 FluDownloader *
-fludownloader_new (FluDownloaderDataCallback data_cb,
-    FluDownloaderDoneCallback done_cb)
+fludownloader_new (
+    FluDownloaderDataCallback data_cb, FluDownloaderDoneCallback done_cb)
 {
   FluDownloader *context = g_new0 (FluDownloader, 1);
   context->data_cb = data_cb;
@@ -571,7 +570,7 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
   context->polling_period = TIMEOUT;
   context->connect_timeout = DEFAULT_CONNECT_TIMEOUT;
   context->receive_timeout = DEFAULT_RECEIVE_TIMEOUT;
-  
+
   fluc_bwmeters_init ();
   context->bwmeter = fluc_bwmeters_get_read ();
   context->paused = FALSE;
@@ -586,8 +585,8 @@ fludownloader_new (FluDownloaderDataCallback data_cb,
 
   fluc_rec_mutex_init (&context->lock);
 
-  context->thread = g_thread_create ((GThreadFunc) _thread_function, context,
-      TRUE, NULL);
+  context->thread =
+      g_thread_create ((GThreadFunc) _thread_function, context, TRUE, NULL);
   if (!context->thread)
     goto error;
 
@@ -599,7 +598,7 @@ error:
 }
 
 void
-fludownloader_destroy (FluDownloader * context)
+fludownloader_destroy (FluDownloader *context)
 {
   GList *link;
 
@@ -639,7 +638,7 @@ fludownloader_destroy (FluDownloader * context)
 }
 
 static void
-fludownloader_task_set_cookies (FluDownloaderTask * task, gchar ** cookies)
+fludownloader_task_set_cookies (FluDownloaderTask *task, gchar **cookies)
 {
   if (cookies) {
     gchar **it = cookies;
@@ -651,8 +650,8 @@ fludownloader_task_set_cookies (FluDownloaderTask * task, gchar ** cookies)
 }
 
 FluDownloaderTask *
-fludownloader_new_task (FluDownloader * context, const gchar * url,
-    const gchar * range, gpointer user_data, gboolean locked)
+fludownloader_new_task (FluDownloader *context, const gchar *url,
+    const gchar *range, gpointer user_data, gboolean locked)
 {
   FluDownloaderTask *task;
 
@@ -687,7 +686,8 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
 
   task->handle = curl_easy_init ();
   curl_easy_setopt (task->handle, CURLOPT_NOPROGRESS, 0L);
-  curl_easy_setopt (task->handle, CURLOPT_PROGRESSFUNCTION, _progress_function);
+  curl_easy_setopt (
+      task->handle, CURLOPT_PROGRESSFUNCTION, _progress_function);
   curl_easy_setopt (task->handle, CURLOPT_PROGRESSDATA, task);
   curl_easy_setopt (task->handle, CURLOPT_WRITEFUNCTION,
       (curl_write_callback) _write_function);
@@ -736,17 +736,17 @@ fludownloader_new_task (FluDownloader * context, const gchar * url,
     curl_easy_setopt (task->handle, CURLOPT_PROXY, context->proxy);
 
   if (locked)
-    fluc_rec_mutex_lock(&context->lock);
+    fluc_rec_mutex_lock (&context->lock);
   context->queued_tasks = g_list_append (context->queued_tasks, task);
   _schedule_tasks (context);
   if (locked)
-    fluc_rec_mutex_unlock(&context->lock);
+    fluc_rec_mutex_unlock (&context->lock);
 
   return task;
 }
 
 void
-fludownloader_abort_task (FluDownloaderTask * task)
+fludownloader_abort_task (FluDownloaderTask *task)
 {
   FluDownloader *context;
 
@@ -760,7 +760,9 @@ fludownloader_abort_task (FluDownloaderTask * task)
   _abort_task (context, task);
 }
 
-void fludownloader_pause (FluDownloader * context) {
+void
+fludownloader_pause (FluDownloader *context)
+{
   if (!context->paused) {
     context->paused = TRUE;
     fluc_barrier_close (&context->paused_barrier);
@@ -768,7 +770,9 @@ void fludownloader_pause (FluDownloader * context) {
   }
 }
 
-void fludownloader_resume (FluDownloader * context) {
+void
+fludownloader_resume (FluDownloader *context)
+{
   if (context->paused) {
     context->discarded = 0;
     context->discarding = TRUE;
@@ -778,28 +782,28 @@ void fludownloader_resume (FluDownloader * context) {
 }
 
 void
-fludownloader_abort_all_tasks (FluDownloader * context,
-    gboolean including_current)
+fludownloader_abort_all_tasks (
+    FluDownloader *context, gboolean including_current)
 {
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
   _abort_all_tasks_unlocked (context, including_current);
-  fluc_rec_mutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock (&context->lock);
 }
 
 void
-fludownloader_lock (FluDownloader * context)
+fludownloader_lock (FluDownloader *context)
 {
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
 }
 
 void
-fludownloader_unlock (FluDownloader * context)
+fludownloader_unlock (FluDownloader *context)
 {
-  fluc_rec_mutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock (&context->lock);
 }
 
 const gchar *
-fludownloader_task_get_url (FluDownloaderTask * task)
+fludownloader_task_get_url (FluDownloaderTask *task)
 {
   gchar *url = NULL;
 
@@ -809,13 +813,13 @@ fludownloader_task_get_url (FluDownloaderTask * task)
 }
 
 size_t
-fludownloader_task_get_length (FluDownloaderTask * task)
+fludownloader_task_get_length (FluDownloaderTask *task)
 {
   return task->total_size;
 }
 
 const gchar *
-fludownloader_task_get_date (FluDownloaderTask * task)
+fludownloader_task_get_date (FluDownloaderTask *task)
 {
   if (strlen (task->date) > 0)
     return task->date;
@@ -824,7 +828,7 @@ fludownloader_task_get_date (FluDownloaderTask * task)
 }
 
 gchar **
-fludownloader_task_get_header (FluDownloaderTask * task)
+fludownloader_task_get_header (FluDownloaderTask *task)
 {
   gchar **ret = NULL;
   int i;
@@ -848,34 +852,33 @@ fludownloader_task_get_header (FluDownloaderTask * task)
 }
 
 void
-fludownloader_set_polling_period (FluDownloader * context, gint period)
+fludownloader_set_polling_period (FluDownloader *context, gint period)
 {
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
   context->use_polling = period > 0;
   context->polling_period = period > 0 ? period : TIMEOUT;
-  fluc_rec_mutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock (&context->lock);
 }
 
 gint
-fludownloader_get_polling_period (FluDownloader * context)
+fludownloader_get_polling_period (FluDownloader *context)
 {
   gint ret;
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
   ret = context->use_polling ? context->polling_period : 0;
-  fluc_rec_mutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock (&context->lock);
 
   return ret;
 }
 
 gboolean
-fludownloader_task_get_abort (FluDownloaderTask * task)
+fludownloader_task_get_abort (FluDownloaderTask *task)
 {
   return task->abort;
 }
 
-
 FluDownloaderTaskOutcome
-fludownloader_task_get_outcome (FluDownloaderTask * task)
+fludownloader_task_get_outcome (FluDownloaderTask *task)
 {
   if (task)
     return task->outcome;
@@ -884,8 +887,8 @@ fludownloader_task_get_outcome (FluDownloaderTask * task)
 }
 
 void
-fludownloader_task_set_outcome (FluDownloaderTask * task,
-    FluDownloaderTaskOutcome outcome)
+fludownloader_task_set_outcome (
+    FluDownloaderTask *task, FluDownloaderTaskOutcome outcome)
 {
   if (task)
     task->outcome = outcome;
@@ -929,7 +932,7 @@ fludownloader_get_outcome_string (FluDownloaderTaskOutcome outcome)
 }
 
 FluDownloaderTaskSSLStatus
-fludownloader_task_get_ssl_status (FluDownloaderTask * task)
+fludownloader_task_get_ssl_status (FluDownloaderTask *task)
 {
   if (task)
     return task->ssl_status;
@@ -956,8 +959,8 @@ fludownloader_get_ssl_status_string (FluDownloaderTaskSSLStatus status)
     case FLUDOWNLOADER_TASK_SSL_CIPHER:
       return "Problem with the local SSL certificate";
     case FLUDOWNLOADER_TASK_SSL_CACERT:
-      return
-          "Peer certificate cannot be authenticated with given CA certificates";
+      return "Peer certificate cannot be authenticated with given CA "
+             "certificates";
     case FLUDOWNLOADER_TASK_SSL_ENGINE_INIT_FAILED:
       return "Failed to initialise SSL crypto engine";
     case FLUDOWNLOADER_TASK_SSL_CACERT_BADFILE:
@@ -984,7 +987,7 @@ fludownloader_getdate (char *datestring)
 }
 
 void
-fludownloader_set_cookies (FluDownloader * context, gchar ** cookies)
+fludownloader_set_cookies (FluDownloader *context, gchar **cookies)
 {
   if (context->cookies)
     g_strfreev (context->cookies);
@@ -993,7 +996,7 @@ fludownloader_set_cookies (FluDownloader * context, gchar ** cookies)
 }
 
 void
-fludownloader_set_user_agent (FluDownloader * context, const gchar * user_agent)
+fludownloader_set_user_agent (FluDownloader *context, const gchar *user_agent)
 {
   if (context->user_agent)
     g_free (context->user_agent);
@@ -1002,7 +1005,7 @@ fludownloader_set_user_agent (FluDownloader * context, const gchar * user_agent)
 }
 
 void
-fludownloader_set_proxy (FluDownloader * context, const gchar * proxy)
+fludownloader_set_proxy (FluDownloader *context, const gchar *proxy)
 {
   if (context->proxy)
     g_free (context->proxy);
@@ -1011,14 +1014,14 @@ fludownloader_set_proxy (FluDownloader * context, const gchar * proxy)
 }
 
 gint
-fludownloader_get_tasks_count (FluDownloader * context)
+fludownloader_get_tasks_count (FluDownloader *context)
 {
   gint ret = 0;
 
-  fluc_rec_mutex_lock(&context->lock);
+  fluc_rec_mutex_lock (&context->lock);
   if (context)
     ret = g_list_length (context->queued_tasks);
-  fluc_rec_mutex_unlock(&context->lock);
+  fluc_rec_mutex_unlock (&context->lock);
 
   return ret;
 }

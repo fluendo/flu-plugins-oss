@@ -13,29 +13,35 @@
 
 G_BEGIN_DECLS
 
-typedef struct _GstTTMLEventSpanBegin {
+typedef struct _GstTTMLEventSpanBegin
+{
   GstTTMLSpan *span;
 } GstTTMLEventSpanBegin;
 
-typedef struct _GstTTMLEventSpanEnd {
+typedef struct _GstTTMLEventSpanEnd
+{
   guint id;
 } GstTTMLEventSpanEnd;
 
-typedef struct _GstTTMLEventAttrUpdate {
+typedef struct _GstTTMLEventAttrUpdate
+{
   guint id;
   GstTTMLAttribute *attr;
 } GstTTMLEventAttrUpdate;
 
-typedef struct _GstTTMLEventRegionBegin {
+typedef struct _GstTTMLEventRegionBegin
+{
   gchar *id;
   GstTTMLStyle style;
 } GstTTMLEventRegionBegin;
 
-typedef struct _GstTTMLEventRegionEnd {
+typedef struct _GstTTMLEventRegionEnd
+{
   gchar *id;
 } GstTTMLEventRegionEnd;
 
-typedef struct _GstTTMLEventRegionUpdate {
+typedef struct _GstTTMLEventRegionUpdate
+{
   gchar *id;
   GstTTMLAttribute *attr;
 } GstTTMLEventRegionUpdate;
@@ -46,7 +52,8 @@ struct _GstTTMLEvent
 {
   GstClockTime timestamp;
   GstTTMLEventType type;
-  union _GstTTMLEventData {
+  union _GstTTMLEventData
+  {
     GstTTMLEventSpanBegin span_begin;
     GstTTMLEventSpanEnd span_end;
     GstTTMLEventAttrUpdate attr_update;
@@ -56,37 +63,36 @@ struct _GstTTMLEvent
   } data;
 };
 
-typedef GList * (*GstTTMLEventParseFunc) (GstTTMLEvent *event, void *userdata,
-    GList *timeline);
+typedef GList *(*GstTTMLEventParseFunc) (
+    GstTTMLEvent *event, void *userdata, GList *timeline);
 
-typedef void (*GstTTMLEventGenBufferFunc) (GstClockTime begin,
-    GstClockTime end, void *userdata);
+typedef void (*GstTTMLEventGenBufferFunc) (
+    GstClockTime begin, GstClockTime end, void *userdata);
 
 void gst_ttml_event_free (GstTTMLEvent *event);
 
-GstTTMLEvent *gst_ttml_event_new_span_begin (GstTTMLState *state,
-    GstTTMLSpan *span);
+GstTTMLEvent *gst_ttml_event_new_span_begin (
+    GstTTMLState *state, GstTTMLSpan *span);
 
 GstTTMLEvent *gst_ttml_event_new_span_end (GstTTMLState *state, guint id);
 
-GstTTMLEvent *gst_ttml_event_new_attr_update (guint id,
-    GstClockTime timestamp, GstTTMLAttribute *attr);
+GstTTMLEvent *gst_ttml_event_new_attr_update (
+    guint id, GstClockTime timestamp, GstTTMLAttribute *attr);
 
-GstTTMLEvent *gst_ttml_event_new_region_begin (GstClockTime timestamp,
-    const gchar *id, GstTTMLStyle *style);
+GstTTMLEvent *gst_ttml_event_new_region_begin (
+    GstClockTime timestamp, const gchar *id, GstTTMLStyle *style);
 
-GstTTMLEvent *gst_ttml_event_new_region_end (GstClockTime timestamp,
-    const gchar *id);
+GstTTMLEvent *gst_ttml_event_new_region_end (
+    GstClockTime timestamp, const gchar *id);
 
-GstTTMLEvent *gst_ttml_event_new_region_update (GstClockTime timestamp,
-    const gchar *id, GstTTMLAttribute *attr);
+GstTTMLEvent *gst_ttml_event_new_region_update (
+    GstClockTime timestamp, const gchar *id, GstTTMLAttribute *attr);
 
 GList *gst_ttml_event_list_insert (GList *timeline, GstTTMLEvent *event);
 
 GList *gst_ttml_event_list_get_next (GList *timeline, GstTTMLEvent **event);
 
-GList *gst_ttml_event_list_flush (GList *timeline,
-    GstTTMLEventParseFunc parse,
+GList *gst_ttml_event_list_flush (GList *timeline, GstTTMLEventParseFunc parse,
     GstTTMLEventGenBufferFunc gen_buffer, void *userdata);
 
 const gchar *gst_ttml_event_type_name (GstTTMLEventType type);

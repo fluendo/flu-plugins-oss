@@ -8,15 +8,15 @@
 
 #include <gst-compat.h>
 
-typedef struct _GstTTMLNamespace {
-  gchar * name;
-  gchar * value;
+typedef struct _GstTTMLNamespace
+{
+  gchar *name;
+  gchar *value;
 } GstTTMLNamespace;
 
-GstTTMLNamespace *
-gst_ttml_namespace_new (const gchar * name, const gchar * value);
+GstTTMLNamespace *gst_ttml_namespace_new (
+    const gchar *name, const gchar *value);
 
-void
-gst_ttml_namespace_free (GstTTMLNamespace * obj);
+void gst_ttml_namespace_free (GstTTMLNamespace *obj);
 
 #endif /* GSTTTMLNAMESPACE_H */

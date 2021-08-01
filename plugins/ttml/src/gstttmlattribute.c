@@ -18,41 +18,26 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define GST_CAT_DEFAULT ttmlbase_debug
 
-#define MAKE_COLOR(r,g,b,a) ((r)<<24 | (g)<<16 | (b)<<8 | (a))
+#define MAKE_COLOR(r, g, b, a) ((r) << 24 | (g) << 16 | (b) << 8 | (a))
 
 static struct _GstTTMLNamedColor
 {
   const gchar *name;
   guint32 color;
-} GstTTMLNamedColors[] = {
-  {
-  "transparent", 0x00000000}, {
-  "black", 0x000000ff}, {
-  "silver", 0xc0c0c0ff}, {
-  "gray", 0x808080ff}, {
-  "white", 0xffffffff}, {
-  "maroon", 0x800000ff}, {
-  "red", 0xff0000ff}, {
-  "purple", 0x800080ff}, {
-  "fuchsia", 0xff00ffff}, {
-  "magenta", 0xff00ffff}, {
-  "green", 0x008000ff}, {
-  "lime", 0x00ff00ff}, {
-  "olive", 0x808000ff}, {
-  "yellow", 0xffff00ff}, {
-  "navy", 0x000080ff}, {
-  "blue", 0x0000ffff}, {
-  "teal", 0x008080ff}, {
-  "aqua", 0x00ffffff}, {
-  "cyan", 0x00ffffff}, {
-  NULL, 0x00000000}
-};
+} GstTTMLNamedColors[] = { { "transparent", 0x00000000 },
+  { "black", 0x000000ff }, { "silver", 0xc0c0c0ff }, { "gray", 0x808080ff },
+  { "white", 0xffffffff }, { "maroon", 0x800000ff }, { "red", 0xff0000ff },
+  { "purple", 0x800080ff }, { "fuchsia", 0xff00ffff },
+  { "magenta", 0xff00ffff }, { "green", 0x008000ff }, { "lime", 0x00ff00ff },
+  { "olive", 0x808000ff }, { "yellow", 0xffff00ff }, { "navy", 0x000080ff },
+  { "blue", 0x0000ffff }, { "teal", 0x008080ff }, { "aqua", 0x00ffffff },
+  { "cyan", 0x00ffffff }, { NULL, 0x00000000 } };
 
 /* Parse both types of time expressions as specified in the TTML specification,
  * be it in 00:00:00:00 or 00s forms */
 static GstClockTime
-gst_ttml_attribute_parse_time_expression (const GstTTMLState * state,
-    const gchar * expr)
+gst_ttml_attribute_parse_time_expression (
+    const GstTTMLState *state, const gchar *expr)
 {
   gdouble h, m, s, count;
   int f, subf;
@@ -62,13 +47,18 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState * state,
 
   setlocale (LC_NUMERIC, "C");
   if (sscanf (expr, "%lf:%lf:%lf:%d.%d", &h, &m, &s, &f, &subf) == 5) {
-    res = (GstClockTime) ((h * 3600 + m * 60 + s +
-            (f + subf / (gdouble) state->sub_frame_rate) *
-            state->frame_rate_den / (state->frame_rate *
-                state->frame_rate_num)) * GST_SECOND);
+    res =
+        (GstClockTime) ((h * 3600 + m * 60 + s +
+                            (f + subf / (gdouble) state->sub_frame_rate) *
+                                state->frame_rate_den /
+                                (state->frame_rate * state->frame_rate_num)) *
+                        GST_SECOND);
   } else if (sscanf (expr, "%lf:%lf:%lf:%d", &h, &m, &s, &f) == 4) {
-    res = (GstClockTime) ((h * 3600 + m * 60 + s + f * state->frame_rate_den /
-            (state->frame_rate * state->frame_rate_num)) * GST_SECOND);
+    res =
+        (GstClockTime) ((h * 3600 + m * 60 + s +
+                            f * state->frame_rate_den /
+                                (state->frame_rate * state->frame_rate_num)) *
+                        GST_SECOND);
   } else if (sscanf (expr, "%lf:%lf:%lf", &h, &m, &s) == 3) {
     res = (GstClockTime) ((h * 3600 + m * 60 + s) * GST_SECOND);
   } else if (sscanf (expr, "%lf%2[hmstf]", &count, metric) == 2) {
@@ -91,7 +81,7 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState * state,
         break;
       case 'f':
         scale = GST_SECOND * state->frame_rate_den /
-            (state->frame_rate * state->frame_rate_num);
+                (state->frame_rate * state->frame_rate_num);
         break;
       default:
         GST_WARNING ("Unknown metric %s", metric);
@@ -153,8 +143,8 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState * state,
     res = diff * GST_SECOND;
 
     GST_LOG ("Parsed %s into %" GST_TIME_FORMAT
-        " (timeBase is '%s' and '%s' time is %d:%02d:%02d)", expr,
-        GST_TIME_ARGS (res),
+             " (timeBase is '%s' and '%s' time is %d:%02d:%02d)",
+        expr, GST_TIME_ARGS (res),
         gst_ttml_utils_enum_name (state->time_base, TimeBase),
         gst_ttml_utils_enum_name (state->clock_mode, ClockMode),
         current_timeinfo->tm_hour, current_timeinfo->tm_min,
@@ -174,8 +164,8 @@ gst_ttml_attribute_parse_time_expression (const GstTTMLState * state,
   | <namedColor>
  */
 static gboolean
-gst_ttml_attribute_parse_color_expression (const gchar * expr, guint32 * color,
-    const gchar ** end)
+gst_ttml_attribute_parse_color_expression (
+    const gchar *expr, guint32 *color, const gchar **end)
 {
   guint r, g, b, a;
   int n = 0;
@@ -238,8 +228,8 @@ units
   | "c"
  */
 static gboolean
-gst_ttml_attribute_parse_length_expression (const gchar * expr, gfloat * value,
-    GstTTMLLengthUnit * unit, const gchar ** end)
+gst_ttml_attribute_parse_length_expression (const gchar *expr, gfloat *value,
+    GstTTMLLengthUnit *unit, const gchar **end)
 {
   int n;
   gboolean error = FALSE;
@@ -292,16 +282,16 @@ gst_ttml_attribute_parse_length_expression (const gchar * expr, gfloat * value,
  * The UNIT of elements not read is set to NOT_PRESENT.
  */
 static gboolean
-gst_ttml_attribute_parse_lengths_list (const gchar * expr,
-    GstTTMLLength * length, int max_elements)
+gst_ttml_attribute_parse_lengths_list (
+    const gchar *expr, GstTTMLLength *length, int max_elements)
 {
   const gchar *next;
   int ndx = 0, i;
   gboolean error;
 
   do {
-    error = gst_ttml_attribute_parse_length_expression (expr,
-        &length[ndx].f, &length[ndx].unit, &next);
+    error = gst_ttml_attribute_parse_length_expression (
+        expr, &length[ndx].f, &length[ndx].unit, &next);
     if (!error) {
       expr = next;
       ndx++;
@@ -319,9 +309,9 @@ gst_ttml_attribute_parse_lengths_list (const gchar * expr,
 /* Turns as many relative units as possible into absolute pixel units.
  * Either state or style_override can be NULL. Not both. */
 static void
-gst_ttml_attribute_normalize_length (const GstTTMLState * state,
-    const GstTTMLStyle * style_override, GstTTMLAttributeType type,
-    GstTTMLLength * length, int direction)
+gst_ttml_attribute_normalize_length (const GstTTMLState *state,
+    const GstTTMLStyle *style_override, GstTTMLAttributeType type,
+    GstTTMLLength *length, int direction)
 {
   GstTTMLAttribute *prev_attr;
 
@@ -338,7 +328,8 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
       length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
       break;
     case GST_TTML_LENGTH_UNIT_RELATIVE:
-      /* This is relative to different things, depending on the type of attr. */
+      /* This is relative to different things, depending on the type of attr.
+       */
       if (type == GST_TTML_ATTR_ORIGIN || type == GST_TTML_ATTR_EXTENT) {
         if (!state || state->frame_width == 0)
           /* Frame size is unknown */
@@ -352,9 +343,9 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
       } else if (type == GST_TTML_ATTR_PADDING) {
         gint parent_length;
         /* FIXME We should make sure EXTENT attr is parsed before PADDING */
-        prev_attr =
-            gst_ttml_style_get_attr (style_override ? style_override :
-            &state->style, GST_TTML_ATTR_EXTENT);
+        prev_attr = gst_ttml_style_get_attr (
+            style_override ? style_override : &state->style,
+            GST_TTML_ATTR_EXTENT);
         if (prev_attr) {
           if (prev_attr->value.raw_length[direction].unit !=
               GST_TTML_LENGTH_UNIT_PIXELS) {
@@ -372,9 +363,9 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
         length->unit = GST_TTML_LENGTH_UNIT_PIXELS;
         return;
       } else if (type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ||
-          type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL) {
-        /* Do not try to convert these to pixels, since we do not know the image
-         * size yet. Leave them as percentages. */
+                 type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL) {
+        /* Do not try to convert these to pixels, since we do not know the
+         * image size yet. Leave them as percentages. */
         return;
       }
       /* All other units are relative to current font size:
@@ -382,11 +373,11 @@ gst_ttml_attribute_normalize_length (const GstTTMLState * state,
     case GST_TTML_LENGTH_UNIT_EM:
       /* Retrieve current font size (which should be in pixels) and scale as
        * requested. */
-      prev_attr =
-          gst_ttml_style_get_attr (style_override ? style_override :
-          &state->style, GST_TTML_ATTR_FONT_SIZE);
+      prev_attr = gst_ttml_style_get_attr (
+          style_override ? style_override : &state->style,
+          GST_TTML_ATTR_FONT_SIZE);
       if (prev_attr && prev_attr->value.raw_length[direction].unit ==
-          GST_TTML_LENGTH_UNIT_PIXELS) {
+                           GST_TTML_LENGTH_UNIT_PIXELS) {
         length->f *= prev_attr->value.raw_length[direction].f;
         length->unit = prev_attr->value.raw_length[direction].unit;
         return;
@@ -418,13 +409,13 @@ gst_ttml_attribute_dump_time_expression (GstClockTime time)
 }
 
 gfloat
-gst_ttml_attribute_get_normalized_length (const GstTTMLState * state,
-    const GstTTMLStyle * style_override, const GstTTMLAttribute * attr,
-    int index, int direction, GstTTMLLengthUnit * unit)
+gst_ttml_attribute_get_normalized_length (const GstTTMLState *state,
+    const GstTTMLStyle *style_override, const GstTTMLAttribute *attr,
+    int index, int direction, GstTTMLLengthUnit *unit)
 {
   GstTTMLLength length = attr->value.raw_length[index];
-  gst_ttml_attribute_normalize_length (state, style_override, attr->type,
-      &length, direction);
+  gst_ttml_attribute_normalize_length (
+      state, style_override, attr->type, &length, direction);
   if (unit != NULL) {
     *unit = length.unit;
   }
@@ -432,25 +423,26 @@ gst_ttml_attribute_get_normalized_length (const GstTTMLState * state,
 }
 
 gboolean
-gst_ttml_attribute_is_length_present (const GstTTMLAttribute * attr, int index)
+gst_ttml_attribute_is_length_present (const GstTTMLAttribute *attr, int index)
 {
-  return attr->value.raw_length[index].unit != GST_TTML_LENGTH_UNIT_NOT_PRESENT;
+  return attr->value.raw_length[index].unit !=
+         GST_TTML_LENGTH_UNIT_NOT_PRESENT;
 }
 
 /* Read a name-value pair of strings and produce a new GstTTMLattribute.
  * Returns NULL if the attribute was unknown, and uses g_new to allocate
  * the new attribute. */
 GstTTMLAttribute *
-gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
-    const char *name, const char *value)
+gst_ttml_attribute_parse (
+    GstTTMLState *state, const char *ns, const char *name, const char *value)
 {
   GstTTMLAttribute *attr = NULL;
   GstTTMLAttributeType type;
   char *previous_locale = g_strdup (setlocale (LC_NUMERIC, NULL));
 
   if (!gst_ttml_utils_namespace_is_ttml (ns)) {
-    GST_WARNING ("Ignoring non-TTML namespace in attribute %s:%s=%s", ns, name,
-        value);
+    GST_WARNING (
+        "Ignoring non-TTML namespace in attribute %s:%s=%s", ns, name, value);
     g_free (previous_locale);
     return NULL;
   }
@@ -484,8 +476,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       GST_LOG ("Parsed '%s' frameRate into %g", value, attr->value.d);
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      if (sscanf (value, "%d %d",
-              &attr->value.fraction.num, &attr->value.fraction.den) != 2) {
+      if (sscanf (value, "%d %d", &attr->value.fraction.num,
+              &attr->value.fraction.den) != 2) {
         GST_WARNING ("Could not understand '%s' frameRateMultiplier", value);
       }
       GST_LOG ("Parsed '%s' frameRateMultiplier into num=%d den=%d", value,
@@ -525,8 +517,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           gst_ttml_utils_enum_name (attr->value.clock_mode, ClockMode));
       break;
     case GST_TTML_ATTR_PIXEL_ASPECT_RATIO:
-      if (sscanf (value, "%d %d",
-              &attr->value.fraction.num, &attr->value.fraction.den) != 2) {
+      if (sscanf (value, "%d %d", &attr->value.fraction.num,
+              &attr->value.fraction.den) != 2) {
         GST_WARNING ("Could not understand '%s' pixelAspectRatio", value);
       }
       GST_LOG ("Parsed '%s' pixelAspectRatio into num=%d den=%d", value,
@@ -535,8 +527,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
     case GST_TTML_ATTR_COLOR:
     case GST_TTML_ATTR_BACKGROUND_COLOR:
     case GST_TTML_ATTR_BACKGROUND_REGION_COLOR:
-      if (!gst_ttml_attribute_parse_color_expression (value, &attr->value.color,
-              NULL))
+      if (!gst_ttml_attribute_parse_color_expression (
+              value, &attr->value.color, NULL))
         GST_WARNING ("Could not understand color expression '%s'", value);
       GST_LOG ("Parsed '%s' color into #%08X", value, attr->value.color);
       break;
@@ -550,16 +542,17 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       break;
     case GST_TTML_ATTR_FONT_SIZE:
       gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length, 2);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[0], 0);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[1], 1);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[0], 0);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[1], 1);
       GST_LOG ("Parsed '%s' font size into %g (%s), %g (%s)", value,
           attr->value.raw_length[0].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[0].unit, LengthUnit),
           attr->value.raw_length[1].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[1].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[1].unit, LengthUnit));
       break;
     case GST_TTML_ATTR_FONT_STYLE:
       attr->value.font_style = gst_ttml_utils_enum_parse (value, FontStyle);
@@ -587,8 +580,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           gst_ttml_utils_flags_parse (value, TextDecoration);
       GST_LOG ("Parsed '%s' text decoration into %d (%s)", value,
           attr->value.text_decoration,
-          gst_ttml_utils_flags_name (attr->value.text_decoration,
-              TextDecoration));
+          gst_ttml_utils_flags_name (
+              attr->value.text_decoration, TextDecoration));
       break;
     case GST_TTML_ATTR_ID:
       attr->value.string = g_strstrip (g_strdup (value));
@@ -610,22 +603,24 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
         attr->value.raw_length[1].f = 0.f;
         attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       } else {
-        gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length,
-            2);
-        if (attr->value.raw_length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+        gst_ttml_attribute_parse_lengths_list (
+            value, attr->value.raw_length, 2);
+        if (attr->value.raw_length[1].unit ==
+            GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
           GST_WARNING ("Could not understand '%s' origin", value);
         }
       }
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[0], 0);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[1], 1);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[0], 0);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[1], 1);
       GST_LOG ("Parsed '%s' origin into %g (%s), %g (%s)", value,
           attr->value.raw_length[0].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[0].unit, LengthUnit),
           attr->value.raw_length[1].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[1].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[1].unit, LengthUnit));
       break;
     case GST_TTML_ATTR_EXTENT:
       if (gst_ttml_utils_attr_value_is (value, "auto")) {
@@ -634,22 +629,24 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
         attr->value.raw_length[1].f = 1.f;
         attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_RELATIVE;
       } else {
-        gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length,
-            2);
-        if (attr->value.raw_length[1].unit == GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+        gst_ttml_attribute_parse_lengths_list (
+            value, attr->value.raw_length, 2);
+        if (attr->value.raw_length[1].unit ==
+            GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
           GST_WARNING ("Could not understand '%s' extent", value);
         }
       }
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[0], 0);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[1], 1);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[0], 0);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[1], 1);
       GST_LOG ("Parsed '%s' extent into %g (%s), %g (%s)", value,
           attr->value.raw_length[0].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[0].unit, LengthUnit),
           attr->value.raw_length[1].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[1].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[1].unit, LengthUnit));
       break;
     case GST_TTML_ATTR_TEXT_ALIGN:
       attr->value.text_align = gst_ttml_utils_enum_parse (value, TextAlign);
@@ -677,8 +674,7 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       GST_LOG ("Parsed '%s' overflow into overflow_visible=%d", value,
           attr->value.b);
       break;
-    case GST_TTML_ATTR_CELLRESOLUTION:
-    {
+    case GST_TTML_ATTR_CELLRESOLUTION: {
       int numx = 32, numy = 15;
       if (sscanf (value, "%d %d", &numx, &numy) != 2) {
         GST_WARNING ("Could not understand '%s' cellResolution", value);
@@ -687,35 +683,36 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       attr->value.raw_length[0].unit = GST_TTML_LENGTH_UNIT_CELLS;
       attr->value.raw_length[1].f = numy;
       attr->value.raw_length[1].unit = GST_TTML_LENGTH_UNIT_CELLS;
-      GST_LOG ("Parsed '%s' cellResolution into numx=%d numy=%d", value,
-          numx, numy);
-    }
-      break;
+      GST_LOG ("Parsed '%s' cellResolution into numx=%d numy=%d", value, numx,
+          numy);
+    } break;
     case GST_TTML_ATTR_TEXTOUTLINE:
       if (gst_ttml_utils_attr_value_is (value, "none")) {
         attr->value.text_outline.length[0].unit =
             GST_TTML_LENGTH_UNIT_NOT_PRESENT;
       } else {
         const gchar *ptr;
-        gst_ttml_attribute_parse_color_expression (value,
-            &attr->value.text_outline.color, &ptr);
+        gst_ttml_attribute_parse_color_expression (
+            value, &attr->value.text_outline.color, &ptr);
         attr->value.text_outline.use_current_color = (ptr == value);
-        gst_ttml_attribute_parse_lengths_list (ptr,
-            attr->value.text_outline.length, 2);
+        gst_ttml_attribute_parse_lengths_list (
+            ptr, attr->value.text_outline.length, 2);
         /* Relative measures are relative to the block progression direction */
-        gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-            &attr->value.text_outline.length[0], 1);
-        gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-            &attr->value.text_outline.length[1], 1);
+        gst_ttml_attribute_normalize_length (
+            state, NULL, attr->type, &attr->value.text_outline.length[0], 1);
+        gst_ttml_attribute_normalize_length (
+            state, NULL, attr->type, &attr->value.text_outline.length[1], 1);
       }
       GST_LOG ("Parsed '%s' textOutline into color=#%08X use_current_color=%d "
-          "length=%g (%s), %g (%s)", value, attr->value.text_outline.color,
+               "length=%g (%s), %g (%s)",
+          value, attr->value.text_outline.color,
           attr->value.text_outline.use_current_color,
           attr->value.text_outline.length[0].f,
-          gst_ttml_utils_enum_name (attr->value.text_outline.length[0].unit,
-              LengthUnit), attr->value.text_outline.length[1].f,
-          gst_ttml_utils_enum_name (attr->value.text_outline.length[1].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.text_outline.length[0].unit, LengthUnit),
+          attr->value.text_outline.length[1].f,
+          gst_ttml_utils_enum_name (
+              attr->value.text_outline.length[1].unit, LengthUnit));
       break;
     case GST_TTML_ATTR_ZINDEX:
       if (gst_ttml_utils_attr_value_is (value, "auto")) {
@@ -738,12 +735,12 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
             &attr->value.raw_length[0].f, &attr->value.raw_length[0].unit,
             NULL);
       }
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[0], 1);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[0], 1);
       GST_LOG ("Parsed '%s' line height into %g (%s)", value,
           attr->value.raw_length[0].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[0].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[0].unit, LengthUnit));
       break;
     case GST_TTML_ATTR_WRAP_OPTION:
       attr->value.wrap_option = gst_ttml_utils_enum_parse (value, WrapOption);
@@ -755,16 +752,13 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           attr->value.wrap_option,
           gst_ttml_utils_enum_name (attr->value.wrap_option, WrapOption));
       break;
-    case GST_TTML_ATTR_PADDING:
-    {
+    case GST_TTML_ATTR_PADDING: {
       int i, num_elements;
-      static const int padding_map[4][3] = {
-        {0, 0, 0}, {1, 0, 1}, {1, 2, 1}, {1, 2, 3}
-      };
+      static const int padding_map[4][3] = { { 0, 0, 0 }, { 1, 0, 1 },
+        { 1, 2, 1 }, { 1, 2, 3 } };
 
-      num_elements =
-          gst_ttml_attribute_parse_lengths_list (value, attr->value.raw_length,
-          4);
+      num_elements = gst_ttml_attribute_parse_lengths_list (
+          value, attr->value.raw_length, 4);
       if (num_elements > 0) {
         for (i = 3; i > 0; i--) {
           attr->value.raw_length[i] =
@@ -774,24 +768,27 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
         GST_WARNING ("Could not understand '%s' padding", value);
       }
     }
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[0], 1);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[1], 0);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[2], 1);
-      gst_ttml_attribute_normalize_length (state, NULL, attr->type,
-          &attr->value.raw_length[3], 0);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[0], 1);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[1], 0);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[2], 1);
+      gst_ttml_attribute_normalize_length (
+          state, NULL, attr->type, &attr->value.raw_length[3], 0);
       GST_LOG ("Parsed '%s' padding into %g (%s), %g (%s), %g (%s), %g (%s)",
           value, attr->value.raw_length[0].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[0].unit, LengthUnit),
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[0].unit, LengthUnit),
           attr->value.raw_length[1].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[1].unit, LengthUnit),
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[1].unit, LengthUnit),
           attr->value.raw_length[2].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[2].unit, LengthUnit),
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[2].unit, LengthUnit),
           attr->value.raw_length[3].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[3].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[3].unit, LengthUnit));
       break;
     case GST_TTML_ATTR_SHOW_BACKGROUND:
       attr->value.show_background =
@@ -802,20 +799,21 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       }
       GST_LOG ("Parsed '%s' show background into %d (%s)", value,
           attr->value.show_background,
-          gst_ttml_utils_enum_name (attr->value.show_background,
-              ShowBackground));
+          gst_ttml_utils_enum_name (
+              attr->value.show_background, ShowBackground));
       break;
     case GST_TTML_ATTR_VISIBILITY:
       attr->value.b = gst_ttml_utils_attr_value_is (value, "visible");
-      GST_LOG ("Parsed '%s' visibility into visibility=%d", value,
-          attr->value.b);
+      GST_LOG (
+          "Parsed '%s' visibility into visibility=%d", value, attr->value.b);
       break;
     case GST_TTML_ATTR_OPACITY:
       attr->value.d = g_ascii_strtod (value, NULL);
       GST_LOG ("Parsed '%s' opacity into %g", value, attr->value.d);
       break;
     case GST_TTML_ATTR_UNICODE_BIDI:
-      attr->value.unicode_bidi = gst_ttml_utils_enum_parse (value, UnicodeBIDI);
+      attr->value.unicode_bidi =
+          gst_ttml_utils_enum_parse (value, UnicodeBIDI);
       if (attr->value.unicode_bidi == GST_TTML_UNICODE_BIDI_UNKNOWN) {
         GST_WARNING ("Could not understand '%s' unicodeBidi", value);
         attr->value.unicode_bidi = GST_TTML_UNICODE_BIDI_NORMAL;
@@ -835,7 +833,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           gst_ttml_utils_enum_name (attr->value.direction, Direction));
       break;
     case GST_TTML_ATTR_WRITING_MODE:
-      attr->value.writing_mode = gst_ttml_utils_enum_parse (value, WritingMode);
+      attr->value.writing_mode =
+          gst_ttml_utils_enum_parse (value, WritingMode);
       if (attr->value.writing_mode == GST_TTML_WRITING_MODE_UNKNOWN) {
         GST_WARNING ("Could not understand '%s' writing mode", value);
         attr->value.writing_mode = GST_TTML_WRITING_MODE_LRTB;
@@ -853,8 +852,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       }
       GST_LOG ("Parsed '%s' image type into %d (%s)", value,
           attr->value.smpte_image_type,
-          gst_ttml_utils_enum_name (attr->value.smpte_image_type,
-              SMPTEImageType));
+          gst_ttml_utils_enum_name (
+              attr->value.smpte_image_type, SMPTEImageType));
       break;
     case GST_TTML_ATTR_SMPTE_ENCODING:
       attr->value.smpte_encoding =
@@ -865,7 +864,8 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       }
       GST_LOG ("Parsed '%s' image encoding into %d (%s)", value,
           attr->value.smpte_encoding,
-          gst_ttml_utils_enum_name (attr->value.smpte_encoding, SMPTEEncoding));
+          gst_ttml_utils_enum_name (
+              attr->value.smpte_encoding, SMPTEEncoding));
       break;
     case GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE:
       if (gst_ttml_utils_attr_value_is (value, "none")) {
@@ -883,12 +883,12 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
           gst_ttml_utils_attr_value_is (value, "top")) {
         attr->value.raw_length[0].f = 0.f;
       } else if (gst_ttml_utils_attr_value_is (value, "center") ||
-          gst_ttml_utils_attr_value_is (value, "inherit")) {
+                 gst_ttml_utils_attr_value_is (value, "inherit")) {
         /* FIXME: On animations, "inherit" should revert to parent's value.
          * Assuming this will always be "center" is a quick and dirty fix. */
         attr->value.raw_length[0].f = 0.5f;
       } else if (gst_ttml_utils_attr_value_is (value, "right") ||
-          gst_ttml_utils_attr_value_is (value, "bottom")) {
+                 gst_ttml_utils_attr_value_is (value, "bottom")) {
         attr->value.raw_length[0].f = 1.f;
       } else {
         gst_ttml_attribute_parse_length_expression (value,
@@ -897,16 +897,17 @@ gst_ttml_attribute_parse (GstTTMLState * state, const char *ns,
       }
       gst_ttml_attribute_normalize_length (state, NULL, attr->type,
           &attr->value.raw_length[0],
-          attr->type ==
-          GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ? 0 : 1);
+          attr->type == GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL ? 0
+                                                                        : 1);
       GST_LOG ("Parsed '%s' %s into %g (%s)", value, name,
           attr->value.raw_length[0].f,
-          gst_ttml_utils_enum_name (attr->value.raw_length[0].unit,
-              LengthUnit));
+          gst_ttml_utils_enum_name (
+              attr->value.raw_length[0].unit, LengthUnit));
       break;
     default:
       GST_WARNING ("Attribute not implemented parsing: %s=%s", name, value);
-      /* We should never reach here, anyway, dispose of the useless attribute */
+      /* We should never reach here, anyway, dispose of the useless attribute
+       */
       g_free (attr);
       attr = NULL;
       goto beach;
@@ -938,7 +939,7 @@ gst_ttml_attribute_dump_double_expression (gdouble d)
 }
 
 gchar *
-gst_ttml_attribute_dump (GstTTMLAttribute * attr)
+gst_ttml_attribute_dump (GstTTMLAttribute *attr)
 {
   gchar *ret = NULL;
 
@@ -953,15 +954,15 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
       ret = gst_ttml_attribute_dump_time_expression (attr->value.time);
       break;
     case GST_TTML_ATTR_TICK_RATE:
-      ret = gst_ttml_attribute_dump_double_expression (attr->value.d *
-          GST_SECOND);
+      ret = gst_ttml_attribute_dump_double_expression (
+          attr->value.d * GST_SECOND);
       break;
     case GST_TTML_ATTR_FRAME_RATE:
       ret = gst_ttml_attribute_dump_double_expression (attr->value.d);
       break;
     case GST_TTML_ATTR_FRAME_RATE_MULTIPLIER:
-      ret = g_strdup_printf ("%d %d", attr->value.fraction.num,
-          attr->value.fraction.den);
+      ret = g_strdup_printf (
+          "%d %d", attr->value.fraction.num, attr->value.fraction.den);
       break;
     case GST_TTML_ATTR_SUB_FRAME_RATE:
       ret = g_strdup_printf ("%d", attr->value.i);
@@ -1012,8 +1013,8 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
     case GST_TTML_ATTR_TEXT_ALIGN:
       break;
     case GST_TTML_ATTR_DISPLAY_ALIGN:
-      ret = g_strdup (gst_ttml_utils_enum_name (attr->value.display_align,
-              DisplayAlign));
+      ret = g_strdup (
+          gst_ttml_utils_enum_name (attr->value.display_align, DisplayAlign));
       break;
     case GST_TTML_ATTR_OVERFLOW:
       if (attr->value.b)
@@ -1034,14 +1035,14 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
     case GST_TTML_ATTR_LINE_HEIGHT:
       break;
     case GST_TTML_ATTR_WRAP_OPTION:
-      ret = g_strdup (gst_ttml_utils_enum_name (attr->value.wrap_option,
-              WrapOption));
+      ret = g_strdup (
+          gst_ttml_utils_enum_name (attr->value.wrap_option, WrapOption));
       break;
     case GST_TTML_ATTR_PADDING:
       break;
     case GST_TTML_ATTR_SHOW_BACKGROUND:
-      ret = g_strdup (gst_ttml_utils_enum_name (attr->value.show_background,
-              ShowBackground));
+      ret = g_strdup (gst_ttml_utils_enum_name (
+          attr->value.show_background, ShowBackground));
       break;
     case GST_TTML_ATTR_VISIBILITY:
       if (attr->value.b)
@@ -1082,7 +1083,7 @@ gst_ttml_attribute_dump (GstTTMLAttribute * attr)
 /* Deallocates a GstTTMLAttribute. Required for attributes with
  * allocated internal memory. */
 void
-gst_ttml_attribute_free (GstTTMLAttribute * attr)
+gst_ttml_attribute_free (GstTTMLAttribute *attr)
 {
   if (!attr)
     return;
@@ -1090,15 +1091,15 @@ gst_ttml_attribute_free (GstTTMLAttribute * attr)
   g_free (attr->value.string);
 
   if (attr->timeline) {
-    g_list_free_full (attr->timeline,
-        (GDestroyNotify) gst_ttml_attribute_event_free);
+    g_list_free_full (
+        attr->timeline, (GDestroyNotify) gst_ttml_attribute_event_free);
   }
   g_free (attr);
 }
 
 /* Deallocates a GstTTMLAttributeEvent */
 void
-gst_ttml_attribute_event_free (GstTTMLAttributeEvent * attr_event)
+gst_ttml_attribute_event_free (GstTTMLAttributeEvent *attr_event)
 {
   gst_ttml_attribute_free (attr_event->attr);
   g_free (attr_event);
@@ -1106,8 +1107,8 @@ gst_ttml_attribute_event_free (GstTTMLAttributeEvent * attr_event)
 
 /* Create a copy of an attribute */
 GstTTMLAttribute *
-gst_ttml_attribute_copy (const GstTTMLAttribute * src,
-    gboolean include_timeline)
+gst_ttml_attribute_copy (
+    const GstTTMLAttribute *src, gboolean include_timeline)
 {
   GstTTMLAttribute *dest = gst_ttml_attribute_new ();
   dest->type = src->type;
@@ -1191,7 +1192,7 @@ gst_ttml_attribute_new_time (GstTTMLAttributeType type, GstClockTime time)
 /* Create a new string attribute. Typically, attributes are
  * created in the _attribute_parse() method above. */
 GstTTMLAttribute *
-gst_ttml_attribute_new_string (GstTTMLAttributeType type, const gchar * str)
+gst_ttml_attribute_new_string (GstTTMLAttributeType type, const gchar *str)
 {
   GstTTMLAttribute *attr = gst_ttml_attribute_new ();
   attr->type = type;
@@ -1239,16 +1240,16 @@ gst_ttml_attribute_new_style_removal (GstTTMLAttributeType removed_style)
 
 /* Comparison function for attribute types */
 gint
-gst_ttml_attribute_compare_type_func (GstTTMLAttribute * attr,
-    GstTTMLAttributeType type)
+gst_ttml_attribute_compare_type_func (
+    GstTTMLAttribute *attr, GstTTMLAttributeType type)
 {
   return (attr->type != type);
 }
 
 /* Comparison function for attribute events, using their timestamps */
 static gint
-gst_ttml_attribute_event_compare (GstTTMLAttributeEvent * a,
-    GstTTMLAttributeEvent * b)
+gst_ttml_attribute_event_compare (
+    GstTTMLAttributeEvent *a, GstTTMLAttributeEvent *b)
 {
   return a->timestamp > b->timestamp ? 1 : -1;
 }
@@ -1256,8 +1257,8 @@ gst_ttml_attribute_event_compare (GstTTMLAttributeEvent * a,
 /* Create a new event containing the src_attr and add it to the timeline of
  * dst_attr */
 void
-gst_ttml_attribute_add_event (GstTTMLAttribute * dst_attr,
-    GstClockTime timestamp, GstTTMLAttribute * src_attr)
+gst_ttml_attribute_add_event (GstTTMLAttribute *dst_attr,
+    GstClockTime timestamp, GstTTMLAttribute *src_attr)
 {
   GstTTMLAttributeEvent *event = g_new (GstTTMLAttributeEvent, 1);
   event->timestamp = timestamp;

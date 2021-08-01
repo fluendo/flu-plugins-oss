@@ -19,7 +19,7 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 /* Generate one output span combining all currently active spans and their
  * attributes. */
 void
-gst_ttml_span_compose (GstTTMLSpan * span, GstTTMLSpan * output_span)
+gst_ttml_span_compose (GstTTMLSpan *span, GstTTMLSpan *output_span)
 {
   gchar *head;
   gint head_len;
@@ -33,14 +33,13 @@ gst_ttml_span_compose (GstTTMLSpan * span, GstTTMLSpan * output_span)
   if (attr && attr->value.b == FALSE)
     return;
 
-  gst_ttml_style_gen_pango_markup (NULL, &span->style, &head, &tail, NULL,
-      NULL);
+  gst_ttml_style_gen_pango_markup (
+      NULL, &span->style, &head, &tail, NULL, NULL);
   head_len = strlen (head);
   tail_len = strlen (tail);
 
-  output_span->chars = (gchar *)
-      g_realloc (output_span->chars, output_span->length +
-      head_len + span->length + tail_len);
+  output_span->chars = (gchar *) g_realloc (output_span->chars,
+      output_span->length + head_len + span->length + tail_len);
   ptr = output_span->chars + output_span->length;
 
   memcpy (ptr, head, head_len);
@@ -57,7 +56,7 @@ gst_ttml_span_compose (GstTTMLSpan * span, GstTTMLSpan * output_span)
 
 /* Free a text span */
 void
-gst_ttml_span_free (GstTTMLSpan * span)
+gst_ttml_span_free (GstTTMLSpan *span)
 {
   g_free (span->chars);
   gst_ttml_style_reset (&span->style);
@@ -67,8 +66,8 @@ gst_ttml_span_free (GstTTMLSpan * span)
 /* Create a new text span. Timing information does not belong to the span
  * but to the event that contains it. */
 GstTTMLSpan *
-gst_ttml_span_new (guint id, guint length, const gchar * chars,
-    const GstTTMLStyle * style)
+gst_ttml_span_new (
+    guint id, guint length, const gchar *chars, const GstTTMLStyle *style)
 {
   if (length == 0)
     return NULL;
@@ -84,32 +83,32 @@ gst_ttml_span_new (guint id, guint length, const gchar * chars,
 
 /* Comparison function for spans */
 static gint
-gst_ttml_span_compare_id (GstTTMLSpan * a, guint * id)
+gst_ttml_span_compare_id (GstTTMLSpan *a, guint *id)
 {
   return a->id - *id;
 }
 
 /* Insert a span into the active spans list. The list takes ownership. */
 GList *
-gst_ttml_span_list_add (GList * active_spans, GstTTMLSpan * span)
+gst_ttml_span_list_add (GList *active_spans, GstTTMLSpan *span)
 {
   GST_DEBUG ("Inserting span with id %d, length %d", span->id, span->length);
   GST_MEMDUMP ("Span content:", (guint8 *) span->chars, span->length);
   /* Insert the spans sorted by ID, so they keep the order they had in the
    * XML file. */
-  return g_list_insert_sorted (active_spans, span,
-      (GCompareFunc) gst_ttml_span_compare_id);
+  return g_list_insert_sorted (
+      active_spans, span, (GCompareFunc) gst_ttml_span_compare_id);
 }
 
 /* Remove the span with the given ID from the list of active spans and
  * free it */
 GList *
-gst_ttml_span_list_remove (GList * active_spans, guint id)
+gst_ttml_span_list_remove (GList *active_spans, guint id)
 {
   GList *link = NULL;
   GST_DEBUG ("Removing span with id %d", id);
-  link = g_list_find_custom (active_spans, &id,
-      (GCompareFunc) gst_ttml_span_compare_id);
+  link = g_list_find_custom (
+      active_spans, &id, (GCompareFunc) gst_ttml_span_compare_id);
   if (!link) {
     GST_WARNING ("Could not find span with id %d", id);
     return active_spans;
@@ -121,8 +120,8 @@ gst_ttml_span_list_remove (GList * active_spans, guint id)
 
 /* Update the value of the specified attribute of the specified span id */
 void
-gst_ttml_span_list_update_attr (GList * active_spans, guint id,
-    GstTTMLAttribute * attr)
+gst_ttml_span_list_update_attr (
+    GList *active_spans, guint id, GstTTMLAttribute *attr)
 {
   GList *link = NULL;
   GstTTMLSpan *span;
@@ -130,8 +129,8 @@ gst_ttml_span_list_update_attr (GList * active_spans, guint id,
 
   GST_DEBUG ("Updating span with id %d, attr %s", id,
       gst_ttml_utils_enum_name (attr->type, AttributeType));
-  link = g_list_find_custom (active_spans, &id,
-      (GCompareFunc) gst_ttml_span_compare_id);
+  link = g_list_find_custom (
+      active_spans, &id, (GCompareFunc) gst_ttml_span_compare_id);
   if (!link) {
     /* This is not a problem. It could be an animation on a region or
      * parent node, which happens when this span is not valid yet. */

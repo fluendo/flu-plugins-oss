@@ -6,8 +6,8 @@
 #include "fludownloaderhelper.h"
 
 gboolean
-data_cb (void *buffer, size_t size, gpointer user_data,
-    FluDownloaderTask * task)
+data_cb (
+    void *buffer, size_t size, gpointer user_data, FluDownloaderTask *task)
 {
   g_printf ("Something went wrong. This callback shouldn't be called\n");
   return TRUE;
@@ -15,8 +15,8 @@ data_cb (void *buffer, size_t size, gpointer user_data,
 
 void
 done_cb (FluDownloaderTaskOutcome outcome, int http_status_code,
-    size_t downloaded_size, gpointer user_data, FluDownloaderTask * task,
-    gboolean * cancel_remaining_downloads)
+    size_t downloaded_size, gpointer user_data, FluDownloaderTask *task,
+    gboolean *cancel_remaining_downloads)
 {
   g_printf ("Header date: %s", fludownloader_task_get_date (task));
   g_printf ("Total file size = %" G_GSIZE_FORMAT "\n",
@@ -36,11 +36,11 @@ main (int argc, char *argv[])
   gchar **it = NULL;
   FluDownloader *dl;
 
-  g_print
-      ("Lets start a new download from internal url=%s\nWaiting to complete...\n",
+  g_print ("Lets start a new download from internal url=%s\nWaiting to "
+           "complete...\n",
       internal_url);
-  fludownloader_helper_simple_download_sync (internal_url, NULL, &buffer, &size,
-      &http_status_code, NULL);
+  fludownloader_helper_simple_download_sync (
+      internal_url, NULL, &buffer, &size, &http_status_code, NULL);
   g_free (buffer);
   g_print ("The first attempt has finished with status %d and size %d\n",
       http_status_code, size);
@@ -48,8 +48,8 @@ main (int argc, char *argv[])
     url = g_strdup (argv[1]);
     g_print ("Lets start a new download with url=%s\nWaiting to complete...\n",
         url);
-    fludownloader_helper_simple_download_sync (url, NULL, &buffer, &size,
-        &http_status_code, NULL);
+    fludownloader_helper_simple_download_sync (
+        url, NULL, &buffer, &size, &http_status_code, NULL);
     g_print ("The second attempt has finished with status %d and size %d\n",
         http_status_code, size);
     g_free (buffer);
@@ -66,12 +66,15 @@ main (int argc, char *argv[])
 
   fludownloader_lock (dl);
   fludownloader_new_task (dl,
-      "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s",
+      "http://dash.edgesuite.net/adobe/hdworld_dash/"
+      "hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s",
       "HEAD", (gpointer) 0, FALSE);
   fludownloader_unlock (dl);
 
-
-  fludownloader_helper_simple_download_head_sync ("http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s", NULL, &header, &http_status_code);
+  fludownloader_helper_simple_download_head_sync (
+      "http://dash.edgesuite.net/adobe/hdworld_dash/"
+      "hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s",
+      NULL, &header, &http_status_code);
 
   it = header;
   if (it) {
@@ -80,7 +83,7 @@ main (int argc, char *argv[])
       it++;
     }
   }
-  g_strfreev(header);
+  g_strfreev (header);
 
   getchar ();
 
