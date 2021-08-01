@@ -19,31 +19,31 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 
 /* Set the state to default TTML values */
 void
-gst_ttml_style_reset (GstTTMLStyle * style)
+gst_ttml_style_reset (GstTTMLStyle *style)
 {
-  g_list_free_full (style->attributes,
-      (GDestroyNotify) gst_ttml_attribute_free);
+  g_list_free_full (
+      style->attributes, (GDestroyNotify) gst_ttml_attribute_free);
   style->attributes = NULL;
 }
 
 /* Make a deep copy of the style, overwritting dest_style */
 void
-gst_ttml_style_copy (GstTTMLStyle * dest_style, const GstTTMLStyle * org_style,
+gst_ttml_style_copy (GstTTMLStyle *dest_style, const GstTTMLStyle *org_style,
     gboolean include_timeline)
 {
   GList *link;
   dest_style->attributes = g_list_copy (org_style->attributes);
   link = dest_style->attributes;
   while (link) {
-    link->data = gst_ttml_attribute_copy ((GstTTMLAttribute *) link->data,
-        include_timeline);
+    link->data = gst_ttml_attribute_copy (
+        (GstTTMLAttribute *) link->data, include_timeline);
     link = link->next;
   }
 }
 
 /* Retrieve the given attribute type. It belongs to the style, do not free. */
 GstTTMLAttribute *
-gst_ttml_style_get_attr (const GstTTMLStyle * style, GstTTMLAttributeType type)
+gst_ttml_style_get_attr (const GstTTMLStyle *style, GstTTMLAttributeType type)
 {
   GList *link;
 
@@ -59,7 +59,7 @@ gst_ttml_style_get_attr (const GstTTMLStyle * style, GstTTMLAttributeType type)
  * already exists, it is replaced. The previous value is returned, do not
  * forget to free it! */
 GstTTMLAttribute *
-gst_ttml_style_set_attr (GstTTMLStyle * style, const GstTTMLAttribute * attr)
+gst_ttml_style_set_attr (GstTTMLStyle *style, const GstTTMLAttribute *attr)
 {
   GstTTMLAttribute *ret_attr;
   GstTTMLAttribute *new_attr;
@@ -74,22 +74,22 @@ gst_ttml_style_set_attr (GstTTMLStyle * style, const GstTTMLAttribute * attr)
 
     if (!prev_link) {
       GST_WARNING ("Cannot remove style %s: not present",
-          gst_ttml_utils_enum_name (attr->value.removed_attribute_type,
-              AttributeType));
+          gst_ttml_utils_enum_name (
+              attr->value.removed_attribute_type, AttributeType));
       return NULL;
     }
     /* Remove attribute from style */
     GST_DEBUG ("Removing attribute '%s'",
-        gst_ttml_utils_enum_name (attr->value.removed_attribute_type,
-            AttributeType));
+        gst_ttml_utils_enum_name (
+            attr->value.removed_attribute_type, AttributeType));
     ret_attr = (GstTTMLAttribute *) prev_link->data;
     style->attributes = g_list_delete_link (style->attributes, prev_link);
     return ret_attr;
   }
 
-  prev_link = g_list_find_custom (style->attributes,
-      (gconstpointer) attr->type,
-      (GCompareFunc) gst_ttml_attribute_compare_type_func);
+  prev_link =
+      g_list_find_custom (style->attributes, (gconstpointer) attr->type,
+          (GCompareFunc) gst_ttml_attribute_compare_type_func);
 
   new_attr = gst_ttml_attribute_copy (attr, TRUE);
 
@@ -106,7 +106,7 @@ gst_ttml_style_set_attr (GstTTMLStyle * style, const GstTTMLAttribute * attr)
 
 /* Helper function that simply concatenates two strings */
 static gchar *
-gst_ttml_style_str_concat (gchar * str1, gchar * str2)
+gst_ttml_style_str_concat (gchar *str1, gchar *str2)
 {
   gchar *res = g_strconcat (str1, str2, NULL);
   g_free (str1);
@@ -119,7 +119,7 @@ gst_ttml_style_str_concat (gchar * str1, gchar * str2)
  * Frees the input name and returns a newly allocated string.
  */
 static gchar *
-gst_ttml_style_translate_generic_font_name (gchar * org_name)
+gst_ttml_style_translate_generic_font_name (gchar *org_name)
 {
   gchar *new_name = NULL;
   /* FIXME: Map generic TTML font names to actual system fonts, discovered
@@ -137,10 +137,9 @@ gst_ttml_style_translate_generic_font_name (gchar * org_name)
 /* Generate Pango Markup for the style.
  * default_font_* can be NULL. */
 void
-gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
-    const GstTTMLStyle * style_override,
-    gchar ** head, gchar ** tail,
-    const gchar * default_font_family, const gchar * default_font_size)
+gst_ttml_style_gen_pango_markup (const GstTTMLState *state,
+    const GstTTMLStyle *style_override, gchar **head, gchar **tail,
+    const gchar *default_font_family, const gchar *default_font_size)
 {
   gchar *attrs = g_strdup ("");
   GList *link =
@@ -184,12 +183,11 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
           g_free (font_size);
           font_size = NULL;
         }
-        size1 = gst_ttml_attribute_get_normalized_length (state, style_override,
-            attr, 0, 1, &unit);
+        size1 = gst_ttml_attribute_get_normalized_length (
+            state, style_override, attr, 0, 1, &unit);
         if (unit == GST_TTML_LENGTH_UNIT_PIXELS) {
-          size2 =
-              gst_ttml_attribute_get_normalized_length (state, style_override,
-              attr, 1, 1, &unit);
+          size2 = gst_ttml_attribute_get_normalized_length (
+              state, style_override, attr, 1, 1, &unit);
           if (unit == GST_TTML_LENGTH_UNIT_PIXELS)
             size1 = size2;
           font_size = g_strdup_printf (" %dpx", (int) size1);
@@ -205,29 +203,28 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
             attr->value.font_style != GST_TTML_FONT_STYLE_REVERSE_OBLIQUE)
           /* Do not try pro generate pango markup for reverseOblique. We do
            * that with our own pango attr. */
-          attrs = gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" font_style=\"%s\"",
-                  gst_ttml_utils_enum_name (attr->value.font_style,
-                      FontStyle)));
+          attrs = gst_ttml_style_str_concat (
+              attrs, g_strdup_printf (" font_style=\"%s\"",
+                         gst_ttml_utils_enum_name (
+                             attr->value.font_style, FontStyle)));
         break;
 
       case GST_TTML_ATTR_FONT_WEIGHT:
         if (attr->value.font_weight != GST_TTML_FONT_WEIGHT_NORMAL)
-          attrs = gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" font_weight=\"%s\"",
-                  gst_ttml_utils_enum_name (attr->value.font_weight,
-                      FontWeight)));
+          attrs = gst_ttml_style_str_concat (
+              attrs, g_strdup_printf (" font_weight=\"%s\"",
+                         gst_ttml_utils_enum_name (
+                             attr->value.font_weight, FontWeight)));
         break;
 
       case GST_TTML_ATTR_TEXT_DECORATION:
         if (attr->value.text_decoration & GST_TTML_TEXT_DECORATION_UNDERLINE)
-          attrs = gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" underline=\"%s\"", "single"));
-        if (attr->
-            value.text_decoration & GST_TTML_TEXT_DECORATION_STRIKETHROUGH)
-          attrs =
-              gst_ttml_style_str_concat (attrs,
-              g_strdup_printf (" strikethrough=\"%s\"", "true"));
+          attrs = gst_ttml_style_str_concat (
+              attrs, g_strdup_printf (" underline=\"%s\"", "single"));
+        if (attr->value.text_decoration &
+            GST_TTML_TEXT_DECORATION_STRIKETHROUGH)
+          attrs = gst_ttml_style_str_concat (
+              attrs, g_strdup_printf (" strikethrough=\"%s\"", "true"));
         break;
 
       default:
@@ -264,8 +261,8 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
          * this, we set the size again to the default value, which can only be
          * done through the 'font_size' tag, not 'font'. This is awful. */
         font_size = g_strdup ("medium");
-      font_attrs = gst_ttml_style_str_concat (font_attrs,
-          g_strdup_printf (" font_size='%s'", font_size));
+      font_attrs = gst_ttml_style_str_concat (
+          font_attrs, g_strdup_printf (" font_size='%s'", font_size));
       g_free (font_size);
     }
 
@@ -286,8 +283,8 @@ gst_ttml_style_gen_pango_markup (const GstTTMLState * state,
 /* Generate events for each animated attribute in a span,
  * and add them to the timeline */
 GList *
-gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle * style,
-    GList * timeline)
+gst_ttml_style_gen_span_events (
+    guint span_id, GstTTMLStyle *style, GList *timeline)
 {
   GList *attr_link = style->attributes;
 
@@ -295,10 +292,10 @@ gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle * style,
     GstTTMLAttribute *attr = (GstTTMLAttribute *) attr_link->data;
     GList *event_link = attr->timeline;
     while (event_link) {
-      GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *) event_link->data;
-      GstTTMLEvent *new_event =
-          gst_ttml_event_new_attr_update (span_id, event->timestamp,
-          event->attr);
+      GstTTMLAttributeEvent *event =
+          (GstTTMLAttributeEvent *) event_link->data;
+      GstTTMLEvent *new_event = gst_ttml_event_new_attr_update (
+          span_id, event->timestamp, event->attr);
       timeline = gst_ttml_event_list_insert (timeline, new_event);
 
       event_link = event_link->next;
@@ -312,8 +309,8 @@ gst_ttml_style_gen_span_events (guint span_id, GstTTMLStyle * style,
 /* Generate events for each animated attribute in a region,
  * and add them to the timeline */
 GList *
-gst_ttml_style_gen_region_events (const gchar * id, GstTTMLStyle * style,
-    GList * timeline)
+gst_ttml_style_gen_region_events (
+    const gchar *id, GstTTMLStyle *style, GList *timeline)
 {
   GList *attr_link = style->attributes;
 
@@ -321,7 +318,8 @@ gst_ttml_style_gen_region_events (const gchar * id, GstTTMLStyle * style,
     GstTTMLAttribute *attr = (GstTTMLAttribute *) attr_link->data;
     GList *event_link = attr->timeline;
     while (event_link) {
-      GstTTMLAttributeEvent *event = (GstTTMLAttributeEvent *) event_link->data;
+      GstTTMLAttributeEvent *event =
+          (GstTTMLAttributeEvent *) event_link->data;
       GstTTMLEvent *new_event =
           gst_ttml_event_new_region_update (event->timestamp, id, event->attr);
       timeline = gst_ttml_event_list_insert (timeline, new_event);

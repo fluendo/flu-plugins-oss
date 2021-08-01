@@ -75,25 +75,22 @@ typedef struct _GstTTMLRegion
   int current_par_content_plain_length; /* # of chars without markup */
 } GstTTMLRegion;
 
-#if GST_CHECK_VERSION (1,0,0)
-#define GST_TTMLRENDER_SRC_CAPS \
-    "video/x-raw, format=BGRA, width=(int)[1,MAX], height=(int)[1,MAX], " \
-    "framerate=(fraction)0/1, pixel-aspect-ratio=(fraction)[0/1, MAX]"
+#if GST_CHECK_VERSION(1, 0, 0)
+#define GST_TTMLRENDER_SRC_CAPS                                               \
+  "video/x-raw, format=BGRA, width=(int)[1,MAX], height=(int)[1,MAX], "       \
+  "framerate=(fraction)0/1, pixel-aspect-ratio=(fraction)[0/1, MAX]"
 #else
-#define GST_TTMLRENDER_SRC_CAPS \
-    "video/x-raw-rgb, width=(int)[1,MAX], height=(int)[1,MAX], " \
-    "framerate=(fraction)0/1, bpp=(int)32, depth=(int)32, " \
-    "endianness=(int)4321, red_mask=(int)65280, green_mask=(int)16711680, " \
-    "blue_mask=(int)-16777216, alpha_mask=(int)255, " \
-    "pixel-aspect-ratio=(fraction)[0/1, MAX]"
+#define GST_TTMLRENDER_SRC_CAPS                                               \
+  "video/x-raw-rgb, width=(int)[1,MAX], height=(int)[1,MAX], "                \
+  "framerate=(fraction)0/1, bpp=(int)32, depth=(int)32, "                     \
+  "endianness=(int)4321, red_mask=(int)65280, green_mask=(int)16711680, "     \
+  "blue_mask=(int)-16777216, alpha_mask=(int)255, "                           \
+  "pixel-aspect-ratio=(fraction)[0/1, MAX]"
 #endif
 
 static GstStaticPadTemplate ttmlrender_src_template =
-GST_STATIC_PAD_TEMPLATE ("src",
-    GST_PAD_SRC,
-    GST_PAD_ALWAYS,
-    GST_STATIC_CAPS (GST_TTMLRENDER_SRC_CAPS)
-    );
+    GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
+        GST_STATIC_CAPS (GST_TTMLRENDER_SRC_CAPS));
 
 G_DEFINE_TYPE (GstTTMLRender, gst_ttmlrender, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlrender_parent_class
@@ -101,7 +98,7 @@ G_DEFINE_TYPE (GstTTMLRender, gst_ttmlrender, GST_TYPE_TTMLBASE);
 /* Some Pango bureaucracy needed to register a new type.
  * Pango already has these methods, but they are private. */
 static PangoAttribute *
-gst_ttmlrender_pango_attr_int_new (const PangoAttrClass * klass, int value)
+gst_ttmlrender_pango_attr_int_new (const PangoAttrClass *klass, int value)
 {
   PangoAttrInt *result = g_slice_new (PangoAttrInt);
   pango_attribute_init (&result->attr, klass);
@@ -111,7 +108,7 @@ gst_ttmlrender_pango_attr_int_new (const PangoAttrClass * klass, int value)
 }
 
 static PangoAttribute *
-gst_ttmlrender_pango_attr_int_copy (const PangoAttribute * attr)
+gst_ttmlrender_pango_attr_int_copy (const PangoAttribute *attr)
 {
   const PangoAttrInt *int_attr = (PangoAttrInt *) attr;
 
@@ -119,7 +116,7 @@ gst_ttmlrender_pango_attr_int_copy (const PangoAttribute * attr)
 }
 
 static void
-gst_ttmlrender_pango_attr_int_destroy (PangoAttribute * attr)
+gst_ttmlrender_pango_attr_int_destroy (PangoAttribute *attr)
 {
   PangoAttrInt *iattr = (PangoAttrInt *) attr;
 
@@ -127,8 +124,8 @@ gst_ttmlrender_pango_attr_int_destroy (PangoAttribute * attr)
 }
 
 static gboolean
-gst_ttmlrender_pango_attr_int_equal (const PangoAttribute * attr1,
-    const PangoAttribute * attr2)
+gst_ttmlrender_pango_attr_int_equal (
+    const PangoAttribute *attr1, const PangoAttribute *attr2)
 {
   const PangoAttrInt *int_attr1 = (const PangoAttrInt *) attr1;
   const PangoAttrInt *int_attr2 = (const PangoAttrInt *) attr2;
@@ -137,76 +134,68 @@ gst_ttmlrender_pango_attr_int_equal (const PangoAttribute * attr1,
 }
 
 static PangoAttrClass gst_ttmlrender_pango_attr_overline_klass = {
-  PANGO_ATTR_INVALID,           /* To be overwritten at init () */
-  gst_ttmlrender_pango_attr_int_copy,
-  gst_ttmlrender_pango_attr_int_destroy,
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
+  gst_ttmlrender_pango_attr_int_copy, gst_ttmlrender_pango_attr_int_destroy,
   gst_ttmlrender_pango_attr_int_equal
 };
 
 static PangoAttrClass gst_ttmlrender_pango_attr_invisibility_klass = {
-  PANGO_ATTR_INVALID,           /* To be overwritten at init () */
-  gst_ttmlrender_pango_attr_int_copy,
-  gst_ttmlrender_pango_attr_int_destroy,
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
+  gst_ttmlrender_pango_attr_int_copy, gst_ttmlrender_pango_attr_int_destroy,
   gst_ttmlrender_pango_attr_int_equal
 };
 
 static PangoAttrClass gst_ttmlrender_pango_attr_reverse_klass = {
-  PANGO_ATTR_INVALID,           /* To be overwritten at init () */
-  gst_ttmlrender_pango_attr_int_copy,
-  gst_ttmlrender_pango_attr_int_destroy,
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
+  gst_ttmlrender_pango_attr_int_copy, gst_ttmlrender_pango_attr_int_destroy,
   gst_ttmlrender_pango_attr_int_equal
 };
 
 static PangoAttrClass gst_ttmlrender_pango_attr_reverse_oblique_klass = {
-  PANGO_ATTR_INVALID,           /* To be overwritten at init () */
-  gst_ttmlrender_pango_attr_int_copy,
-  gst_ttmlrender_pango_attr_int_destroy,
+  PANGO_ATTR_INVALID, /* To be overwritten at init () */
+  gst_ttmlrender_pango_attr_int_copy, gst_ttmlrender_pango_attr_int_destroy,
   gst_ttmlrender_pango_attr_int_equal
 };
 
 PangoAttribute *
 gst_ttmlrender_pango_attr_overline_new (gboolean overline)
 {
-  return
-      gst_ttmlrender_pango_attr_int_new
-      (&gst_ttmlrender_pango_attr_overline_klass, (int) overline);
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_overline_klass, (int) overline);
 }
 
 PangoAttribute *
 gst_ttmlrender_pango_attr_invisibility_new (gboolean invisibility)
 {
-  return
-      gst_ttmlrender_pango_attr_int_new
-      (&gst_ttmlrender_pango_attr_invisibility_klass, (int) invisibility);
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_invisibility_klass, (int) invisibility);
 }
 
 PangoAttribute *
 gst_ttmlrender_pango_attr_reverse_new (gboolean reverse)
 {
-  return
-      gst_ttmlrender_pango_attr_int_new
-      (&gst_ttmlrender_pango_attr_reverse_klass, (int) reverse);
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_reverse_klass, (int) reverse);
 }
 
 PangoAttribute *
 gst_ttmlrender_pango_attr_reverse_oblique_new (gboolean reverseOblique)
 {
-  return
-      gst_ttmlrender_pango_attr_int_new
-      (&gst_ttmlrender_pango_attr_reverse_oblique_klass, (int) reverseOblique);
+  return gst_ttmlrender_pango_attr_int_new (
+      &gst_ttmlrender_pango_attr_reverse_oblique_klass, (int) reverseOblique);
 }
 
 /* Region compare function: Z index */
 static gint
-gst_ttmlrender_region_compare_zindex (GstTTMLRegion * region1,
-    GstTTMLRegion * region2)
+gst_ttmlrender_region_compare_zindex (
+    GstTTMLRegion *region1, GstTTMLRegion *region2)
 {
   return region1->zindex - region2->zindex;
 }
 
 /* Region compare function: ID */
 static gint
-gst_ttmlrender_region_compare_id (GstTTMLRegion * region, gchar * id)
+gst_ttmlrender_region_compare_id (GstTTMLRegion *region, gchar *id)
 {
   return g_strcmp0 (region->id, id);
 }
@@ -217,7 +206,7 @@ gst_ttmlrender_region_compare_id (GstTTMLRegion * region, gchar * id)
  * shared across all fragments inside the same span.
  */
 static void
-gst_ttmlrender_store_layout (GstTTMLRender * render, GstTTMLRegion * region)
+gst_ttmlrender_store_layout (GstTTMLRender *render, GstTTMLRegion *region)
 {
   GstTTMLAttribute *attr;
   PangoAlignment pango_align = PANGO_ALIGN_LEFT;
@@ -232,8 +221,8 @@ gst_ttmlrender_store_layout (GstTTMLRender * render, GstTTMLRegion * region)
     padded_extenty = region->padded_extentx;
   }
 
-  attr = gst_ttml_style_get_attr (&region->current_par_style,
-      GST_TTML_ATTR_WRAP_OPTION);
+  attr = gst_ttml_style_get_attr (
+      &region->current_par_style, GST_TTML_ATTR_WRAP_OPTION);
   if (attr) {
     wrap = attr->value.wrap_option;
   }
@@ -243,8 +232,8 @@ gst_ttmlrender_store_layout (GstTTMLRender * render, GstTTMLRegion * region)
   }
   pango_layout_set_height (layout, padded_extenty * PANGO_SCALE);
 
-  attr = gst_ttml_style_get_attr (&region->current_par_style,
-      GST_TTML_ATTR_TEXT_ALIGN);
+  attr = gst_ttml_style_get_attr (
+      &region->current_par_style, GST_TTML_ATTR_TEXT_ALIGN);
   /* FIXME: Handle correctly START and END alignments */
   switch (attr ? attr->value.text_align : render->default_text_align) {
     case GST_TTML_TEXT_ALIGN_LEFT:
@@ -262,15 +251,15 @@ gst_ttmlrender_store_layout (GstTTMLRender * render, GstTTMLRegion * region)
   }
   pango_layout_set_alignment (layout, pango_align);
 
-  attr = gst_ttml_style_get_attr (&region->current_par_style,
-      GST_TTML_ATTR_LINE_HEIGHT);
+  attr = gst_ttml_style_get_attr (
+      &region->current_par_style, GST_TTML_ATTR_LINE_HEIGHT);
   if (attr && gst_ttml_attribute_is_length_present (attr, 0)) {
     /* Since we are drawing the layout lines one by one, Pango will not use
      * this parameter. We use it to send the lineHeight to the drawing
      * routine, though. */
-    pango_layout_set_spacing (layout,
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-            attr, 0, 1, NULL));
+    pango_layout_set_spacing (
+        layout, gst_ttml_attribute_get_normalized_length (
+                    &render->base.state, NULL, attr, 0, 1, NULL));
   } else {
     /* This means we want to use Pango's default line height, but is not
      * a valid Pango spacing... */
@@ -315,8 +304,8 @@ typedef struct _GstTTMLDataBuffer
 } GstTTMLDataBuffer;
 
 static cairo_status_t
-gst_ttmlrender_cairo_read_memory_func (GstTTMLDataBuffer * closure,
-    unsigned char *data, unsigned int len)
+gst_ttmlrender_cairo_read_memory_func (
+    GstTTMLDataBuffer *closure, unsigned char *data, unsigned int len)
 {
   if (len > closure->datalen)
     return CAIRO_STATUS_READ_ERROR;
@@ -327,8 +316,8 @@ gst_ttmlrender_cairo_read_memory_func (GstTTMLDataBuffer * closure,
 }
 
 static cairo_surface_t *
-gst_ttmlrender_decode_image_from_buffer (const gchar * id,
-    GstTTMLDataBuffer * buffer)
+gst_ttmlrender_decode_image_from_buffer (
+    const gchar *id, GstTTMLDataBuffer *buffer)
 {
   GstTTMLDataBuffer buffer_copy = *buffer;
   cairo_surface_t *surface = NULL;
@@ -347,7 +336,8 @@ gst_ttmlrender_decode_image_from_buffer (const gchar * id,
     int s = cairo_image_surface_get_stride (surface);
 
     GST_DEBUG ("Decoded PNG image '%s': "
-        "format %d, width %d, height %d, stride %d", id, f, w, h, s);
+               "format %d, width %d, height %d, stride %d",
+        id, f, w, h, s);
   } else {
     GST_WARNING ("Could not decode image '%s'. Cairo status: %s", id,
         cairo_status_to_string (status));
@@ -361,7 +351,7 @@ gst_ttmlrender_decode_image_from_buffer (const gchar * id,
 /* Retrieve, either from cache, embedded, file or the internet the image with
  * the given id. The returned pointer is not yours, do not free. */
 static cairo_surface_t *
-gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
+gst_ttmlrender_retrieve_image (GstTTMLRender *render, const gchar *id)
 {
   cairo_surface_t *surface;
   gchar *id_copy;
@@ -369,13 +359,13 @@ gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
 
   /* Create cache hash table if it does not exist */
   if (!render->cached_images) {
-    render->cached_images =
-        g_hash_table_new_full (g_str_hash, g_str_equal, g_free,
-        (GDestroyNotify) cairo_surface_destroy);
+    render->cached_images = g_hash_table_new_full (g_str_hash, g_str_equal,
+        g_free, (GDestroyNotify) cairo_surface_destroy);
   }
 
   /* Look in the cache */
-  surface = (cairo_surface_t *) g_hash_table_lookup (render->cached_images, id);
+  surface =
+      (cairo_surface_t *) g_hash_table_lookup (render->cached_images, id);
   if (surface) {
     GST_DEBUG ("Retrieved image '%s' from cache", id);
     goto beach;
@@ -383,8 +373,8 @@ gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
 
   if (id[0] == '#') {
     /* Look in the saved data and decode the image */
-    gst_ttml_state_restore_data (&render->base.state, id + 1, &buffer.data,
-        &buffer.datalen);
+    gst_ttml_state_restore_data (
+        &render->base.state, id + 1, &buffer.data, &buffer.datalen);
     if (buffer.data) {
       surface = gst_ttmlrender_decode_image_from_buffer (id + 1, &buffer);
     } else {
@@ -412,8 +402,8 @@ gst_ttmlrender_retrieve_image (GstTTMLRender * render, const gchar * id)
     }
 
     /* Load from file */
-    if (fludownloader_helper_downloader_download_sync (render->downloader, url,
-            &buffer.data, &buffer.datalen, NULL)) {
+    if (fludownloader_helper_downloader_download_sync (
+            render->downloader, url, &buffer.data, &buffer.datalen, NULL)) {
       surface = gst_ttmlrender_decode_image_from_buffer (id, &buffer);
     } else {
       /* Download error */
@@ -439,7 +429,7 @@ beach:
 
 /* Create a new empty region, with only the ID. */
 static GstTTMLRegion *
-gst_ttmlrender_new_region (const gchar * id)
+gst_ttmlrender_new_region (const gchar *id)
 {
   GstTTMLRegion *region;
 
@@ -451,8 +441,8 @@ gst_ttmlrender_new_region (const gchar * id)
 
 /* Fill in region attributes from the given style, overriding previous ones */
 static void
-gst_ttmlrender_setup_region_attrs (GstTTMLRender * render,
-    GstTTMLRegion * region, GstTTMLStyle * style)
+gst_ttmlrender_setup_region_attrs (
+    GstTTMLRender *render, GstTTMLRegion *region, GstTTMLStyle *style)
 {
   GstTTMLAttribute *attr;
 
@@ -466,24 +456,22 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender * render,
   region->opacity = attr ? attr->value.d : 1.0;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_ORIGIN);
-  region->originx =
-      attr ? gst_ttml_attribute_get_normalized_length (&render->base.state,
-      NULL, attr, 0, 0, NULL) : 0;
-  region->originy =
-      attr ? gst_ttml_attribute_get_normalized_length (&render->base.state,
-      NULL, attr, 1, 1, NULL) : 0;
+  region->originx = attr ? gst_ttml_attribute_get_normalized_length (
+                               &render->base.state, NULL, attr, 0, 0, NULL)
+                         : 0;
+  region->originy = attr ? gst_ttml_attribute_get_normalized_length (
+                               &render->base.state, NULL, attr, 1, 1, NULL)
+                         : 0;
   GST_LOG_OBJECT (render, "origin=%d,%d frame=%d,%d", region->originx,
       region->originy, render->base.state.frame_width,
       render->base.state.frame_height);
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_EXTENT);
   if (attr) {
-    region->extentx =
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-        attr, 0, 0, NULL);
-    region->extenty =
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-        attr, 1, 1, NULL);
+    region->extentx = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 0, 0, NULL);
+    region->extenty = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 1, 1, NULL);
   } else {
     region->extentx = render->base.state.frame_width;
     region->extenty = render->base.state.frame_height;
@@ -495,74 +483,76 @@ gst_ttmlrender_setup_region_attrs (GstTTMLRender * render,
   region->padded_extenty = region->extenty;
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_PADDING);
   if (attr) {
-    gfloat pad_org_x =
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-        attr, 3, 0, NULL);
-    gfloat pad_org_y =
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-        attr, 0, 1, NULL);
+    gfloat pad_org_x = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 3, 0, NULL);
+    gfloat pad_org_y = gst_ttml_attribute_get_normalized_length (
+        &render->base.state, NULL, attr, 0, 1, NULL);
     region->padded_originx += pad_org_x;
     region->padded_originy += pad_org_y;
-    region->padded_extentx -= pad_org_x +
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-        attr, 1, 0, NULL);
-    region->padded_extenty -= pad_org_y +
-        gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-        attr, 2, 1, NULL);
+    region->padded_extentx -=
+        pad_org_x + gst_ttml_attribute_get_normalized_length (
+                        &render->base.state, NULL, attr, 1, 0, NULL);
+    region->padded_extenty -=
+        pad_org_y + gst_ttml_attribute_get_normalized_length (
+                        &render->base.state, NULL, attr, 2, 1, NULL);
   }
 
-  attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
+  attr =
+      gst_ttml_style_get_attr (style, GST_TTML_ATTR_BACKGROUND_REGION_COLOR);
   region->background_color = attr ? attr->value.color : 0x00000000;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE);
   if (attr && attr->value.string) {
-    region->smpte_background_image = gst_ttmlrender_retrieve_image (render,
-        attr->value.string);
+    region->smpte_background_image =
+        gst_ttmlrender_retrieve_image (render, attr->value.string);
   } else {
     region->smpte_background_image = NULL;
   }
 
   if (region->smpte_background_image) {
-    gint width = cairo_image_surface_get_width (region->smpte_background_image);
+    gint width =
+        cairo_image_surface_get_width (region->smpte_background_image);
     gint height =
         cairo_image_surface_get_height (region->smpte_background_image);
 
-    attr = gst_ttml_style_get_attr (style,
-        GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL);
+    attr = gst_ttml_style_get_attr (
+        style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_HORIZONTAL);
     if (attr) {
       if (attr->value.raw_length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
-        region->smpte_background_image_posx = region->padded_originx +
+        region->smpte_background_image_posx =
+            region->padded_originx +
             (region->padded_extentx - width) * attr->value.raw_length[0].f;
       } else {
-        region->smpte_background_image_posx = region->padded_originx +
-            attr->value.raw_length[0].f;
+        region->smpte_background_image_posx =
+            region->padded_originx + attr->value.raw_length[0].f;
       }
     } else {
       /* CENTER is the default */
-      region->smpte_background_image_posx = region->padded_originx +
-          (region->padded_extentx - width) / 2;
+      region->smpte_background_image_posx =
+          region->padded_originx + (region->padded_extentx - width) / 2;
     }
 
-    attr = gst_ttml_style_get_attr (style,
-        GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL);
+    attr = gst_ttml_style_get_attr (
+        style, GST_TTML_ATTR_SMPTE_BACKGROUND_IMAGE_VERTICAL);
     if (attr) {
       if (attr->value.raw_length[0].unit == GST_TTML_LENGTH_UNIT_RELATIVE) {
-        region->smpte_background_image_posy = region->padded_originy +
+        region->smpte_background_image_posy =
+            region->padded_originy +
             (region->padded_extenty - height) * attr->value.raw_length[0].f;
       } else {
-        region->smpte_background_image_posy = region->padded_originy +
-            attr->value.raw_length[0].f;
+        region->smpte_background_image_posy =
+            region->padded_originy + attr->value.raw_length[0].f;
       }
     } else {
       /* CENTER is the default */
-      region->smpte_background_image_posy = region->padded_originy +
-          (region->padded_extenty - height) / 2;
+      region->smpte_background_image_posy =
+          region->padded_originy + (region->padded_extenty - height) / 2;
     }
   }
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_DISPLAY_ALIGN);
-  region->display_align = attr ? attr->value.display_align :
-      render->default_display_align;
+  region->display_align =
+      attr ? attr->value.display_align : render->default_display_align;
 
   attr = gst_ttml_style_get_attr (style, GST_TTML_ATTR_TEXTOUTLINE);
   if (attr) {
@@ -588,9 +578,10 @@ typedef struct _GstTTMLRenderShapeAttrData
 } GstTTMLRenderShapeAttrData;
 
 gpointer
-gst_ttmlrender_shape_attr_data_copy (GstTTMLRenderShapeAttrData * data)
+gst_ttmlrender_shape_attr_data_copy (GstTTMLRenderShapeAttrData *data)
 {
-  GstTTMLRenderShapeAttrData *new_data = g_new0 (GstTTMLRenderShapeAttrData, 1);
+  GstTTMLRenderShapeAttrData *new_data =
+      g_new0 (GstTTMLRenderShapeAttrData, 1);
   new_data->wc = data->wc;
   new_data->hscale = data->hscale;
   new_data->cairo_font = cairo_scaled_font_reference (data->cairo_font);
@@ -598,7 +589,7 @@ gst_ttmlrender_shape_attr_data_copy (GstTTMLRenderShapeAttrData * data)
 }
 
 void
-gst_ttmlrender_shape_attr_data_free (GstTTMLRenderShapeAttrData * data)
+gst_ttmlrender_shape_attr_data_free (GstTTMLRenderShapeAttrData *data)
 {
   cairo_scaled_font_destroy (data->cairo_font);
   g_free (data);
@@ -607,19 +598,19 @@ gst_ttmlrender_shape_attr_data_free (GstTTMLRenderShapeAttrData * data)
 /* Adds this span to the current paragraph of the appropriate region.
  * When a line-break char is found, a new PangoLayout is created. */
 static void
-gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
+gst_ttmlrender_build_layouts (GstTTMLSpan *span, GstTTMLRender *render)
 {
   GstTTMLAttribute *attr;
   const gchar *region_id;
   static const gchar *default_region_id = "anonymous";
   GList *region_link;
   GstTTMLRegion *region;
-  gchar *frag_start = span->chars;      /* NOT NULL-terminated! */
+  gchar *frag_start = span->chars; /* NOT NULL-terminated! */
   int chars_left = span->length;
   GstTTMLStyle final_style;
 
-  GST_MEMDUMP_OBJECT (render, "span chars:", (guint8 *) span->chars,
-      span->length);
+  GST_MEMDUMP_OBJECT (
+      render, "span chars:", (guint8 *) span->chars, span->length);
 
   /* Do nothing if the span is disabled */
   attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DISPLAY);
@@ -637,7 +628,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
     /* Retrieve region style */
     if (!g_hash_table_lookup_extended (base->state.saved_region_attr_stacks,
-            region_id, NULL, (gpointer *) & src_style.attributes)) {
+            region_id, NULL, (gpointer *) &src_style.attributes)) {
       /* This region does not exist, discard span */
       return;
     }
@@ -647,8 +638,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
     while (prev_attr_stack) {
       GstTTMLAttribute *prev;
-      prev = gst_ttml_style_set_attr (&final_style,
-          (GstTTMLAttribute *) prev_attr_stack->data);
+      prev = gst_ttml_style_set_attr (
+          &final_style, (GstTTMLAttribute *) prev_attr_stack->data);
       gst_ttml_attribute_free (prev);
       prev_attr_stack = prev_attr_stack->next;
     }
@@ -694,9 +685,9 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
     if (!default_font_size) {
       /* According to the spec, when no font size is specified, use "1c" */
-      default_font_size = g_strdup_printf (" %dpx ",
-          render->base.state.frame_height /
-          render->base.state.cell_resolution_y);
+      default_font_size =
+          g_strdup_printf (" %dpx ", render->base.state.frame_height /
+                                         render->base.state.cell_resolution_y);
       GST_DEBUG_OBJECT (render, "No font size specified, using %d/%d =%s",
           render->base.state.frame_height,
           render->base.state.cell_resolution_y, default_font_size);
@@ -715,7 +706,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
     if (frag_len) {
       region->current_par_content =
           (gchar *) g_realloc (region->current_par_content,
-          curr_len + markup_head_len + frag_len + markup_tail_len + 2);
+              curr_len + markup_head_len + frag_len + markup_tail_len + 2);
       ptr = region->current_par_content + curr_len;
       memcpy (ptr, markup_head, markup_head_len);
       ptr += markup_head_len;
@@ -735,8 +726,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
     attr =
         gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_TEXT_DECORATION);
-    if (attr
-        && (attr->value.text_decoration & GST_TTML_TEXT_DECORATION_OVERLINE)) {
+    if (attr &&
+        (attr->value.text_decoration & GST_TTML_TEXT_DECORATION_OVERLINE)) {
       PangoAttribute *pattr = gst_ttmlrender_pango_attr_overline_new (TRUE);
       pattr->start_index = region->current_par_content_plain_length;
       pattr->end_index = region->current_par_content_plain_length + frag_len;
@@ -779,11 +770,10 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
       gchar *tmp1, *tmp2;
       int ndx;
       gint start = 0, end = 0;
-      double hscale =
-          gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-          attr, 0, 0, NULL) /
-          gst_ttml_attribute_get_normalized_length (&render->base.state, NULL,
-          attr, 1, 1, NULL);
+      double hscale = gst_ttml_attribute_get_normalized_length (
+                          &render->base.state, NULL, attr, 0, 0, NULL) /
+                      gst_ttml_attribute_get_normalized_length (
+                          &render->base.state, NULL, attr, 1, 1, NULL);
 
       /* Get the Pango attrs applying to the current paragraph content */
       pango_parse_markup (region->current_par_content, -1, 0, &pango_attr_list,
@@ -802,10 +792,9 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
       }
 
       /* Load a fontset that matches the font description */
-      pango_fontset =
-          pango_font_map_load_fontset (pango_cairo_font_map_get_default (),
-          render->pango_context, ((PangoAttrFontDesc *) pango_attr)->desc,
-          NULL);
+      pango_fontset = pango_font_map_load_fontset (
+          pango_cairo_font_map_get_default (), render->pango_context,
+          ((PangoAttrFontDesc *) pango_attr)->desc, NULL);
 
       ndx = 0;
       tmp1 = frag_start;
@@ -823,16 +812,16 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
         /* Choose a font that can represent this particular unicode point */
         pango_font = pango_fontset_get_font (pango_fontset, wc);
-        cairo_font = pango_cairo_font_get_scaled_font (
-            (PangoCairoFont *) pango_font);
+        cairo_font =
+            pango_cairo_font_get_scaled_font ((PangoCairoFont *) pango_font);
 
         /* Get the glyph index inside this font corresponding to the unicode */
         cairo_scaled_font_text_to_glyphs (cairo_font, 0, 0, tmp1, tmp2 - tmp1,
             &glyph, &num_glyphs, NULL, NULL, NULL);
 
         /* Find the glyph size and scale it (finally !) */
-        pango_font_get_glyph_extents (pango_font, glyph->index,
-            &ink_rect, &logical_rect);
+        pango_font_get_glyph_extents (
+            pango_font, glyph->index, &ink_rect, &logical_rect);
         logical_rect.width *= hscale;
         ink_rect.width *= hscale;
         logical_rect.x *= hscale;
@@ -849,9 +838,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
         g_object_unref (pango_font);
 
         /* Create the Pango Shape Attribute */
-        pango_shape_attr =
-            pango_attr_shape_new_with_data (&ink_rect, &logical_rect,
-            (gpointer) shape_data,
+        pango_shape_attr = pango_attr_shape_new_with_data (&ink_rect,
+            &logical_rect, (gpointer) shape_data,
             (PangoAttrDataCopyFunc) gst_ttmlrender_shape_attr_data_copy,
             (GDestroyNotify) gst_ttmlrender_shape_attr_data_free);
         pango_shape_attr->start_index =
@@ -863,8 +851,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
         if (!region->current_par_pango_attrs) {
           region->current_par_pango_attrs = pango_attr_list_new ();
         }
-        pango_attr_list_insert (region->current_par_pango_attrs,
-            pango_shape_attr);
+        pango_attr_list_insert (
+            region->current_par_pango_attrs, pango_shape_attr);
 
         ndx += (tmp2 - tmp1);
         tmp1 = tmp2;
@@ -872,7 +860,7 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
       g_object_unref (pango_fontset);
 
-    skip_font_size:
+skip_font_size:
       pango_attr_iterator_destroy (pango_attr_iter);
       pango_attr_list_unref (pango_attr_list);
     }
@@ -883,17 +871,18 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
        * Provide Pango attrs directly, passing the alpha in the LSB of the red
        * component (hack alert!). We will pickup these attrs later and render
        * them manually. */
-      PangoAttribute *pattr = pango_attr_background_new (
-          ((attr->value.color >> 16) & 0xFF00) |
-          ((attr->value.color >> 0) & 0x00FF),
-          (attr->value.color >> 8) & 0xFF00,
-          (attr->value.color >> 0) & 0xFF00);
+      PangoAttribute *pattr =
+          pango_attr_background_new (((attr->value.color >> 16) & 0xFF00) |
+                                         ((attr->value.color >> 0) & 0x00FF),
+              (attr->value.color >> 8) & 0xFF00,
+              (attr->value.color >> 0) & 0xFF00);
       pattr->start_index = region->current_par_content_plain_length;
       pattr->end_index = region->current_par_content_plain_length + frag_len;
       if (!region->current_par_pango_attrs) {
         region->current_par_pango_attrs = pango_attr_list_new ();
       }
-      /* This overwrites the attrs of the same type generated by pango markup */
+      /* This overwrites the attrs of the same type generated by pango markup
+       */
       pango_attr_list_change (region->current_par_pango_attrs, pattr);
     }
     attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_COLOR);
@@ -902,25 +891,26 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
        * Provide Pango attrs directly, passing the alpha in the LSB of the red
        * component (hack alert!). We will pickup these attrs later and render
        * them manually. */
-      PangoAttribute *pattr = pango_attr_foreground_new (
-          ((attr->value.color >> 16) & 0xFF00) |
-          ((attr->value.color >> 0) & 0x00FF),
-          (attr->value.color >> 8) & 0xFF00,
-          (attr->value.color >> 0) & 0xFF00);
+      PangoAttribute *pattr =
+          pango_attr_foreground_new (((attr->value.color >> 16) & 0xFF00) |
+                                         ((attr->value.color >> 0) & 0x00FF),
+              (attr->value.color >> 8) & 0xFF00,
+              (attr->value.color >> 0) & 0xFF00);
       pattr->start_index = region->current_par_content_plain_length;
       pattr->end_index = region->current_par_content_plain_length + frag_len;
       if (!region->current_par_pango_attrs) {
         region->current_par_pango_attrs = pango_attr_list_new ();
       }
-      /* This overwrites the attrs of the same type generated by pango markup */
+      /* This overwrites the attrs of the same type generated by pango markup
+       */
       pango_attr_list_change (region->current_par_pango_attrs, pattr);
     }
     attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_UNICODE_BIDI);
     if (attr && (attr->value.unicode_bidi == GST_TTML_UNICODE_BIDI_OVERRIDE)) {
       /* If unicodeBidi == bidiOverride && direction == RTL, then we activate
        * the reverse mode.
-       * FIXME: Fails for languages which are naturally RTL, which Pango handles
-       * correctly on its own. */
+       * FIXME: Fails for languages which are naturally RTL, which Pango
+       * handles correctly on its own. */
       attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_DIRECTION);
       if (attr && (attr->value.direction == GST_TTML_DIRECTION_RTL)) {
         PangoAttribute *pattr = gst_ttmlrender_pango_attr_reverse_new (TRUE);
@@ -933,9 +923,8 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
       }
     }
     attr = gst_ttml_style_get_attr (&span->style, GST_TTML_ATTR_FONT_STYLE);
-    if (attr
-        && ((attr->value.font_style == GST_TTML_FONT_STYLE_REVERSE_OBLIQUE) !=
-            0)) {
+    if (attr && ((attr->value.font_style ==
+                     GST_TTML_FONT_STYLE_REVERSE_OBLIQUE) != 0)) {
       /* Pango markup does not support reverse oblique. We use our own attr. */
       PangoAttribute *pattr =
           gst_ttmlrender_pango_attr_reverse_oblique_new (TRUE);
@@ -953,13 +942,13 @@ gst_ttmlrender_build_layouts (GstTTMLSpan * span, GstTTMLRender * render)
 
   } while (chars_left > 0);
 
-  GST_DEBUG_OBJECT (render, "paragraph content:\n%s",
-      region->current_par_content);
+  GST_DEBUG_OBJECT (
+      render, "paragraph content:\n%s", region->current_par_content);
   gst_ttml_style_reset (&final_style);
 }
 
 static void
-gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
+gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
     gboolean render, int right_edge, gboolean show_background,
     GstTTMLWritingMode writing_mode)
 {
@@ -1024,31 +1013,29 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
       while (extra_attrs) {
         PangoAttribute *attr = (PangoAttribute *) extra_attrs->data;
         switch (attr->klass->type) {
-          case PANGO_ATTR_FOREGROUND:{
+          case PANGO_ATTR_FOREGROUND: {
             PangoAttrColor *color = (PangoAttrColor *) attr;
-            cairo_set_source_rgba (cairo, (color->color.red & 0xFF00) / 65280.0,
-                color->color.green / 65535.0,
-                color->color.blue / 65535.0,
+            cairo_set_source_rgba (cairo,
+                (color->color.red & 0xFF00) / 65280.0,
+                color->color.green / 65535.0, color->color.blue / 65535.0,
                 (color->color.red & 0x00FF) / 255.0);
-          }
-            break;
-          case PANGO_ATTR_BACKGROUND:{
+          } break;
+          case PANGO_ATTR_BACKGROUND: {
             PangoAttrColor *color = (PangoAttrColor *) attr;
             if (!show_background)
               break;
             if (!render)
               cairo_stroke (cairo);
             cairo_save (cairo);
-            cairo_set_source_rgba (cairo, (color->color.red & 0xFF00) / 65280.0,
-                color->color.green / 65535.0,
-                color->color.blue / 65535.0,
+            cairo_set_source_rgba (cairo,
+                (color->color.red & 0xFF00) / 65280.0,
+                color->color.green / 65535.0, color->color.blue / 65535.0,
                 (color->color.red & 0x00FF) / 255.0);
-            cairo_rectangle (cairo, 0, -pre_space, width,
-                pre_space + post_space);
+            cairo_rectangle (
+                cairo, 0, -pre_space, width, pre_space + post_space);
             cairo_fill (cairo);
             cairo_restore (cairo);
-          }
-            break;
+          } break;
           default:
             /* reverse */
             if (attr->klass == &gst_ttmlrender_pango_attr_reverse_klass) {
@@ -1064,7 +1051,7 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
       while (extra_attrs) {
         PangoAttribute *attr = (PangoAttribute *) extra_attrs->data;
         switch (attr->klass->type) {
-          case PANGO_ATTR_UNDERLINE:{
+          case PANGO_ATTR_UNDERLINE: {
             PangoFontMetrics *metrics =
                 pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
             double underline_thickness =
@@ -1079,9 +1066,8 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
             } else {
               cairo_fill (cairo);
             }
-          }
-            break;
-          case PANGO_ATTR_STRIKETHROUGH:{
+          } break;
+          case PANGO_ATTR_STRIKETHROUGH: {
             PangoFontMetrics *metrics =
                 pango_font_get_metrics (glyph_item->item->analysis.font, NULL);
             double strikethrough_thickness =
@@ -1096,14 +1082,12 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
             } else {
               cairo_fill (cairo);
             }
-          }
-            break;
+          } break;
           default:
             /* Overline */
             if (attr->klass == &gst_ttmlrender_pango_attr_overline_klass) {
-              PangoFontMetrics *metrics =
-                  pango_font_get_metrics (glyph_item->item->analysis.font,
-                  NULL);
+              PangoFontMetrics *metrics = pango_font_get_metrics (
+                  glyph_item->item->analysis.font, NULL);
               double overline_thickness =
                   pango_font_metrics_get_underline_thickness (metrics);
               double overline_position =
@@ -1117,8 +1101,9 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
                 cairo_fill (cairo);
               }
             } else
-              /* Invisibility */
-            if (attr->klass == &gst_ttmlrender_pango_attr_invisibility_klass) {
+                /* Invisibility */
+                if (attr->klass ==
+                    &gst_ttmlrender_pango_attr_invisibility_klass) {
               skip_run = TRUE;
             }
             /* Anamorphic text rendering */
@@ -1143,7 +1128,8 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
               skip_run = TRUE;
             }
             /* Reverse Oblique */
-            if (attr->klass == &gst_ttmlrender_pango_attr_reverse_oblique_klass) {
+            if (attr->klass ==
+                &gst_ttmlrender_pango_attr_reverse_oblique_klass) {
               reverseOblique = TRUE;
               cairo_matrix_init (&transform, 1, 0, 0.25, 1, 0, 0);
             }
@@ -1166,19 +1152,20 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
           }
           cairo_translate (cairo,
               glyph_item->glyphs->glyphs->geometry.x_offset /
-              (double) PANGO_SCALE,
+                  (double) PANGO_SCALE,
               glyph_item->glyphs->glyphs->geometry.y_offset /
-              (double) PANGO_SCALE);
+                  (double) PANGO_SCALE);
           if (render) {
-            pango_cairo_show_glyph_string (cairo,
-                glyph_item->item->analysis.font, glyph_item->glyphs);
+            pango_cairo_show_glyph_string (
+                cairo, glyph_item->item->analysis.font, glyph_item->glyphs);
           } else {
-            pango_cairo_glyph_string_path (cairo,
-                glyph_item->item->analysis.font, glyph_item->glyphs);
+            pango_cairo_glyph_string_path (
+                cairo, glyph_item->item->analysis.font, glyph_item->glyphs);
           }
           cairo_restore (cairo);
           cairo_translate (cairo,
-              glyph_item->glyphs->glyphs->geometry.width / (double) PANGO_SCALE,
+              glyph_item->glyphs->glyphs->geometry.width /
+                  (double) PANGO_SCALE,
               0);
         }
         /* Restore glyph_item to original values */
@@ -1197,11 +1184,11 @@ gst_ttmlrender_show_layout (cairo_t * cairo, PangoLayout * layout,
   }
 }
 
-#define GET_CAIRO_COMP(c,offs) ((((c)>>offs) & 255) / 255.0)
+#define GET_CAIRO_COMP(c, offs) ((((c) >> offs) & 255) / 255.0)
 
 static void
-gst_ttmlrender_render_outline (GstTTMLRender * render,
-    GstTTMLTextOutline * outline, PangoLayout * layout, PangoRectangle * rect,
+gst_ttmlrender_render_outline (GstTTMLRender *render,
+    GstTTMLTextOutline *outline, PangoLayout *layout, PangoRectangle *rect,
     int right_edge, GstTTMLWritingMode writing_mode)
 {
   /* Draw the text outline */
@@ -1225,26 +1212,24 @@ gst_ttmlrender_render_outline (GstTTMLRender * render,
     dest_surface = render->surface;
   }
 
-  cairo_set_source_rgba (dest_cairo,
-      GET_CAIRO_COMP (color, 24),
-      GET_CAIRO_COMP (color, 16),
-      GET_CAIRO_COMP (color, 8), GET_CAIRO_COMP (color, 0));
+  cairo_set_source_rgba (dest_cairo, GET_CAIRO_COMP (color, 24),
+      GET_CAIRO_COMP (color, 16), GET_CAIRO_COMP (color, 8),
+      GET_CAIRO_COMP (color, 0));
   cairo_set_line_width (dest_cairo, outline->length[0].f * 2);
-  gst_ttmlrender_show_layout (dest_cairo, layout, FALSE, right_edge, TRUE,
-      writing_mode);
+  gst_ttmlrender_show_layout (
+      dest_cairo, layout, FALSE, right_edge, TRUE, writing_mode);
   cairo_stroke (dest_cairo);
 
   if (outline->length[1].unit != GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
     /* And now the blur */
-    cairo_surface_t *blurred = gst_ttml_blur_image_surface (dest_surface,
-        outline->length[1].f * 2,
-        outline->length[1].f);
+    cairo_surface_t *blurred = gst_ttml_blur_image_surface (
+        dest_surface, outline->length[1].f * 2, outline->length[1].f);
 
-    cairo_set_source_surface (render->cairo, blurred,
-        rect->x - blur_radius, rect->y - blur_radius);
-    cairo_rectangle (render->cairo,
-        rect->x - blur_radius, rect->y - blur_radius,
-        rect->width + blur_radius * 2, rect->height + blur_radius * 2);
+    cairo_set_source_surface (
+        render->cairo, blurred, rect->x - blur_radius, rect->y - blur_radius);
+    cairo_rectangle (render->cairo, rect->x - blur_radius,
+        rect->y - blur_radius, rect->width + blur_radius * 2,
+        rect->height + blur_radius * 2);
     cairo_fill (render->cairo);
 
     cairo_surface_destroy (dest_surface);
@@ -1257,7 +1242,7 @@ gst_ttmlrender_render_outline (GstTTMLRender * render,
 
 /* Render all the layouts in this region onto the Cairo surface */
 static void
-gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
+gst_ttmlrender_show_regions (GstTTMLRegion *region, GstTTMLRender *render)
 {
   GList *link;
   cairo_t *original_cairo = NULL;
@@ -1272,8 +1257,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
   cairo_save (render->cairo);
 
   if (region->opacity < 1.0) {
-    region_surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-        region->extentx, region->extenty);
+    region_surface = cairo_image_surface_create (
+        CAIRO_FORMAT_ARGB32, region->extentx, region->extenty);
     original_cairo = render->cairo;
     render->cairo = cairo_create (region_surface);
     cairo_translate (render->cairo, -region->originx, -region->originy);
@@ -1302,12 +1287,13 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
   /* Clip contents to region, if required */
   if (!region->overflow_visible) {
     cairo_rectangle (render->cairo, region->padded_originx,
-        region->padded_originy, region->padded_extentx, region->padded_extenty);
+        region->padded_originy, region->padded_extentx,
+        region->padded_extenty);
     cairo_clip (render->cairo);
   }
 
-  cairo_translate (render->cairo, region->padded_originx,
-      region->padded_originy);
+  cairo_translate (
+      render->cairo, region->padded_originx, region->padded_originy);
 
   if (region->display_align != GST_TTML_DISPLAY_ALIGN_BEFORE) {
     /* Calculate height of text */
@@ -1340,10 +1326,10 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
           -region->padded_extentx);
       cairo_set_matrix (render->cairo, &orientation_matrix);
 
-      pango_context_set_base_gravity (render->pango_context,
-          PANGO_GRAVITY_EAST);
-      pango_context_set_gravity_hint (render->pango_context,
-          PANGO_GRAVITY_HINT_STRONG);
+      pango_context_set_base_gravity (
+          render->pango_context, PANGO_GRAVITY_EAST);
+      pango_context_set_gravity_hint (
+          render->pango_context, PANGO_GRAVITY_HINT_STRONG);
       pango_cairo_update_context (render->cairo, render->pango_context);
       break;
     case GST_TTML_WRITING_MODE_TBLR:
@@ -1352,10 +1338,10 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
           -region->padded_originy);
       cairo_set_matrix (render->cairo, &orientation_matrix);
 
-      pango_context_set_base_gravity (render->pango_context,
-          PANGO_GRAVITY_EAST);
-      pango_context_set_gravity_hint (render->pango_context,
-          PANGO_GRAVITY_HINT_STRONG);
+      pango_context_set_base_gravity (
+          render->pango_context, PANGO_GRAVITY_EAST);
+      pango_context_set_gravity_hint (
+          render->pango_context, PANGO_GRAVITY_HINT_STRONG);
       pango_cairo_update_context (render->cairo, render->pango_context);
       break;
     default:
@@ -1368,12 +1354,13 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
     PangoLayout *layout = (PangoLayout *) link->data;
 
     /* Show outline if required */
-    if (region->text_outline.length[0].unit != GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
+    if (region->text_outline.length[0].unit !=
+        GST_TTML_LENGTH_UNIT_NOT_PRESENT) {
       PangoRectangle logical_rect;
       pango_layout_get_pixel_extents (layout, NULL, &logical_rect);
       /* FIXME Outline does not work on rotated writing modes */
-      gst_ttmlrender_render_outline (render, &region->text_outline,
-          layout, &logical_rect, region->padded_extentx, region->writing_mode);
+      gst_ttmlrender_render_outline (render, &region->text_outline, layout,
+          &logical_rect, region->padded_extentx, region->writing_mode);
     }
 
     /* Show text */
@@ -1386,7 +1373,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
     gst_ttmlrender_show_layout (render->cairo, layout, TRUE,
         region->padded_extentx,
         region->text_outline.length[0].unit ==
-        GST_TTML_LENGTH_UNIT_NOT_PRESENT, region->writing_mode);
+            GST_TTML_LENGTH_UNIT_NOT_PRESENT,
+        region->writing_mode);
 
     link = g_list_next (link);
   }
@@ -1396,8 +1384,8 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
   if (original_cairo) {
     cairo_destroy (render->cairo);
     render->cairo = original_cairo;
-    cairo_set_source_surface (render->cairo, region_surface, region->originx,
-        region->originy);
+    cairo_set_source_surface (
+        render->cairo, region_surface, region->originx, region->originy);
     cairo_paint_with_alpha (render->cairo, region->opacity);
     cairo_surface_destroy (region_surface);
   }
@@ -1406,7 +1394,7 @@ gst_ttmlrender_show_regions (GstTTMLRegion * region, GstTTMLRender * render)
 }
 
 static void
-gst_ttmlrender_free_region (GstTTMLRegion * region)
+gst_ttmlrender_free_region (GstTTMLRegion *region)
 {
   g_free (region->current_par_content);
   if (region->current_par_pango_attrs)
@@ -1419,8 +1407,8 @@ gst_ttmlrender_free_region (GstTTMLRegion * region)
 /* Creates an empty layout for those regions with showBackground=Always, so
  * the background is rendered even when empty. */
 static void
-gst_ttmlrender_build_background_layout (const gchar * id, GList * attr_list,
-    GstTTMLRender * render)
+gst_ttmlrender_build_background_layout (
+    const gchar *id, GList *attr_list, GstTTMLRender *render)
 {
   GstTTMLStyle style;
   GstTTMLAttribute *attr;
@@ -1432,8 +1420,8 @@ gst_ttmlrender_build_background_layout (const gchar * id, GList * attr_list,
     return;
 
   /* Find or create region struct */
-  region_link = g_list_find_custom (render->regions, id,
-      (GCompareFunc) gst_ttmlrender_region_compare_id);
+  region_link = g_list_find_custom (
+      render->regions, id, (GCompareFunc) gst_ttmlrender_region_compare_id);
   if (!region_link) {
     /* Create a new empty region, without any layout */
     GstTTMLRegion *region;
@@ -1446,22 +1434,22 @@ gst_ttmlrender_build_background_layout (const gchar * id, GList * attr_list,
 }
 
 static GstBuffer *
-gst_ttmlrender_gen_buffer (GstTTMLBase * base, GstClockTime ts,
-    GstClockTime duration)
+gst_ttmlrender_gen_buffer (
+    GstTTMLBase *base, GstClockTime ts, GstClockTime duration)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
 
-  GST_DEBUG_OBJECT (render, "Generating a new buffer at%" GST_TIME_FORMAT
-      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
+  GST_DEBUG_OBJECT (render,
+      "Generating a new buffer at%" GST_TIME_FORMAT " - %" GST_TIME_FORMAT,
+      GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
   GST_DEBUG_OBJECT (render, "Using fame: window=%dx%d, frame=%dx%d",
       render->window_width, render->window_height,
       render->base.state.frame_width, render->base.state.frame_height);
 
-  buffer =
-      gst_buffer_new_and_alloc (render->base.state.frame_width *
-      render->base.state.frame_height * 4);
+  buffer = gst_buffer_new_and_alloc (
+      render->base.state.frame_width * render->base.state.frame_height * 4);
   gst_buffer_map (buffer, &map_info, GST_MAP_WRITE);
 
   render->surface = cairo_image_surface_create_for_data (map_info.data,
@@ -1480,15 +1468,16 @@ gst_ttmlrender_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   }
 
   /* Build a ZIndex-sorted list of Regions, each with a list of PangoLayouts */
-  g_list_foreach (base->active_spans, (GFunc) gst_ttmlrender_build_layouts,
-      render);
+  g_list_foreach (
+      base->active_spans, (GFunc) gst_ttmlrender_build_layouts, render);
 
   /* Render all generated regions */
-  g_list_foreach (render->regions, (GFunc) gst_ttmlrender_show_regions, render);
+  g_list_foreach (
+      render->regions, (GFunc) gst_ttmlrender_show_regions, render);
 
   /* We are done processing the regions, destroy the temp structures */
-  g_list_free_full (render->regions,
-      (GDestroyNotify) gst_ttmlrender_free_region);
+  g_list_free_full (
+      render->regions, (GDestroyNotify) gst_ttmlrender_free_region);
   render->regions = NULL;
 
   gst_buffer_unmap (buffer, &map_info);
@@ -1498,7 +1487,7 @@ gst_ttmlrender_gen_buffer (GstTTMLBase * base, GstClockTime ts,
 }
 
 static void
-gst_ttmlrender_fixate_caps (GstTTMLBase * base, GstCaps * caps)
+gst_ttmlrender_fixate_caps (GstTTMLBase *base, GstCaps *caps)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
   GstStructure *s = gst_caps_get_structure (caps, 0);
@@ -1524,15 +1513,15 @@ gst_ttmlrender_fixate_caps (GstTTMLBase * base, GstCaps * caps)
 }
 
 static void
-gst_ttmlrender_complete_caps (GstTTMLBase * base, GstCaps * caps)
+gst_ttmlrender_complete_caps (GstTTMLBase *base, GstCaps *caps)
 {
   GstStructure *s = gst_caps_get_structure (caps, 0);
-  gst_structure_fixate_field_nearest_fraction (s, "pixel-aspect-ratio",
-      base->state.par_num, base->state.par_den);
+  gst_structure_fixate_field_nearest_fraction (
+      s, "pixel-aspect-ratio", base->state.par_num, base->state.par_den);
 }
 
 static void
-gst_ttmlrender_setcaps (GstTTMLBase * base, GstCaps * caps)
+gst_ttmlrender_setcaps (GstTTMLBase *base, GstCaps *caps)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
   GstStructure *structure;
@@ -1551,8 +1540,8 @@ gst_ttmlrender_setcaps (GstTTMLBase * base, GstCaps * caps)
 }
 
 static void
-gst_ttmlrender_get_property (GObject * object, guint prop_id, GValue * value,
-    GParamSpec * pspec)
+gst_ttmlrender_get_property (
+    GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
   GstTTMLRender *render = GST_TTMLRENDER (object);
 
@@ -1582,8 +1571,8 @@ gst_ttmlrender_get_property (GObject * object, guint prop_id, GValue * value,
 }
 
 static void
-gst_ttmlrender_set_property (GObject * object, guint prop_id,
-    const GValue * value, GParamSpec * pspec)
+gst_ttmlrender_set_property (
+    GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
   GstTTMLRender *render = GST_TTMLRENDER (object);
 
@@ -1628,7 +1617,7 @@ gst_ttmlrender_set_property (GObject * object, guint prop_id,
 }
 
 static void
-gst_ttmlrender_reset (GstTTMLBase * base)
+gst_ttmlrender_reset (GstTTMLBase *base)
 {
   GstTTMLRender *render = GST_TTMLRENDER (base);
 
@@ -1641,7 +1630,7 @@ gst_ttmlrender_reset (GstTTMLBase * base)
 }
 
 static void
-gst_ttmlrender_dispose (GObject * object)
+gst_ttmlrender_dispose (GObject *object)
 {
   GstTTMLRender *render = GST_TTMLRENDER (object);
 
@@ -1650,8 +1639,8 @@ gst_ttmlrender_dispose (GObject * object)
   GST_DEBUG_OBJECT (render, "disposing TTML renderer");
 
   if (render->regions) {
-    g_list_free_full (render->regions,
-        (GDestroyNotify) gst_ttmlrender_free_region);
+    g_list_free_full (
+        render->regions, (GDestroyNotify) gst_ttmlrender_free_region);
     render->regions = NULL;
   }
 
@@ -1676,7 +1665,7 @@ gst_ttmlrender_dispose (GObject * object)
 }
 
 static void
-gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
+gst_ttmlrender_class_init (GstTTMLRenderClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GstTTMLBaseClass *base_klass = GST_TTMLBASE_CLASS (klass);
@@ -1684,8 +1673,10 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
   parent_class = GST_TTMLBASE_CLASS (g_type_class_peek_parent (klass));
 
   gobject_class->dispose = GST_DEBUG_FUNCPTR (gst_ttmlrender_dispose);
-  gobject_class->set_property = GST_DEBUG_FUNCPTR (gst_ttmlrender_set_property);
-  gobject_class->get_property = GST_DEBUG_FUNCPTR (gst_ttmlrender_get_property);
+  gobject_class->set_property =
+      GST_DEBUG_FUNCPTR (gst_ttmlrender_set_property);
+  gobject_class->get_property =
+      GST_DEBUG_FUNCPTR (gst_ttmlrender_get_property);
 
   /* Register properties */
   g_object_class_install_property (gobject_class, PROP_DEFAULT_FONT_FAMILY,
@@ -1700,13 +1691,15 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
 
   g_object_class_install_property (gobject_class, PROP_DEFAULT_TEXT_ALIGN,
       g_param_spec_enum ("default_text_align", "Default text alignment",
-          "Text alignment to use when the TTML file does not explicitly set one",
+          "Text alignment to use when the TTML file does not explicitly set "
+          "one",
           GST_TTML_TEXT_ALIGN_SPEC, GST_TTML_TEXT_ALIGN_LEFT,
           G_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_DEFAULT_DISPLAY_ALIGN,
       g_param_spec_enum ("default_display_align", "Default display alignment",
-          "Display alignment to use when the TTML file does not explicitly set one",
+          "Display alignment to use when the TTML file does not explicitly "
+          "set one",
           GST_TTML_DISPLAY_ALIGN_SPEC, GST_TTML_DISPLAY_ALIGN_BEFORE,
           G_PARAM_READWRITE));
 
@@ -1725,8 +1718,7 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
       gst_static_pad_template_get (&ttmlrender_src_template));
 
   gst_element_class_set_details_simple (GST_ELEMENT_CLASS (klass),
-      "TTML subtitle renderer",
-      "Codec/Decoder/Subtitle",
+      "TTML subtitle renderer", "Codec/Decoder/Subtitle",
       "Render TTML subtitle streams into a video stream",
       "Fluendo S.A. <support@fluendo.com>");
 
@@ -1738,7 +1730,7 @@ gst_ttmlrender_class_init (GstTTMLRenderClass * klass)
 }
 
 static void
-gst_ttmlrender_init (GstTTMLRender * render)
+gst_ttmlrender_init (GstTTMLRender *render)
 {
   render->pango_context =
       pango_font_map_create_context (pango_cairo_font_map_get_default ());

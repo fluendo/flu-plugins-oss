@@ -9,7 +9,8 @@
 G_BEGIN_DECLS
 
 /* Types of TTML nodes */
-typedef enum _GstTTMLNodeType {
+typedef enum _GstTTMLNodeType
+{
   GST_TTML_NODE_TYPE_UNKNOWN,
   GST_TTML_NODE_TYPE_TT,
   GST_TTML_NODE_TYPE_HEAD,
@@ -30,7 +31,8 @@ typedef enum _GstTTMLNodeType {
 } GstTTMLNodeType;
 
 /* Attributes currently supported */
-typedef enum _GstTTMLAttributeType {
+typedef enum _GstTTMLAttributeType
+{
   GST_TTML_ATTR_NODE_TYPE,
   GST_TTML_ATTR_ID,
   GST_TTML_ATTR_BEGIN,
@@ -86,7 +88,8 @@ typedef enum _GstTTMLAttributeType {
 } GstTTMLAttributeType;
 
 /* Event types */
-typedef enum _GstTTMLEventType {
+typedef enum _GstTTMLEventType
+{
   GST_TTML_EVENT_TYPE_SPAN_BEGIN,
   GST_TTML_EVENT_TYPE_SPAN_END,
   GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE,
@@ -96,7 +99,8 @@ typedef enum _GstTTMLEventType {
 } GstTTMLEventType;
 
 /* Length units */
-typedef enum _GstTTMLLengthUnit {
+typedef enum _GstTTMLLengthUnit
+{
   GST_TTML_LENGTH_UNIT_NOT_PRESENT = 0,
   GST_TTML_LENGTH_UNIT_PIXELS,
   GST_TTML_LENGTH_UNIT_CELLS,
@@ -106,7 +110,8 @@ typedef enum _GstTTMLLengthUnit {
 } GstTTMLLengthUnit;
 
 /* Font Styles */
-typedef enum _GstTTMLFontStyle {
+typedef enum _GstTTMLFontStyle
+{
   GST_TTML_FONT_STYLE_NORMAL,
   GST_TTML_FONT_STYLE_ITALIC,
   GST_TTML_FONT_STYLE_OBLIQUE,
@@ -115,23 +120,26 @@ typedef enum _GstTTMLFontStyle {
 } GstTTMLFontStyle;
 
 /* Font Weights */
-typedef enum _GstTTMLFontWeight {
+typedef enum _GstTTMLFontWeight
+{
   GST_TTML_FONT_WEIGHT_NORMAL,
   GST_TTML_FONT_WEIGHT_BOLD,
   GST_TTML_FONT_WEIGHT_UNKNOWN
 } GstTTMLFontWeight;
 
 /* Text decorations (More than one can be selected) */
-typedef enum _GstTTMLTextDecoration {
-  GST_TTML_TEXT_DECORATION_NONE           = 0,
-  GST_TTML_TEXT_DECORATION_UNDERLINE      = 1 << 0,
-  GST_TTML_TEXT_DECORATION_STRIKETHROUGH  = 1 << 1,
-  GST_TTML_TEXT_DECORATION_OVERLINE       = 1 << 2,
-  GST_TTML_TEXT_DECORATION_UNKNOWN        = 1 << 3
+typedef enum _GstTTMLTextDecoration
+{
+  GST_TTML_TEXT_DECORATION_NONE = 0,
+  GST_TTML_TEXT_DECORATION_UNDERLINE = 1 << 0,
+  GST_TTML_TEXT_DECORATION_STRIKETHROUGH = 1 << 1,
+  GST_TTML_TEXT_DECORATION_OVERLINE = 1 << 2,
+  GST_TTML_TEXT_DECORATION_UNKNOWN = 1 << 3
 } GstTTMLTextDecoration;
 
 /* Text alignment */
-typedef enum _GstTTMLTextAlign {
+typedef enum _GstTTMLTextAlign
+{
   GST_TTML_TEXT_ALIGN_LEFT,
   GST_TTML_TEXT_ALIGN_CENTER,
   GST_TTML_TEXT_ALIGN_RIGHT,
@@ -141,7 +149,8 @@ typedef enum _GstTTMLTextAlign {
 } GstTTMLTextAlign;
 
 /* Display alignment */
-typedef enum _GstTTMLDisplayAlign {
+typedef enum _GstTTMLDisplayAlign
+{
   GST_TTML_DISPLAY_ALIGN_BEFORE,
   GST_TTML_DISPLAY_ALIGN_CENTER,
   GST_TTML_DISPLAY_ALIGN_AFTER,
@@ -149,21 +158,24 @@ typedef enum _GstTTMLDisplayAlign {
 } GstTTMLDisplayAlign;
 
 /* Wrap option */
-typedef enum _GstTTMLWrapOption {
+typedef enum _GstTTMLWrapOption
+{
   GST_TTML_WRAP_OPTION_YES,
   GST_TTML_WRAP_OPTION_NO,
   GST_TTML_WRAP_OPTION_UNKNOWN
 } GstTTMLWrapOption;
 
 /* Show background */
-typedef enum _GstTTMLShowBackground {
+typedef enum _GstTTMLShowBackground
+{
   GST_TTML_SHOW_BACKGROUND_ALWAYS,
   GST_TTML_SHOW_BACKGROUND_WHEN_ACTIVE,
   GST_TTML_SHOW_BACKGROUND_UNKNOWN
 } GstTTMLShowBackground;
 
 /* Time base */
-typedef enum _GstTTMLTimeBase {
+typedef enum _GstTTMLTimeBase
+{
   GST_TTML_TIME_BASE_MEDIA,
   GST_TTML_TIME_BASE_SMPTE,
   GST_TTML_TIME_BASE_CLOCK,
@@ -171,7 +183,8 @@ typedef enum _GstTTMLTimeBase {
 } GstTTMLTimeBase;
 
 /* Clock mode */
-typedef enum _GstTTMLClockMode {
+typedef enum _GstTTMLClockMode
+{
   GST_TTML_CLOCK_MODE_LOCAL,
   GST_TTML_CLOCK_MODE_GPS,
   GST_TTML_CLOCK_MODE_UTC,
@@ -179,7 +192,8 @@ typedef enum _GstTTMLClockMode {
 } GstTTMLClockMode;
 
 /* Unicode BIDI */
-typedef enum _GstTTMLUnicodeBIDI {
+typedef enum _GstTTMLUnicodeBIDI
+{
   GST_TTML_UNICODE_BIDI_NORMAL,
   GST_TTML_UNICODE_BIDI_EMBED,
   GST_TTML_UNICODE_BIDI_OVERRIDE,
@@ -187,14 +201,16 @@ typedef enum _GstTTMLUnicodeBIDI {
 } GstTTMLUnicodeBIDI;
 
 /* Direction */
-typedef enum _GstTTMLDirection {
+typedef enum _GstTTMLDirection
+{
   GST_TTML_DIRECTION_LTR,
   GST_TTML_DIRECTION_RTL,
   GST_TTML_DIRECTION_UNKNOWN
 } GstTTMLDirection;
 
 /* Writing Mode */
-typedef enum _GstTTMLWritingMode {
+typedef enum _GstTTMLWritingMode
+{
   GST_TTML_WRITING_MODE_LRTB,
   GST_TTML_WRITING_MODE_RLTB,
   /* Modes which rotate the layout must appear last */
@@ -204,13 +220,15 @@ typedef enum _GstTTMLWritingMode {
 } GstTTMLWritingMode;
 
 /* SMPTE-TT Image types */
-typedef enum _GstTTMLSMPTEImageType {
+typedef enum _GstTTMLSMPTEImageType
+{
   GST_TTML_SMPTE_IMAGE_TYPE_PNG,
   GST_TTML_SMPTE_IMAGE_TYPE_UNKNOWN
 } GstTTMLSMPTEImageType;
 
 /* SMPTE-TT Encodings */
-typedef enum _GstTTMLSMPTEEncoding {
+typedef enum _GstTTMLSMPTEEncoding
+{
   GST_TTML_SMPTE_ENCODING_BASE64,
   GST_TTML_SMPTE_ENCODING_UNKNOWN
 } GstTTMLSMPTEEncoding;
