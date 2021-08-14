@@ -6,25 +6,24 @@
 #include "fludownloader.h"
 
 gboolean
-data_cb (void *buffer, size_t size, gpointer user_data,
-    FluDownloaderTask * task)
+data_cb (
+    void *buffer, size_t size, gpointer user_data, FluDownloaderTask *task)
 {
   g_printf ("Received %" G_GSIZE_FORMAT " bytes from #%p"
-      " (Total size = %" G_GSIZE_FORMAT ")\n", size, user_data,
-      fludownloader_task_get_length (task));
-//  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
+            " (Total size = %" G_GSIZE_FORMAT ")\n",
+      size, user_data, fludownloader_task_get_length (task));
+  //  g_printf ("%*s\n", MIN (size, 60), (char *) buffer);
   return TRUE;
 }
 
 void
 done_cb (FluDownloaderTaskOutcome outcome, int http_status_code,
-    size_t downloaded_size, gpointer user_data, FluDownloaderTask * task,
-    gboolean * cancel_remaining_downloads)
+    size_t downloaded_size, gpointer user_data, FluDownloaderTask *task,
+    gboolean *cancel_remaining_downloads)
 {
-  g_printf ("Transfer #%p done (%s). HTTP Code = %d. %"
-      G_GSIZE_FORMAT " downloaded bytes (%s).\n",
-      user_data,
-      fludownloader_get_outcome_string (outcome), http_status_code,
+  g_printf ("Transfer #%p done (%s). HTTP Code = %d. %" G_GSIZE_FORMAT
+            " downloaded bytes (%s).\n",
+      user_data, fludownloader_get_outcome_string (outcome), http_status_code,
       downloaded_size, fludownloader_task_get_url (task));
 }
 
@@ -110,13 +109,14 @@ main (int argc, char *argv[])
   /* Test file downloads mixed with HTTP */
   fludownloader_lock (dl1);
   fludownloader_new_task (dl1,
-      "http://dash.edgesuite.net/adobe/hdworld_dash/hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s",
+      "http://dash.edgesuite.net/adobe/hdworld_dash/"
+      "hdworld_seg_hdworld_4496kbps_ffmpeg.mp4.video_temp1.m4s",
       NULL, (gpointer) 0, FALSE);
   fludownloader_new_task (dl1,
       "file:///home/fluendo/psvn/libfludownloader/aclocal.m42", NULL,
       (gpointer) 1, FALSE);
-  fludownloader_new_task (dl1, "http://localhost/kjk", NULL, (gpointer) 2,
-      FALSE);
+  fludownloader_new_task (
+      dl1, "http://localhost/kjk", NULL, (gpointer) 2, FALSE);
   fludownloader_new_task (dl1,
       "file:///home/fluendo/psvn/gstreamer/libfludownloader/configure", NULL,
       (gpointer) 3, FALSE);

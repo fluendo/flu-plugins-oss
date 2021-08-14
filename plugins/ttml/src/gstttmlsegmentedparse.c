@@ -30,19 +30,16 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlsegmentedparse_debug);
 #define LIBXML_CHAR (const guchar *)
 
 static GstStaticPadTemplate ttmlparse_src_template =
-GST_STATIC_PAD_TEMPLATE ("src",
-    GST_PAD_SRC,
-    GST_PAD_ALWAYS,
-    GST_STATIC_CAPS (TTML_MIME ", segmented = (boolean) TRUE")
-    );
+    GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
+        GST_STATIC_CAPS (TTML_MIME ", segmented = (boolean) TRUE"));
 
-G_DEFINE_TYPE (GstTTMLSegmentedParse, gst_ttmlsegmentedparse,
-    GST_TYPE_TTMLBASE);
+G_DEFINE_TYPE (
+    GstTTMLSegmentedParse, gst_ttmlsegmentedparse, GST_TYPE_TTMLBASE);
 #define parent_class gst_ttmlsegmentedparse_parent_class
 
 static void
-gst_ttmlsegmentedparse_attr_dump (GstTTMLAttribute * attr,
-    xmlTextWriterPtr writer)
+gst_ttmlsegmentedparse_attr_dump (
+    GstTTMLAttribute *attr, xmlTextWriterPtr writer)
 {
   gchar *attr_val;
   const gchar *attr_name = NULL;
@@ -54,8 +51,8 @@ gst_ttmlsegmentedparse_attr_dump (GstTTMLAttribute * attr,
       attr_val = gst_ttml_attribute_dump (attr);
       attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
       if (attr_val && attr_name) {
-        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
-            LIBXML_CHAR attr_val);
+        xmlTextWriterWriteAttribute (
+            writer, LIBXML_CHAR attr_name, LIBXML_CHAR attr_val);
       }
       g_free (attr_val);
       break;
@@ -63,8 +60,8 @@ gst_ttmlsegmentedparse_attr_dump (GstTTMLAttribute * attr,
 }
 
 static void
-gst_ttmlsegmentedparse_paragraph_attr_dump (GstTTMLAttribute * attr,
-    xmlTextWriterPtr writer)
+gst_ttmlsegmentedparse_paragraph_attr_dump (
+    GstTTMLAttribute *attr, xmlTextWriterPtr writer)
 {
   gchar *attr_val;
   const gchar *attr_name = NULL;
@@ -74,8 +71,8 @@ gst_ttmlsegmentedparse_paragraph_attr_dump (GstTTMLAttribute * attr,
       attr_val = gst_ttml_attribute_dump (attr);
       attr_name = gst_ttml_utils_enum_name (attr->type, AttributeType);
       if (attr_val && attr_name) {
-        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR attr_name,
-            LIBXML_CHAR attr_val);
+        xmlTextWriterWriteAttribute (
+            writer, LIBXML_CHAR attr_name, LIBXML_CHAR attr_val);
       }
       g_free (attr_val);
       break;
@@ -85,7 +82,7 @@ gst_ttmlsegmentedparse_paragraph_attr_dump (GstTTMLAttribute * attr,
 }
 
 static void
-gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
+gst_ttmlsegmentedparse_spans_dump (GstTTMLBase *base, xmlTextWriterPtr writer,
     GstClockTime ts, GstClockTime duration)
 {
   GList *l;
@@ -98,10 +95,10 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
     GstTTMLSpan *span = l->data;
     int chars_left = span->length;
     int frag_len;
-    gchar *frag_start = span->chars;    /* NOT NULL-terminated! */
+    gchar *frag_start = span->chars; /* NOT NULL-terminated! */
     gchar *line_break = NULL;
 
-    /* On parsing we merged paragraphs and spans. Now we have to 
+    /* On parsing we merged paragraphs and spans. Now we have to
      * split again on newlines */
     do {
       line_break = g_utf8_strchr (frag_start, chars_left, '\n');
@@ -111,10 +108,10 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
         open = TRUE;
         /* <p> */
         xmlTextWriterStartElement (writer, LIBXML_CHAR "p");
-        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "begin",
-            LIBXML_CHAR begin);
-        xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "end",
-            LIBXML_CHAR end);
+        xmlTextWriterWriteAttribute (
+            writer, LIBXML_CHAR "begin", LIBXML_CHAR begin);
+        xmlTextWriterWriteAttribute (
+            writer, LIBXML_CHAR "end", LIBXML_CHAR end);
         g_list_foreach (span->style.attributes,
             (GFunc) gst_ttmlsegmentedparse_paragraph_attr_dump, writer);
       }
@@ -151,8 +148,8 @@ gst_ttmlsegmentedparse_spans_dump (GstTTMLBase * base, xmlTextWriterPtr writer,
 }
 
 static void
-gst_ttmlsegmentedparse_region_dump (gchar * id, GList * attrs,
-    xmlTextWriterPtr writer)
+gst_ttmlsegmentedparse_region_dump (
+    gchar *id, GList *attrs, xmlTextWriterPtr writer)
 {
   /* <region> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "region");
@@ -163,8 +160,8 @@ gst_ttmlsegmentedparse_region_dump (gchar * id, GList * attrs,
 }
 
 static void
-gst_ttmlsegmentedparse_style_dump (gchar * id, GList * attrs,
-    xmlTextWriterPtr writer)
+gst_ttmlsegmentedparse_style_dump (
+    gchar *id, GList *attrs, xmlTextWriterPtr writer)
 {
   /* <style> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "style");
@@ -175,8 +172,8 @@ gst_ttmlsegmentedparse_style_dump (gchar * id, GList * attrs,
 }
 
 static void
-gst_ttmlsegmentedparse_namespace_dump (GstTTMLNamespace * ns,
-    xmlTextWriterPtr writer)
+gst_ttmlsegmentedparse_namespace_dump (
+    GstTTMLNamespace *ns, xmlTextWriterPtr writer)
 {
   char name[0x100];
   strcpy (name, "xmlns");
@@ -184,12 +181,13 @@ gst_ttmlsegmentedparse_namespace_dump (GstTTMLNamespace * ns,
     strcat (name, ":");
     strncat (name, ns->name, 0xF0);
   }
-  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR name, LIBXML_CHAR ns->value);
+  xmlTextWriterWriteAttribute (
+      writer, LIBXML_CHAR name, LIBXML_CHAR ns->value);
 }
 
 static GstBuffer *
-gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
-    GstClockTime duration)
+gst_ttmlsegmentedparse_gen_buffer (
+    GstTTMLBase *base, GstClockTime ts, GstClockTime duration)
 {
   GstBuffer *buffer = NULL;
   GstMapInfo map_info;
@@ -197,8 +195,9 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlTextWriterPtr writer;
   GstTTMLAttribute *attr;
 
-  GST_DEBUG_OBJECT (base, "Generating buffer at %" GST_TIME_FORMAT
-      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
+  GST_DEBUG_OBJECT (base,
+      "Generating buffer at %" GST_TIME_FORMAT " - %" GST_TIME_FORMAT,
+      GST_TIME_ARGS (ts), GST_TIME_ARGS (duration));
 
   buf = xmlBufferCreate ();
   writer = xmlNewTextWriterMemory (buf, 0);
@@ -206,16 +205,16 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
   xmlTextWriterStartDocument (writer, NULL, "utf-8", NULL);
   /* <tt xmlns="http://www.w3.org/ns/ttml" /> */
   xmlTextWriterStartElement (writer, LIBXML_CHAR "tt");
-  g_list_foreach (base->namespaces,
-      (GFunc) gst_ttmlsegmentedparse_namespace_dump, writer);
-  xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "space",
-      LIBXML_CHAR "preserve");
-  attr = gst_ttml_state_get_attribute (&base->state,
-      GST_TTML_ATTR_CELLRESOLUTION);
+  g_list_foreach (
+      base->namespaces, (GFunc) gst_ttmlsegmentedparse_namespace_dump, writer);
+  xmlTextWriterWriteAttribute (
+      writer, LIBXML_CHAR "space", LIBXML_CHAR "preserve");
+  attr = gst_ttml_state_get_attribute (
+      &base->state, GST_TTML_ATTR_CELLRESOLUTION);
   if (attr) {
     gchar *value = gst_ttml_attribute_dump (attr);
-    xmlTextWriterWriteAttribute (writer, LIBXML_CHAR "cellResolution",
-        LIBXML_CHAR value);
+    xmlTextWriterWriteAttribute (
+        writer, LIBXML_CHAR "cellResolution", LIBXML_CHAR value);
     g_free (value);
     g_free (attr);
   }
@@ -271,7 +270,7 @@ gst_ttmlsegmentedparse_gen_buffer (GstTTMLBase * base, GstClockTime ts,
 }
 
 static void
-gst_ttmlsegmentedparse_class_init (GstTTMLSegmentedParseClass * klass)
+gst_ttmlsegmentedparse_class_init (GstTTMLSegmentedParseClass *klass)
 {
   GstTTMLBaseClass *base_klass = GST_TTMLBASE_CLASS (klass);
 
@@ -283,8 +282,7 @@ gst_ttmlsegmentedparse_class_init (GstTTMLSegmentedParseClass * klass)
       gst_static_pad_template_get (&ttmlparse_src_template));
 
   gst_element_class_set_details_simple (GST_ELEMENT_CLASS (klass),
-      "TTML subtitle parser",
-      "Codec/Parser/Subtitle",
+      "TTML subtitle parser", "Codec/Parser/Subtitle",
       "Parse TTML subtitle streams into a segmented TTML stream",
       "Fluendo S.A. <support@fluendo.com>");
 
@@ -293,6 +291,5 @@ gst_ttmlsegmentedparse_class_init (GstTTMLSegmentedParseClass * klass)
 }
 
 static void
-gst_ttmlsegmentedparse_init (GstTTMLSegmentedParse * parse)
-{
-}
+gst_ttmlsegmentedparse_init (GstTTMLSegmentedParse *parse)
+{}

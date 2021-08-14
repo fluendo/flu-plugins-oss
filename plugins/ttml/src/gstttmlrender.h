@@ -18,7 +18,8 @@
 G_BEGIN_DECLS
 
 /* The GStreamer ttmlrender element */
-typedef struct _GstTTMLRender {
+typedef struct _GstTTMLRender
+{
   GstTTMLBase base;
   PangoContext *pango_context;
   cairo_surface_t *surface;
@@ -45,21 +46,22 @@ typedef struct _GstTTMLRender {
 } GstTTMLRender;
 
 /* The GStreamer ttmlrender element's class */
-typedef struct _GstTTMLRenderClass {
+typedef struct _GstTTMLRenderClass
+{
   GstTTMLBaseClass parent_class;
 } GstTTMLRenderClass;
 
-#define GST_TYPE_TTMLRENDER            (gst_ttmlrender_get_type())
-#define GST_TTMLRENDER(obj)            (G_TYPE_CHECK_INSTANCE_CAST((obj),\
-                                         GST_TYPE_TTMLRENDER, GstTTMLRender))
-#define GST_TTMLRENDER_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST((klass),\
-                                         GST_TYPE_TTMLRENDER, GstTTMLRenderClass))
-#define GST_TTMLRENDER_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj),\
-                                         GST_TYPE_TTMLRENDER, GstTTMLRenderClass))
-#define GST_IS_TTMLRENDER(obj)         (G_TYPE_CHECK_INSTANCE_TYPE((obj),\
-                                         GST_TYPE_TTMLRENDER))
-#define GST_IS_TTMLRENDER_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE((klass),\
-                                         GST_TYPE_TTMLRENDER))
+#define GST_TYPE_TTMLRENDER (gst_ttmlrender_get_type ())
+#define GST_TTMLRENDER(obj)                                                   \
+  (G_TYPE_CHECK_INSTANCE_CAST ((obj), GST_TYPE_TTMLRENDER, GstTTMLRender))
+#define GST_TTMLRENDER_CLASS(klass)                                           \
+  (G_TYPE_CHECK_CLASS_CAST ((klass), GST_TYPE_TTMLRENDER, GstTTMLRenderClass))
+#define GST_TTMLRENDER_GET_CLASS(obj)                                         \
+  (G_TYPE_INSTANCE_GET_CLASS ((obj), GST_TYPE_TTMLRENDER, GstTTMLRenderClass))
+#define GST_IS_TTMLRENDER(obj)                                                \
+  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GST_TYPE_TTMLRENDER))
+#define GST_IS_TTMLRENDER_CLASS(klass)                                        \
+  (G_TYPE_CHECK_CLASS_TYPE ((klass), GST_TYPE_TTMLRENDER))
 
 GType gst_ttmlrender_get_type (void);
 

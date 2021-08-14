@@ -27,11 +27,11 @@ add_task (char *url, int num)
 {
   CURL *ehandle = curl_easy_init ();
 
-  curl_easy_setopt (ehandle, CURLOPT_WRITEFUNCTION,
-      (curl_write_callback) write_function);
+  curl_easy_setopt (
+      ehandle, CURLOPT_WRITEFUNCTION, (curl_write_callback) write_function);
   curl_easy_setopt (ehandle, CURLOPT_WRITEDATA, (void *) (long) num);
-  curl_easy_setopt (ehandle, CURLOPT_HEADERFUNCTION,
-      (curl_write_callback) header_function);
+  curl_easy_setopt (
+      ehandle, CURLOPT_HEADERFUNCTION, (curl_write_callback) header_function);
   curl_easy_setopt (ehandle, CURLOPT_HEADERDATA, (void *) (long) num);
   curl_easy_setopt (ehandle, CURLOPT_PRIVATE, (void *) (long) num);
 
@@ -80,11 +80,11 @@ main (int argc, char *argv[])
   mhandle = curl_multi_init ();
   curl_multi_setopt (mhandle, CURLMOPT_PIPELINING, 1);
 
-  add_task
-      ("http://ftp.nluug.nl/ftp/graphics/blender/demo/movies/Sintel_4k/tiff16/00000001.tif",
+  add_task ("http://ftp.nluug.nl/ftp/graphics/blender/demo/movies/Sintel_4k/"
+            "tiff16/00000001.tif",
       1);
-  add_task
-      ("http://ftp.nluug.nl/ftp/graphics/blender/demo/feature_videos/flvplayer.swf",
+  add_task ("http://ftp.nluug.nl/ftp/graphics/blender/demo/feature_videos/"
+            "flvplayer.swf",
       2);
 
   while (tasks_running > 0) {

@@ -14,9 +14,9 @@
 /* Recent versions of Visual Studio have stdint.h, so pixman.h will include it
  * if it detects _MSC_VER >= 1600. Unfortunately it does not seem to work,
  * therefore, cheat a bit and let pixman define its own constants. */
-#if defined (_MSC_VER) && _MSC_VER > 1500
-#  undef _MSC_VER
-#  define _MSC_VER 1500
+#if defined(_MSC_VER) && _MSC_VER > 1500
+#undef _MSC_VER
+#define _MSC_VER 1500
 #endif
 #include <pixman.h>
 
@@ -69,8 +69,8 @@ gst_ttml_blur_create_gaussian_kernel (int radius, double sigma, int *length)
 /* Returns a new Cairo surface with the blurred version of the input surface,
  * which must be CAIRO_FORMAT_ARGB32. */
 cairo_surface_t *
-gst_ttml_blur_image_surface (cairo_surface_t * surface, int radius,
-    double sigma)
+gst_ttml_blur_image_surface (
+    cairo_surface_t *surface, int radius, double sigma)
 {
   static cairo_user_data_key_t data_key;
   pixman_fixed_t *params = NULL;
@@ -96,8 +96,8 @@ gst_ttml_blur_image_surface (cairo_surface_t * surface, int radius,
   /* render blured image to new pixman image */
   p = (uint32_t *) g_malloc0 (s * h);
   dst = pixman_image_create_bits (PIXMAN_a8r8g8b8, w, h, p, s);
-  pixman_image_composite (PIXMAN_OP_SRC, src, NULL, dst, 0, 0, 0, 0, 0, 0, w,
-      h);
+  pixman_image_composite (
+      PIXMAN_OP_SRC, src, NULL, dst, 0, 0, 0, 0, 0, 0, w, h);
   pixman_image_unref (src);
 
   /* create new cairo image for blured pixman image */
