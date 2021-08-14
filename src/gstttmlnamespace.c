@@ -6,7 +6,7 @@
 #include "gstttmlnamespace.h"
 
 GstTTMLNamespace *
-gst_ttml_namespace_new (const gchar * name, const gchar * value)
+gst_ttml_namespace_new (const gchar *name, const gchar *value)
 {
   GstTTMLNamespace *ret;
   ret = g_new (GstTTMLNamespace, 1);
@@ -16,7 +16,7 @@ gst_ttml_namespace_new (const gchar * name, const gchar * value)
 }
 
 void
-gst_ttml_namespace_free (GstTTMLNamespace * obj)
+gst_ttml_namespace_free (GstTTMLNamespace *obj)
 {
   if (obj) {
     g_free (obj->name);

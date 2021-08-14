@@ -25,4 +25,3 @@ typedef struct _GstTTMLDownloader GstTTMLDownloader;
 G_END_DECLS
 
 #endif /* __GST_TTML_FORWARD_H__ */
-

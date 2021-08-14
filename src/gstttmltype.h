@@ -10,7 +10,7 @@ G_BEGIN_DECLS
 
 #define TTML_MIME "application/ttml+xml"
 
-gboolean gst_ttmltype_init (GstPlugin * plugin);
+gboolean gst_ttmltype_init (GstPlugin *plugin);
 
 G_END_DECLS
 

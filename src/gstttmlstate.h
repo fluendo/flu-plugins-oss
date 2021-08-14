@@ -14,7 +14,8 @@
 G_BEGIN_DECLS
 
 /* Current state of all attributes */
-struct _GstTTMLState {
+struct _GstTTMLState
+{
   /* Non-styling attributes. These are too complicated to handle in a general
    * attribute list. */
   GstTTMLNodeType node_type;
@@ -69,34 +70,34 @@ void gst_ttml_state_free (GstTTMLState *state);
 
 void gst_ttml_state_reset (GstTTMLState *state);
 
-void gst_ttml_state_push_attribute (GstTTMLState *state,
-    GstTTMLAttribute *new_attr);
+void gst_ttml_state_push_attribute (
+    GstTTMLState *state, GstTTMLAttribute *new_attr);
 
-GstTTMLAttributeType gst_ttml_state_pop_attribute (GstTTMLState *state,
-    GstTTMLAttribute **prev_attr_ptr);
+GstTTMLAttributeType gst_ttml_state_pop_attribute (
+    GstTTMLState *state, GstTTMLAttribute **prev_attr_ptr);
 
-void gst_ttml_state_save_attr_stack (GstTTMLState *state, GHashTable **table,
-    const gchar *id);
+void gst_ttml_state_save_attr_stack (
+    GstTTMLState *state, GHashTable **table, const gchar *id);
 
-void gst_ttml_state_restore_attr_stack (GstTTMLState *state, GHashTable *table,
-    const gchar *id);
+void gst_ttml_state_restore_attr_stack (
+    GstTTMLState *state, GHashTable *table, const gchar *id);
 
-void gst_ttml_state_save_data (GstTTMLState *state, guint8 *data, gint length,
-    const gchar *id);
+void gst_ttml_state_save_data (
+    GstTTMLState *state, guint8 *data, gint length, const gchar *id);
 
-void gst_ttml_state_restore_data (const GstTTMLState *state, const gchar *id,
-    guint8 **data, gint *length);
+void gst_ttml_state_restore_data (
+    const GstTTMLState *state, const gchar *id, guint8 **data, gint *length);
 
-void gst_ttml_state_new_region (GstTTMLState *state, const gchar *id,
-    GstTTMLStyle *style);
+void gst_ttml_state_new_region (
+    GstTTMLState *state, const gchar *id, GstTTMLStyle *style);
 
 void gst_ttml_state_remove_region (GstTTMLState *state, const gchar *id);
 
-void gst_ttml_state_update_region_attr (GstTTMLState *state, const gchar *id,
-    GstTTMLAttribute *attr);
+void gst_ttml_state_update_region_attr (
+    GstTTMLState *state, const gchar *id, GstTTMLAttribute *attr);
 
-GstTTMLAttribute *
-gst_ttml_state_get_attribute (GstTTMLState * state, GstTTMLAttributeType type);
+GstTTMLAttribute *gst_ttml_state_get_attribute (
+    GstTTMLState *state, GstTTMLAttributeType type);
 
 G_END_DECLS
 

@@ -13,8 +13,8 @@
 
 G_BEGIN_DECLS
 
-cairo_surface_t * gst_ttml_blur_image_surface (cairo_surface_t *surface,
-    int radius, double sigma);
+cairo_surface_t *gst_ttml_blur_image_surface (
+    cairo_surface_t *surface, int radius, double sigma);
 
 G_END_DECLS
 

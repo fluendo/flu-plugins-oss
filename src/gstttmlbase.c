@@ -32,7 +32,7 @@ GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
 #define TTML_SAX_BUFFER_GROW_SIZE 0x400
 
 /* check for white space as required for TTML & UTF-8 */
-#define is_whitespace(c) ((guchar)(c) <= 0x20)
+#define is_whitespace(c) ((guchar) (c) <= 0x20)
 
 static GstElementClass *parent_class = NULL;
 
@@ -42,18 +42,15 @@ enum
   PROP_ASSUME_ORDERED_SPANS,
 };
 
-static GstStaticPadTemplate ttmlbase_sink_template =
-GST_STATIC_PAD_TEMPLATE ("sink",
-    GST_PAD_SINK,
-    GST_PAD_ALWAYS,
-    GST_STATIC_CAPS (TTML_MIME));
+static GstStaticPadTemplate ttmlbase_sink_template = GST_STATIC_PAD_TEMPLATE (
+    "sink", GST_PAD_SINK, GST_PAD_ALWAYS, GST_STATIC_CAPS (TTML_MIME));
 
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
 
 /* Compatibility functions for segment handling */
 GstEvent *
-gst_event_new_new_segment (gboolean update, gdouble rate,
-    GstFormat format, gint64 start, gint64 stop, gint64 position)
+gst_event_new_new_segment (gboolean update, gdouble rate, GstFormat format,
+    gint64 start, gint64 stop, gint64 position)
 {
   GstEvent *event;
   GstSegment seg;
@@ -66,9 +63,8 @@ gst_event_new_new_segment (gboolean update, gdouble rate,
 }
 
 void
-gst_event_parse_new_segment (GstEvent * event, gboolean * update,
-    gdouble * rate, GstFormat * format, gint64 * start, gint64 * stop,
-    gint64 * position)
+gst_event_parse_new_segment (GstEvent *event, gboolean *update, gdouble *rate,
+    GstFormat *format, gint64 *start, gint64 *stop, gint64 *position)
 {
   const GstSegment *seg;
   gst_event_parse_segment (event, &seg);
@@ -81,8 +77,8 @@ gst_event_parse_new_segment (GstEvent * event, gboolean * update,
 }
 
 void
-gst_segment_set_newsegment (GstSegment * segment, gboolean update,
-    gdouble rate, GstFormat format, gint64 start, gint64 stop, gint64 time)
+gst_segment_set_newsegment (GstSegment *segment, gboolean update, gdouble rate,
+    GstFormat format, gint64 start, gint64 stop, gint64 time)
 {
   segment->rate = rate;
   segment->format = format;
@@ -93,29 +89,31 @@ gst_segment_set_newsegment (GstSegment * segment, gboolean update,
 
 #endif
 
-static gboolean gst_ttmlbase_downstream_negotiation (GstTTMLBase * base);
-static void
-gst_ttmlbase_sax_characters (void *ctx, const xmlChar * ch, int len);
+static gboolean gst_ttmlbase_downstream_negotiation (GstTTMLBase *base);
+static void gst_ttmlbase_sax_characters (
+    void *ctx, const xmlChar *ch, int len);
 
 /* Generate and Pad push a buffer, using the correct timestamps and clipping */
 static void
-gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
-    GstTTMLBase * base)
+gst_ttmlbase_gen_buffer (
+    GstClockTime begin, GstClockTime end, GstTTMLBase *base)
 {
   GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
   gboolean in_seg = FALSE;
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
   guint64 clip_start = 0, clip_stop = 0;
 #else
   gint64 clip_start = 0, clip_stop = 0;
 #endif
 
-  GST_DEBUG_OBJECT (base, "gen_buffer %" GST_TIME_FORMAT
-      " - %" GST_TIME_FORMAT, GST_TIME_ARGS (begin), GST_TIME_ARGS (end));
+  GST_DEBUG_OBJECT (base,
+      "gen_buffer %" GST_TIME_FORMAT " - %" GST_TIME_FORMAT,
+      GST_TIME_ARGS (begin), GST_TIME_ARGS (end));
   if (begin < base->last_out_time) {
     begin = base->last_out_time;
-    GST_DEBUG_OBJECT (base, "adjusted %" GST_TIME_FORMAT
-        " - %" GST_TIME_FORMAT, GST_TIME_ARGS (begin), GST_TIME_ARGS (end));
+    GST_DEBUG_OBJECT (base,
+        "adjusted %" GST_TIME_FORMAT " - %" GST_TIME_FORMAT,
+        GST_TIME_ARGS (begin), GST_TIME_ARGS (end));
   }
 
   /* Last chance to set the src pad's caps. It can happen (when linking with
@@ -151,17 +149,18 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
       start = begin;
     else
       start = base->base_time;
-    gst_segment_set_newsegment (base->segment, FALSE, 1.0, GST_FORMAT_TIME,
-        start, -1, clip_start);
-    GST_DEBUG_OBJECT (base, "Generating a new segment start:%" GST_TIME_FORMAT
+    gst_segment_set_newsegment (
+        base->segment, FALSE, 1.0, GST_FORMAT_TIME, start, -1, clip_start);
+    GST_DEBUG_OBJECT (base,
+        "Generating a new segment start:%" GST_TIME_FORMAT
         " stop:%" GST_TIME_FORMAT " time:%" GST_TIME_FORMAT,
         GST_TIME_ARGS (base->segment->start),
         GST_TIME_ARGS (base->segment->stop),
         GST_TIME_ARGS (base->segment->time));
   }
 
-  in_seg = gst_segment_clip (base->segment, GST_FORMAT_TIME,
-      begin, end, &clip_start, &clip_stop);
+  in_seg = gst_segment_clip (
+      base->segment, GST_FORMAT_TIME, begin, end, &clip_start, &clip_stop);
 
   if (in_seg) {
     GstBuffer *buffer;
@@ -176,7 +175,8 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
       event = gst_event_new_new_segment (FALSE, base->segment->rate,
           base->segment->format, base->segment->start, base->segment->stop,
           base->segment->time);
-      GST_DEBUG_OBJECT (base, "Pushing newsegment start:%" GST_TIME_FORMAT
+      GST_DEBUG_OBJECT (base,
+          "Pushing newsegment start:%" GST_TIME_FORMAT
           " stop:%" GST_TIME_FORMAT " time:%" GST_TIME_FORMAT,
           GST_TIME_ARGS (base->segment->start),
           GST_TIME_ARGS (base->segment->stop),
@@ -184,7 +184,7 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
       gst_pad_push_event (base->srcpad, event);
       base->newsegment_needed = FALSE;
     }
-#if !GST_CHECK_VERSION (1,0,0)
+#if !GST_CHECK_VERSION(1, 0, 0)
     /* Set caps on buffer */
     gst_buffer_set_caps (buffer, GST_PAD_CAPS (base->srcpad));
 #endif
@@ -192,44 +192,44 @@ gst_ttmlbase_gen_buffer (GstClockTime begin, GstClockTime end,
     GST_BUFFER_TIMESTAMP (buffer) = clip_start;
     GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
 
-    GST_DEBUG_OBJECT (base, "Pushing buffer of %u bytes, pts %"
-        GST_TIME_FORMAT " duration %" GST_TIME_FORMAT,
+    GST_DEBUG_OBJECT (base,
+        "Pushing buffer of %u bytes, pts %" GST_TIME_FORMAT
+        " duration %" GST_TIME_FORMAT,
         (guint) gst_buffer_get_size (buffer),
         GST_TIME_ARGS (GST_BUFFER_TIMESTAMP (buffer)),
         GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
     GST_TTML_UTILS_MEMDUMP_BUFFER_OBJECT (base, "Content:", buffer);
 
-    base->current_gst_status = gstflu_demo_push_buffer (&base->stats,
-        base->sinkpad, base->srcpad, buffer);
+    base->current_gst_status = gstflu_demo_push_buffer (
+        &base->stats, base->sinkpad, base->srcpad, buffer);
     base->last_out_time = clip_stop;
   } else {
-    GST_DEBUG_OBJECT (base, "Buffer is out of segment (pts %"
-        GST_TIME_FORMAT ")", GST_TIME_ARGS (begin));
+    GST_DEBUG_OBJECT (base,
+        "Buffer is out of segment (pts %" GST_TIME_FORMAT ")",
+        GST_TIME_ARGS (begin));
   }
 }
 
 /* Execute the given event */
 GList *
-gst_ttmlbase_parse_event (GstTTMLEvent * event, GstTTMLBase * base,
-    GList * timeline)
+gst_ttmlbase_parse_event (
+    GstTTMLEvent *event, GstTTMLBase *base, GList *timeline)
 {
   GList *output_timeline = timeline;
 
   switch (event->type) {
     case GST_TTML_EVENT_TYPE_SPAN_BEGIN:
       /* Add span to the list of active spans */
-      base->active_spans =
-          gst_ttml_span_list_add (base->active_spans,
-          event->data.span_begin.span);
+      base->active_spans = gst_ttml_span_list_add (
+          base->active_spans, event->data.span_begin.span);
       /* Remove the span from the event, so that when we free the event below
        * the span does not get freed too (it belongs to the active_spans list
        * now) */
       event->data.span_begin.span = NULL;
       break;
     case GST_TTML_EVENT_TYPE_SPAN_END:
-      base->active_spans =
-          gst_ttml_span_list_remove (base->active_spans,
-          event->data.span_end.id);
+      base->active_spans = gst_ttml_span_list_remove (
+          base->active_spans, event->data.span_end.id);
       break;
     case GST_TTML_EVENT_TYPE_SPAN_ATTR_UPDATE:
       gst_ttml_span_list_update_attr (base->active_spans,
@@ -239,7 +239,8 @@ gst_ttmlbase_parse_event (GstTTMLEvent * event, GstTTMLBase * base,
       gst_ttml_state_new_region (&base->state, event->data.region_begin.id,
           &event->data.region_begin.style);
       /* Remove the style from the event, so that when we free the event below
-       * the style does not get freed too (it belongs to the hash of regions now)
+       * the style does not get freed too (it belongs to the hash of regions
+       * now)
        */
       event->data.region_begin.style.attributes = NULL;
       break;
@@ -264,7 +265,7 @@ gst_ttmlbase_parse_event (GstTTMLEvent * event, GstTTMLBase * base,
  * these must generate spans ended with \n while </span> doesn't
  */
 static void
-gst_ttmlbase_add_span (GstTTMLBase * base, gboolean newline)
+gst_ttmlbase_add_span (GstTTMLBase *base, gboolean newline)
 {
   const gchar *content_end = NULL;
   GstTTMLSpan *span;
@@ -310,8 +311,8 @@ gst_ttmlbase_add_span (GstTTMLBase * base, gboolean newline)
   if (GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
       base->state.begin >= base->state.end) {
     GST_DEBUG ("Span with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
-        ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (base->state.begin),
-        GST_TIME_ARGS (base->state.end));
+               ", end=%" GST_TIME_FORMAT ")",
+        GST_TIME_ARGS (base->state.begin), GST_TIME_ARGS (base->state.end));
     goto beach;
   }
 
@@ -350,7 +351,7 @@ beach:
 
 /* Insert into the timeline new BEGIN and END events to handle this region. */
 static void
-gst_ttmlbase_add_region (GstTTMLBase * base)
+gst_ttmlbase_add_region (GstTTMLBase *base)
 {
   GstTTMLEvent *event;
   GstTTMLAttribute *attr;
@@ -358,79 +359,76 @@ gst_ttmlbase_add_region (GstTTMLBase * base)
   if (GST_CLOCK_TIME_IS_VALID (base->state.begin) &&
       base->state.begin >= base->state.end) {
     GST_DEBUG ("Region with 0 duration. Dropping. (begin=%" GST_TIME_FORMAT
-        ", end=%" GST_TIME_FORMAT ")", GST_TIME_ARGS (base->state.begin),
-        GST_TIME_ARGS (base->state.end));
+               ", end=%" GST_TIME_FORMAT ")",
+        GST_TIME_ARGS (base->state.begin), GST_TIME_ARGS (base->state.end));
     return;
   }
 
   attr = gst_ttml_style_get_attr (&base->state.style, GST_TTML_ATTR_ZINDEX);
   if (!attr) {
-    /* Insert a manual "0" zIndex attribute with its ever-increasing 1e-3 index.
-     * See gst_ttml_attribute_parse() for GST_TTML_ATTR_ZINDEX.
-     * This forces lexical order of rendering on overlapping regions without
+    /* Insert a manual "0" zIndex attribute with its ever-increasing 1e-3
+     * index. See gst_ttml_attribute_parse() for GST_TTML_ATTR_ZINDEX. This
+     * forces lexical order of rendering on overlapping regions without
      * explicit zIndex. */
-    attr = gst_ttml_attribute_new_int (GST_TTML_ATTR_ZINDEX,
-        base->state.last_zindex_micro);
+    attr = gst_ttml_attribute_new_int (
+        GST_TTML_ATTR_ZINDEX, base->state.last_zindex_micro);
     base->state.last_zindex_micro++;
     gst_ttml_state_push_attribute (&base->state, attr);
   }
 
   /* Insert BEGIN and END events in the timeline */
-  event = gst_ttml_event_new_region_begin (base->state.begin, base->state.id,
-      &base->state.style);
+  event = gst_ttml_event_new_region_begin (
+      base->state.begin, base->state.id, &base->state.style);
   base->timeline = gst_ttml_event_list_insert (base->timeline, event);
 
   event = gst_ttml_event_new_region_end (base->state.end, base->state.id);
   base->timeline = gst_ttml_event_list_insert (base->timeline, event);
 
-  base->timeline =
-      gst_ttml_style_gen_region_events (base->state.id, &base->state.style,
-      base->timeline);
+  base->timeline = gst_ttml_style_gen_region_events (
+      base->state.id, &base->state.style, base->timeline);
 
   /* We keep the attr pointer, but its content does not belong to us, there
    * is no harm in overwritting it here. */
   gst_ttml_state_pop_attribute (&base->state, &attr);
   gst_ttml_attribute_free (attr);
-
 }
 
 /* Base64-decodes the now complete embedded data and adds it to the hash of
  * saved data, using the current ID. Data still needs to be PNG-decoded if
  * it is an image. */
 static void
-gst_ttmlbase_decode_data (GstTTMLBase * base)
+gst_ttmlbase_decode_data (GstTTMLBase *base)
 {
   GstTTMLBuffer *buf = &base->buffer;
   GstTTMLAttribute *attr;
   gsize decoded_length;
-
 
   if (!buf->len) {
     GST_WARNING_OBJECT (base, "Found empty data node. Ignoring.");
     goto beach;
   }
 
-  attr = gst_ttml_style_get_attr (&base->state.style,
-      GST_TTML_ATTR_SMPTE_ENCODING);
+  attr = gst_ttml_style_get_attr (
+      &base->state.style, GST_TTML_ATTR_SMPTE_ENCODING);
   if (attr && attr->value.smpte_encoding != GST_TTML_SMPTE_ENCODING_BASE64) {
     GST_WARNING_OBJECT (base, "Only Base64 encoding is supported. "
-        "Discarding data.");
+                              "Discarding data.");
     goto beach;
   }
 
   /* FIXME: This check does not belong here. The imagetype should be stored
    * with the data, and whoever reads the data should care about its type */
-  attr = gst_ttml_style_get_attr (&base->state.style,
-      GST_TTML_ATTR_SMPTE_IMAGETYPE);
+  attr = gst_ttml_style_get_attr (
+      &base->state.style, GST_TTML_ATTR_SMPTE_IMAGETYPE);
   if (attr && attr->value.smpte_image_type != GST_TTML_SMPTE_IMAGE_TYPE_PNG) {
     GST_WARNING_OBJECT (base, "Only PNG images are supported. "
-        "Discarding image.");
+                              "Discarding image.");
     goto beach;
   }
 
   if (!base->state.id) {
     GST_WARNING_OBJECT (base, "Found data node without ID. "
-        "Discarding data.");
+                              "Discarding data.");
     goto beach;
   }
 
@@ -442,8 +440,8 @@ gst_ttmlbase_decode_data (GstTTMLBase * base)
   g_base64_decode_inplace ((gchar *) buf->data, &decoded_length);
 
   /* Store */
-  gst_ttml_state_save_data (&base->state, (guint8 *) buf->data,
-      decoded_length, base->state.id);
+  gst_ttml_state_save_data (
+      &base->state, (guint8 *) buf->data, decoded_length, base->state.id);
   goto beach;
 
 beach:
@@ -453,8 +451,8 @@ beach:
 /* Helper method to turn SAX2's gchar * attribute array into a GstTTMLAttribute
  * and push it into the stack */
 static void
-gst_ttmlbase_push_attr (GstTTMLBase * base, const gchar ** xml_attr,
-    gboolean * dur_attr_found)
+gst_ttmlbase_push_attr (
+    GstTTMLBase *base, const gchar **xml_attr, gboolean *dur_attr_found)
 {
   /* Create a local copy of the attr value, since SAX2 does not
    * NULL-terminate the string */
@@ -463,8 +461,8 @@ gst_ttmlbase_push_attr (GstTTMLBase * base, const gchar ** xml_attr,
   GstTTMLAttribute *ttml_attr;
   memcpy (value, xml_attr[3], value_len);
   value[value_len] = '\0';
-  ttml_attr = gst_ttml_attribute_parse (&base->state,
-      !xml_attr[1] ? NULL : xml_attr[2], xml_attr[0], value);
+  ttml_attr = gst_ttml_attribute_parse (
+      &base->state, !xml_attr[1] ? NULL : xml_attr[2], xml_attr[0], value);
   if (ttml_attr) {
     if (ttml_attr->type == GST_TTML_ATTR_DUR)
       *dur_attr_found = TRUE;
@@ -474,10 +472,10 @@ gst_ttmlbase_push_attr (GstTTMLBase * base, const gchar ** xml_attr,
 
 /* Process a node start. Just push all its attributes onto the stack. */
 static void
-gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
-    const xmlChar * prefix, const xmlChar * URI, int nb_namespaces,
-    const xmlChar ** namespaces, int nb_attributes, int nb_defaulted,
-    const xmlChar ** xml_attrs)
+gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar *name,
+    const xmlChar *prefix, const xmlChar *URI, int nb_namespaces,
+    const xmlChar **namespaces, int nb_attributes, int nb_defaulted,
+    const xmlChar **xml_attrs)
 {
   GstTTMLBase *base = GST_TTMLBASE (ctx);
   const gchar **xml_attr = (const gchar **) xml_attrs;
@@ -490,9 +488,8 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
   GST_LOG_OBJECT (base, "New element: %s prefix:%s URI:%s", name,
       prefix ? (char *) prefix : "NULL", URI ? (char *) URI : "NULL");
 
-  node_type =
-      gst_ttml_utils_node_type_parse (!prefix ? NULL : (const gchar *) URI,
-      (const gchar *) name);
+  node_type = gst_ttml_utils_node_type_parse (
+      !prefix ? NULL : (const gchar *) URI, (const gchar *) name);
   GST_DEBUG ("Parsed name '%s' into node type %s", name,
       gst_ttml_utils_enum_name (node_type, NodeType));
   /* Special actions for some node types */
@@ -521,8 +518,7 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
       base->buffer.preserve_whitespace = FALSE;
       base->buffer.insert_space = FALSE;
       break;
-    case GST_TTML_NODE_TYPE_TT:
-    {
+    case GST_TTML_NODE_TYPE_TT: {
       /* store namespaces and initialize default values depending on
        * standards identified by its namespaces */
       gchar **nss = (gchar **) namespaces;
@@ -535,8 +531,8 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
       while (nb_namespaces--) {
         gchar *nsname = *(nss++);
         gchar *nsvalue = *(nss++);
-        GST_DEBUG_OBJECT (base, "Storing namespace %s=%s", nsname ? nsname :
-            (gchar *) "", nsvalue);
+        GST_DEBUG_OBJECT (base, "Storing namespace %s=%s",
+            nsname ? nsname : (gchar *) "", nsvalue);
         ns = gst_ttml_namespace_new (nsname, nsvalue);
         base->namespaces = g_list_append (base->namespaces, ns);
         if (strstr (nsvalue, "ebu:tt")) {
@@ -573,9 +569,8 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
     gst_ttml_state_push_attribute (&base->state, ttml_attr);
     /* If this node did not specify the time_container attribute, set it
      * manually to "parallel", as this is not inherited. */
-    ttml_attr =
-        gst_ttml_attribute_new_boolean (GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER,
-        FALSE);
+    ttml_attr = gst_ttml_attribute_new_boolean (
+        GST_TTML_ATTR_SEQUENTIAL_TIME_CONTAINER, FALSE);
     gst_ttml_state_push_attribute (&base->state, ttml_attr);
     /* Manually push a 0 BEGIN attribute when in sequential mode.
      * If the node defines it, its value will overwrite this one.
@@ -631,8 +626,8 @@ gst_ttmlbase_sax2_element_start_ns (void *ctx, const xmlChar * name,
 
 /* Process a node end. Just pop previous state from the stack. */
 static void
-gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
-    const xmlChar * prefix, const xmlChar * URI)
+gst_ttmlbase_sax2_element_end_ns (
+    void *ctx, const xmlChar *name, const xmlChar *prefix, const xmlChar *URI)
 {
   GstTTMLBase *base = GST_TTMLBASE (ctx);
   GstTTMLAttribute *prev_attr;
@@ -642,9 +637,8 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
   GstTTMLNodeType current_node_type;
 
   GST_LOG_OBJECT (base, "End element: %s", name);
-  current_node_type =
-      gst_ttml_utils_node_type_parse (!prefix ? NULL : (const gchar *) URI,
-      (const gchar *) name);
+  current_node_type = gst_ttml_utils_node_type_parse (
+      !prefix ? NULL : (const gchar *) URI, (const gchar *) name);
 
   if (current_node_type == GST_TTML_NODE_TYPE_STYLE && base->in_layout_node) {
     /* We are closing a style node inside a layout. Its attributes are to be
@@ -734,12 +728,14 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
    * Move forward the container_begin if our parent was a sequential time
    * container. */
   if (base->state.sequential_time_container) {
-    GST_DEBUG ("Getting back to a seq container. Setting container_begin to %"
-        GST_TIME_FORMAT, GST_TIME_ARGS (current_end));
+    GST_DEBUG ("Getting back to a seq container. Setting container_begin to "
+               "%" GST_TIME_FORMAT,
+        GST_TIME_ARGS (current_end));
     base->state.container_begin = current_end;
   } else {
-    GST_DEBUG ("Getting back to a par container. Setting container_begin to %"
-        GST_TIME_FORMAT, GST_TIME_ARGS (base->state.begin));
+    GST_DEBUG ("Getting back to a par container. Setting container_begin to "
+               "%" GST_TIME_FORMAT,
+        GST_TIME_ARGS (base->state.begin));
     base->state.container_begin = base->state.begin;
   }
   base->state.container_end = base->state.end;
@@ -747,7 +743,7 @@ gst_ttmlbase_sax2_element_end_ns (void *ctx, const xmlChar * name,
 
 /* Process characters */
 static void
-gst_ttmlbase_sax_characters (void *ctx, const xmlChar * ch, int len)
+gst_ttmlbase_sax_characters (void *ctx, const xmlChar *ch, int len)
 {
   GstTTMLBase *base = GST_TTMLBASE (ctx);
   GstTTMLBuffer *buf = &base->buffer;
@@ -825,7 +821,7 @@ gst_ttmlbase_sax_error (void *ctx, const char *message, ...)
 
 /* Parse comments from XML (simply shown as debug logs) */
 static void
-gst_ttmlbase_sax_comment (void *ctx, const xmlChar * comment)
+gst_ttmlbase_sax_comment (void *ctx, const xmlChar *comment)
 {
   GstTTMLBase *base = GST_TTMLBASE (ctx);
   GST_LOG_OBJECT (base, "Comment parsed: %s", comment);
@@ -833,7 +829,7 @@ gst_ttmlbase_sax_comment (void *ctx, const xmlChar * comment)
 
 /* Default handler for entities (&amp; and company) */
 static xmlEntityPtr
-gst_ttmlbase_sax_get_entity (void *ctx, const xmlChar * name)
+gst_ttmlbase_sax_get_entity (void *ctx, const xmlChar *name)
 {
   return xmlGetPredefinedEntity (name);
 }
@@ -897,7 +893,7 @@ static xmlSAXHandler gst_ttmlbase_sax_handler = {
 
 /* Free any parsing-related information held by the element */
 static void
-gst_ttmlbase_reset (GstTTMLBase * base)
+gst_ttmlbase_reset (GstTTMLBase *base)
 {
   GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
 
@@ -919,8 +915,8 @@ gst_ttmlbase_reset (GstTTMLBase * base)
   }
 
   if (base->namespaces) {
-    g_list_free_full (base->namespaces,
-        (GDestroyNotify) gst_ttml_namespace_free);
+    g_list_free_full (
+        base->namespaces, (GDestroyNotify) gst_ttml_namespace_free);
     base->namespaces = NULL;
   }
 
@@ -936,13 +932,13 @@ gst_ttmlbase_reset (GstTTMLBase * base)
  * if required. A pad template named "src" should have been
  * installed by the derived class. */
 static gboolean
-gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
+gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
 {
   GstCaps *src_caps, *template_caps;
   GstPadTemplate *src_pad_template;
   GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
 
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
   src_caps = gst_pad_get_current_caps (base->srcpad);
 #else
   src_caps = gst_pad_get_negotiated_caps (base->srcpad);
@@ -961,7 +957,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
   if (klass->complete_caps) {
     klass->complete_caps (base, template_caps);
   }
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
   src_caps = gst_pad_peer_query_caps (base->srcpad, template_caps);
 #else
   {
@@ -990,7 +986,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
       klass->fixate_caps (base, src_caps);
     } else {
       GST_WARNING_OBJECT (base, "Caps are unfixed and derived class did not "
-          "provide a fixate_caps method");
+                                "provide a fixate_caps method");
       gst_caps_unref (src_caps);
       return FALSE;
     }
@@ -1001,7 +997,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
    * the interlaced field. Sadly, if we dont fixate like this, the pad
    * can not have non-fixed caps
    */
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
   src_caps = gst_caps_fixate (src_caps);
 #else
   gst_pad_fixate_caps (base->srcpad, src_caps);
@@ -1023,15 +1019,17 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase * base)
 }
 
 static void
-gst_ttmlbase_dump_data (GstTTMLBase * base, guint8 * data, gsize size)
+gst_ttmlbase_dump_data (GstTTMLBase *base, guint8 *data, gsize size)
 {
 #ifdef TTML_DEBUG_XML_INPUT
   FILE *file;
   file = fopen ("ttml.xml", "ab");
   if (file) {
-    fprintf (file, "----------------------------------------------------------"
+    fprintf (file,
+        "----------------------------------------------------------"
         "---------------------------------------------------------------------"
-        "\n%s\n", GST_ELEMENT_NAME (base));
+        "\n%s\n",
+        GST_ELEMENT_NAME (base));
     fwrite (data, size, 1, file);
     fclose (file);
   }
@@ -1041,13 +1039,13 @@ gst_ttmlbase_dump_data (GstTTMLBase * base, guint8 * data, gsize size)
 }
 
 static void
-gst_ttmlbase_dump_buffer (GstTTMLBase * base, GstBuffer * buffer)
+gst_ttmlbase_dump_buffer (GstTTMLBase *base, GstBuffer *buffer)
 {
   GstMapInfo map;
 
   if (G_UNLIKELY (!gst_buffer_map (buffer, &map, GST_MAP_READ))) {
-    GST_DEBUG_OBJECT (base, "Failed to read data from buffer %p. Cannot dump.",
-        buffer);
+    GST_DEBUG_OBJECT (
+        base, "Failed to read data from buffer %p. Cannot dump.", buffer);
     return;
   }
 
@@ -1056,7 +1054,7 @@ gst_ttmlbase_dump_buffer (GstTTMLBase * base, GstBuffer * buffer)
 }
 
 static GstFlowReturn
-gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
+gst_ttmlbase_handle_buffer (GstPad *pad, GstBuffer *buffer)
 {
   GstTTMLBase *base;
   const char *buffer_data;
@@ -1069,16 +1067,18 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 
   ts = GST_BUFFER_TIMESTAMP (buffer);
   dur = GST_BUFFER_DURATION (buffer);
-  GST_LOG_OBJECT (base, "Handling buffer of %u bytes pts %" GST_TIME_FORMAT
-      "dur %" GST_TIME_FORMAT, (guint) gst_buffer_get_size (buffer),
-      GST_TIME_ARGS (ts), GST_TIME_ARGS (dur));
+  GST_LOG_OBJECT (base,
+      "Handling buffer of %u bytes pts %" GST_TIME_FORMAT
+      "dur %" GST_TIME_FORMAT,
+      (guint) gst_buffer_get_size (buffer), GST_TIME_ARGS (ts),
+      GST_TIME_ARGS (dur));
 
   gst_ttmlbase_dump_buffer (base, buffer);
 
   if (GST_CLOCK_TIME_IS_VALID (ts)) {
     base->input_buf_start = ts;
-    base->input_buf_stop = GST_CLOCK_TIME_IS_VALID (dur) ?
-        ts + dur : GST_CLOCK_TIME_NONE;
+    base->input_buf_stop =
+        GST_CLOCK_TIME_IS_VALID (dur) ? ts + dur : GST_CLOCK_TIME_NONE;
   } else {
     base->input_buf_start = 0;
     base->input_buf_stop = GST_CLOCK_TIME_NONE;
@@ -1107,8 +1107,8 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
 
     /* Look for end-of-document tags */
     next_buffer_data = g_strstr_len (buffer_data, buffer_len, "tt>");
-    if (next_buffer_data && (next_buffer_data[-1] == '/' ||
-            next_buffer_data[-1] == ':')) {
+    if (next_buffer_data &&
+        (next_buffer_data[-1] == '/' || next_buffer_data[-1] == ':')) {
       next_buffer_data += 3;
     } else {
       next_buffer_data = NULL;
@@ -1129,9 +1129,8 @@ gst_ttmlbase_handle_buffer (GstPad * pad, GstBuffer * buffer)
     if (!base->xml_parser) {
       GST_DEBUG_OBJECT (base,
           "Creating XML parser and parsing chunk (%d bytes)", buffer_len);
-      base->xml_parser =
-          xmlCreatePushParserCtxt (&gst_ttmlbase_sax_handler, base,
-          buffer_data, buffer_len, NULL);
+      base->xml_parser = xmlCreatePushParserCtxt (
+          &gst_ttmlbase_sax_handler, base, buffer_data, buffer_len, NULL);
       if (!base->xml_parser) {
         GST_ERROR_OBJECT (base, "XML parser creation failed");
         goto beach;
@@ -1191,7 +1190,7 @@ beach:
  * Free after use.
  * Code copied from fludashparser.c */
 gchar *
-gst_ttmlbase_uri_get (GstPad * pad)
+gst_ttmlbase_uri_get (GstPad *pad)
 {
   GstObject *parent;
   gchar *uri = NULL;
@@ -1242,9 +1241,9 @@ gst_ttmlbase_uri_get (GstPad * pad)
       GstIterator *iter = gst_element_iterate_sink_pads (GST_ELEMENT (parent));
 
       /* iterate over the sink pads */
-#if !GST_CHECK_VERSION (1,0,0)
-      while (gst_iterator_next (iter,
-              (gpointer *) & sink_pad) != GST_ITERATOR_DONE) {
+#if !GST_CHECK_VERSION(1, 0, 0)
+      while (gst_iterator_next (iter, (gpointer *) &sink_pad) !=
+             GST_ITERATOR_DONE) {
 #else
       GValue sink_pad_value = G_VALUE_INIT;
       while (gst_iterator_next (iter, &sink_pad_value) != GST_ITERATOR_DONE) {
@@ -1253,7 +1252,7 @@ gst_ttmlbase_uri_get (GstPad * pad)
 
         peer = gst_pad_get_peer (sink_pad);
         uri = gst_ttmlbase_uri_get (peer);
-#if !GST_CHECK_VERSION (1,0,0)
+#if !GST_CHECK_VERSION(1, 0, 0)
         gst_object_unref (sink_pad);
 #else
         g_value_reset (&sink_pad_value);
@@ -1272,7 +1271,7 @@ gst_ttmlbase_uri_get (GstPad * pad)
 
 /* Free any information held by the element */
 static void
-gst_ttmlbase_cleanup (GstTTMLBase * base)
+gst_ttmlbase_cleanup (GstTTMLBase *base)
 {
   GST_DEBUG_OBJECT (base, "cleaning up TTML parser");
 
@@ -1281,8 +1280,9 @@ gst_ttmlbase_cleanup (GstTTMLBase * base)
   }
 
   if (base->pending_segment) {
-    GST_DEBUG_OBJECT (base, "We have a pending new segment at start:%"
-        GST_TIME_FORMAT " stop:%" GST_TIME_FORMAT " using it",
+    GST_DEBUG_OBJECT (base,
+        "We have a pending new segment at start:%" GST_TIME_FORMAT
+        " stop:%" GST_TIME_FORMAT " using it",
         GST_TIME_ARGS (base->pending_segment->start),
         GST_TIME_ARGS (base->pending_segment->stop));
     if (base->segment)
@@ -1300,7 +1300,7 @@ gst_ttmlbase_cleanup (GstTTMLBase * base)
 }
 
 static gboolean
-gst_ttmlbase_handle_sink_event (GstPad * pad, GstEvent * event)
+gst_ttmlbase_handle_sink_event (GstPad *pad, GstEvent *event)
 {
   GstTTMLBase *base;
   gboolean ret = TRUE;
@@ -1310,15 +1310,13 @@ gst_ttmlbase_handle_sink_event (GstPad * pad, GstEvent * event)
   GST_LOG_OBJECT (base, "handling event %s", GST_EVENT_TYPE_NAME (event));
 
   switch (GST_EVENT_TYPE (event)) {
-#if GST_CHECK_VERSION (1,0,0)
-    case GST_EVENT_CAPS:
-    {
+#if GST_CHECK_VERSION(1, 0, 0)
+    case GST_EVENT_CAPS: {
       GstCaps *caps = NULL;
 
       gst_event_parse_caps (event, &caps);
       GST_DEBUG_OBJECT (base, "Dropping caps event %" GST_PTR_FORMAT, caps);
-    }
-      break;
+    } break;
     case GST_EVENT_SEGMENT:
 #else
     case GST_EVENT_NEWSEGMENT:
@@ -1331,43 +1329,45 @@ gst_ttmlbase_handle_sink_event (GstPad * pad, GstEvent * event)
 
       GST_DEBUG_OBJECT (base, "received newsegment");
 
-      gst_event_parse_new_segment (event, &update, &rate, &format, &start,
-          &stop, &time);
+      gst_event_parse_new_segment (
+          event, &update, &rate, &format, &start, &stop, &time);
       if (format != GST_FORMAT_TIME) {
-        GST_DEBUG_OBJECT (base, "dropping it because it is not in TIME format");
+        GST_DEBUG_OBJECT (
+            base, "dropping it because it is not in TIME format");
         goto beach;
       }
 
-      GST_DEBUG_OBJECT (base, "received new segment update %d, rate %f, "
+      GST_DEBUG_OBJECT (base,
+          "received new segment update %d, rate %f, "
           "start %" GST_TIME_FORMAT ", stop %" GST_TIME_FORMAT
-          ", time %" GST_TIME_FORMAT, update, rate,
-          GST_TIME_ARGS (start), GST_TIME_ARGS (stop), GST_TIME_ARGS (time));
+          ", time %" GST_TIME_FORMAT,
+          update, rate, GST_TIME_ARGS (start), GST_TIME_ARGS (stop),
+          GST_TIME_ARGS (time));
 
-      GST_DEBUG_OBJECT (base, "our segment was %" GST_SEGMENT_FORMAT,
-          base->segment);
+      GST_DEBUG_OBJECT (
+          base, "our segment was %" GST_SEGMENT_FORMAT, base->segment);
 
       if (!base->segment)
         base->segment = gst_segment_new ();
 
-      gst_segment_set_newsegment (base->segment, update, rate, format, start,
-          stop, time);
+      gst_segment_set_newsegment (
+          base->segment, update, rate, format, start, stop, time);
 
       base->last_out_time = start;
 
-      GST_DEBUG_OBJECT (base, "our segment now is %" GST_SEGMENT_FORMAT,
-          base->segment);
+      GST_DEBUG_OBJECT (
+          base, "our segment now is %" GST_SEGMENT_FORMAT, base->segment);
       break;
     }
     case GST_EVENT_FLUSH_STOP:
       /* FIXME we have a race condition when seeking/flushing. The FLUSH_START
        * triggers a flush in the src pad that causes that every gst_pad_push()
        * will return GST_FLOW_WRONG_STATE, therefore the the streaming thread
-       * that is iterating over the list of ttml events to render will take time
-       * to clean it up.
-       * After the FLUSH_START we'll receive the FLUSH_STOP where we are just
-       * cleaning the list of attributes/tineline but the chain might be still
-       * using it. Remember, FLUSH_START/FLUSH_STOP might come from different
-       * threads
+       * that is iterating over the list of ttml events to render will take
+       * time to clean it up. After the FLUSH_START we'll receive the
+       * FLUSH_STOP where we are just cleaning the list of attributes/tineline
+       * but the chain might be still using it. Remember,
+       * FLUSH_START/FLUSH_STOP might come from different threads
        */
       GST_DEBUG_OBJECT (base, "Flushing TTML parser");
       gst_ttmlbase_cleanup (base);
@@ -1391,7 +1391,7 @@ beach:
 }
 
 static gboolean
-gst_ttmlbase_do_seek (GstTTMLBase * base, GstEvent * seek)
+gst_ttmlbase_do_seek (GstTTMLBase *base, GstEvent *seek)
 {
   GstSeekFlags flags;
   gdouble rate;
@@ -1404,10 +1404,11 @@ gst_ttmlbase_do_seek (GstTTMLBase * base, GstEvent * seek)
   if (!base->pending_segment)
     base->pending_segment = gst_segment_new ();
 
-  GST_DEBUG_OBJECT (base, "Seeking to start:%" GST_TIME_FORMAT " stop:%"
-      GST_TIME_FORMAT, GST_TIME_ARGS (start), GST_TIME_ARGS (stop));
-  gst_segment_set_newsegment (base->pending_segment, FALSE, rate,
-      GST_FORMAT_TIME, start, stop, start);
+  GST_DEBUG_OBJECT (base,
+      "Seeking to start:%" GST_TIME_FORMAT " stop:%" GST_TIME_FORMAT,
+      GST_TIME_ARGS (start), GST_TIME_ARGS (stop));
+  gst_segment_set_newsegment (
+      base->pending_segment, FALSE, rate, GST_FORMAT_TIME, start, stop, start);
   gst_event_unref (seek);
 
   /* do a 0, -1 seek upstream in bytes */
@@ -1419,7 +1420,7 @@ gst_ttmlbase_do_seek (GstTTMLBase * base, GstEvent * seek)
 }
 
 static gboolean
-gst_ttmlbase_handle_src_event (GstPad * pad, GstEvent * event)
+gst_ttmlbase_handle_src_event (GstPad *pad, GstEvent *event)
 {
   GstTTMLBase *base;
   gboolean ret = TRUE;
@@ -1429,11 +1430,12 @@ gst_ttmlbase_handle_src_event (GstPad * pad, GstEvent * event)
   GST_LOG_OBJECT (base, "handling event %s", GST_EVENT_TYPE_NAME (event));
 
   switch (GST_EVENT_TYPE (event)) {
-    case GST_EVENT_SEEK:{
+    case GST_EVENT_SEEK: {
       GstFormat format;
 
       /* check if TIME format, the only format we support */
-      gst_event_parse_seek (event, NULL, &format, NULL, NULL, NULL, NULL, NULL);
+      gst_event_parse_seek (
+          event, NULL, &format, NULL, NULL, NULL, NULL, NULL);
       if (format == GST_FORMAT_TIME) {
         GstQuery *upstream;
 
@@ -1444,7 +1446,8 @@ gst_ttmlbase_handle_src_event (GstPad * pad, GstEvent * event)
           if (!gst_pad_peer_query (base->sinkpad, upstream)) {
             ret = FALSE;
           } else {
-            /* upstream handles in bytes, let's seek there and clip ourselves */
+            /* upstream handles in bytes, let's seek there and clip ourselves
+             */
             ret = gst_ttmlbase_do_seek (base, event);
             event = NULL;
           }
@@ -1452,7 +1455,6 @@ gst_ttmlbase_handle_src_event (GstPad * pad, GstEvent * event)
           /* upstream handles in time, forward the seek event */
           ret = gst_pad_push_event (base->sinkpad, event);
           event = NULL;
-
         }
         gst_query_unref (upstream);
       } else {
@@ -1477,7 +1479,7 @@ gst_ttmlbase_handle_src_event (GstPad * pad, GstEvent * event)
 }
 
 static gboolean
-gst_ttmlbase_handle_src_query (GstPad * pad, GstQuery * query)
+gst_ttmlbase_handle_src_query (GstPad *pad, GstQuery *query)
 {
   GstTTMLBase *base;
   gboolean ret = TRUE;
@@ -1487,7 +1489,7 @@ gst_ttmlbase_handle_src_query (GstPad * pad, GstQuery * query)
   GST_LOG_OBJECT (base, "handling query %s", GST_QUERY_TYPE_NAME (query));
 
   switch (GST_QUERY_TYPE (query)) {
-    case GST_QUERY_SEEKING:{
+    case GST_QUERY_SEEKING: {
       GstFormat format;
 
       /* we can seek on time if upstream handles on time or bytes */
@@ -1522,28 +1524,28 @@ gst_ttmlbase_handle_src_query (GstPad * pad, GstQuery * query)
   return ret;
 }
 
-#if GST_CHECK_VERSION (1,0,0)
+#if GST_CHECK_VERSION(1, 0, 0)
 
 static GstFlowReturn
-gst_ttmlbase_sink_chain (GstPad * pad, GstObject * parent, GstBuffer * buffer)
+gst_ttmlbase_sink_chain (GstPad *pad, GstObject *parent, GstBuffer *buffer)
 {
   return gst_ttmlbase_handle_buffer (pad, buffer);
 }
 
 static gboolean
-gst_ttmlbase_sink_event (GstPad * pad, GstObject * parent, GstEvent * event)
+gst_ttmlbase_sink_event (GstPad *pad, GstObject *parent, GstEvent *event)
 {
   return gst_ttmlbase_handle_sink_event (pad, event);
 }
 
 static gboolean
-gst_ttmlbase_src_query (GstPad * pad, GstObject * parent, GstQuery * query)
+gst_ttmlbase_src_query (GstPad *pad, GstObject *parent, GstQuery *query)
 {
   return gst_ttmlbase_handle_src_query (pad, query);
 }
 
 static gboolean
-gst_ttmlbase_src_event (GstPad * pad, GstObject * parent, GstEvent * event)
+gst_ttmlbase_src_event (GstPad *pad, GstObject *parent, GstEvent *event)
 {
   return gst_ttmlbase_handle_src_event (pad, event);
 }
@@ -1551,25 +1553,25 @@ gst_ttmlbase_src_event (GstPad * pad, GstObject * parent, GstEvent * event)
 #else
 
 static GstFlowReturn
-gst_ttmlbase_sink_chain (GstPad * pad, GstBuffer * buffer)
+gst_ttmlbase_sink_chain (GstPad *pad, GstBuffer *buffer)
 {
   return gst_ttmlbase_handle_buffer (pad, buffer);
 }
 
 static gboolean
-gst_ttmlbase_sink_event (GstPad * pad, GstEvent * event)
+gst_ttmlbase_sink_event (GstPad *pad, GstEvent *event)
 {
   return gst_ttmlbase_handle_sink_event (pad, event);
 }
 
 static gboolean
-gst_ttmlbase_src_query (GstPad * pad, GstQuery * query)
+gst_ttmlbase_src_query (GstPad *pad, GstQuery *query)
 {
   return gst_ttmlbase_handle_src_query (pad, query);
 }
 
 static gboolean
-gst_ttmlbase_src_event (GstPad * pad, GstEvent * event)
+gst_ttmlbase_src_event (GstPad *pad, GstEvent *event)
 {
   return gst_ttmlbase_handle_src_event (pad, event);
 }
@@ -1577,7 +1579,7 @@ gst_ttmlbase_src_event (GstPad * pad, GstEvent * event)
 #endif
 
 static GstStateChangeReturn
-gst_ttmlbase_change_state (GstElement * element, GstStateChange transition)
+gst_ttmlbase_change_state (GstElement *element, GstStateChange transition)
 {
   GstTTMLBase *base;
   GstStateChangeReturn ret = GST_STATE_CHANGE_SUCCESS, bret;
@@ -1619,8 +1621,8 @@ gst_ttmlbase_change_state (GstElement * element, GstStateChange transition)
 }
 
 static void
-gst_ttmlbase_get_property (GObject * object, guint prop_id, GValue * value,
-    GParamSpec * pspec)
+gst_ttmlbase_get_property (
+    GObject *object, guint prop_id, GValue *value, GParamSpec *pspec)
 {
   GstTTMLBase *base = GST_TTMLBASE (object);
 
@@ -1635,8 +1637,8 @@ gst_ttmlbase_get_property (GObject * object, guint prop_id, GValue * value,
 }
 
 static void
-gst_ttmlbase_set_property (GObject * object, guint prop_id,
-    const GValue * value, GParamSpec * pspec)
+gst_ttmlbase_set_property (
+    GObject *object, guint prop_id, const GValue *value, GParamSpec *pspec)
 {
   GstTTMLBase *base = GST_TTMLBASE (object);
 
@@ -1651,7 +1653,7 @@ gst_ttmlbase_set_property (GObject * object, guint prop_id,
 }
 
 static void
-gst_ttmlbase_dispose (GObject * object)
+gst_ttmlbase_dispose (GObject *object)
 {
   GstTTMLBase *base = GST_TTMLBASE (object);
 
@@ -1673,7 +1675,7 @@ gst_ttmlbase_dispose (GObject * object)
 }
 
 static void
-gst_ttmlbase_base_init (GstTTMLBaseClass * klass)
+gst_ttmlbase_base_init (GstTTMLBaseClass *klass)
 {
   GstElementClass *gstelement_class = GST_ELEMENT_CLASS (klass);
 
@@ -1681,12 +1683,12 @@ gst_ttmlbase_base_init (GstTTMLBaseClass * klass)
    * This is done in base_init instead of class_init because of issues with
    * GStreamer 0.10: The template is not shown with gst-inspect.
    */
-  gst_element_class_add_pad_template (gstelement_class,
-      gst_static_pad_template_get (&ttmlbase_sink_template));
+  gst_element_class_add_pad_template (
+      gstelement_class, gst_static_pad_template_get (&ttmlbase_sink_template));
 }
 
 static void
-gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
+gst_ttmlbase_class_init (GstTTMLBaseClass *klass)
 {
   GstElementClass *gstelement_class = GST_ELEMENT_CLASS (klass);
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -1701,8 +1703,8 @@ gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
   g_object_class_install_property (gobject_class, PROP_ASSUME_ORDERED_SPANS,
       g_param_spec_boolean ("assume_ordered_spans", "Assume ordered spans",
           "Generate buffers as soon as possible, by assuming that text "
-          "spans will arrive in chronological order", FALSE,
-          G_PARAM_READWRITE));
+          "spans will arrive in chronological order",
+          FALSE, G_PARAM_READWRITE));
 
   /* GstElement overrides */
   gstelement_class->change_state =
@@ -1710,27 +1712,27 @@ gst_ttmlbase_class_init (GstTTMLBaseClass * klass)
 }
 
 static void
-gst_ttmlbase_init (GstTTMLBase * base, GstTTMLBaseClass * klass)
+gst_ttmlbase_init (GstTTMLBase *base, GstTTMLBaseClass *klass)
 {
   GstPadTemplate *src_pad_template;
 
   /* Create sink pad */
-  base->sinkpad = gst_pad_new_from_static_template (&ttmlbase_sink_template,
-      "sink");
-  gst_pad_set_event_function (base->sinkpad,
-      GST_DEBUG_FUNCPTR (gst_ttmlbase_sink_event));
-  gst_pad_set_chain_function (base->sinkpad,
-      GST_DEBUG_FUNCPTR (gst_ttmlbase_sink_chain));
+  base->sinkpad =
+      gst_pad_new_from_static_template (&ttmlbase_sink_template, "sink");
+  gst_pad_set_event_function (
+      base->sinkpad, GST_DEBUG_FUNCPTR (gst_ttmlbase_sink_event));
+  gst_pad_set_chain_function (
+      base->sinkpad, GST_DEBUG_FUNCPTR (gst_ttmlbase_sink_chain));
 
   /* Create src pad. A template named "src" should have been added by the
    * derived class. */
   src_pad_template =
       gst_element_class_get_pad_template (GST_ELEMENT_CLASS (klass), "src");
   base->srcpad = gst_pad_new_from_template (src_pad_template, "src");
-  gst_pad_set_event_function (base->srcpad,
-      GST_DEBUG_FUNCPTR (gst_ttmlbase_src_event));
-  gst_pad_set_query_function (base->srcpad,
-      GST_DEBUG_FUNCPTR (gst_ttmlbase_src_query));
+  gst_pad_set_event_function (
+      base->srcpad, GST_DEBUG_FUNCPTR (gst_ttmlbase_src_event));
+  gst_pad_set_query_function (
+      base->srcpad, GST_DEBUG_FUNCPTR (gst_ttmlbase_src_query));
 
   gst_element_add_pad (GST_ELEMENT (base), base->sinkpad);
   gst_element_add_pad (GST_ELEMENT (base), base->srcpad);
@@ -1759,7 +1761,7 @@ gst_ttmlbase_get_type (void)
 {
   static GType type = 0;
 
-  if (g_once_init_enter ((gsize *) & type)) {
+  if (g_once_init_enter ((gsize *) &type)) {
     static const GTypeInfo info = {
       sizeof (GstTTMLBaseClass),
       (GBaseInitFunc) gst_ttmlbase_base_init,
@@ -1772,11 +1774,10 @@ gst_ttmlbase_get_type (void)
       (GInstanceInitFunc) gst_ttmlbase_init,
     };
 
-    g_once_init_leave ((gsize *) & type,
-        g_type_register_static (GST_TYPE_ELEMENT, "GstTTMLBase", &info,
-            G_TYPE_FLAG_ABSTRACT));
+    g_once_init_leave (
+        (gsize *) &type, g_type_register_static (GST_TYPE_ELEMENT,
+                             "GstTTMLBase", &info, G_TYPE_FLAG_ABSTRACT));
   }
 
   return type;
-
 }
