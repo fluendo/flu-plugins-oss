@@ -8,6 +8,7 @@
 #endif
 
 #include "gstttmlutils.h"
+#include <string.h>
 #include "gstttmlenums.h"
 
 struct _GstTTMLToken

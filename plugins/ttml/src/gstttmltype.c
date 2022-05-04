@@ -69,18 +69,10 @@ gst_ttmltype_find (GstTypeFind *tf, gpointer unused)
 gboolean
 gst_ttmltype_init (GstPlugin *plugin)
 {
-#if GST_CHECK_VERSION(1, 0, 0)
   static const gchar *exts = "ttml, xml, dfxp";
 
   if (!gst_type_find_register (plugin, TTML_MIME, GST_RANK_PRIMARY,
           gst_ttmltype_find, exts, TTML_CAPS, NULL, NULL))
     return FALSE;
-#else
-  static const gchar *exts[] = { "ttml", "xml", "dfxp", NULL };
-
-  if (!gst_type_find_register (plugin, TTML_MIME, GST_RANK_PRIMARY,
-          gst_ttmltype_find, (char **) exts, TTML_CAPS, NULL, NULL))
-    return FALSE;
-#endif
   return TRUE;
 }

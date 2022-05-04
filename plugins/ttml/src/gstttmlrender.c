@@ -75,18 +75,9 @@ typedef struct _GstTTMLRegion
   int current_par_content_plain_length; /* # of chars without markup */
 } GstTTMLRegion;
 
-#if GST_CHECK_VERSION(1, 0, 0)
 #define GST_TTMLRENDER_SRC_CAPS                                               \
   "video/x-raw, format=BGRA, width=(int)[1,MAX], height=(int)[1,MAX], "       \
   "framerate=(fraction)0/1, pixel-aspect-ratio=(fraction)[0/1, MAX]"
-#else
-#define GST_TTMLRENDER_SRC_CAPS                                               \
-  "video/x-raw-rgb, width=(int)[1,MAX], height=(int)[1,MAX], "                \
-  "framerate=(fraction)0/1, bpp=(int)32, depth=(int)32, "                     \
-  "endianness=(int)4321, red_mask=(int)65280, green_mask=(int)16711680, "     \
-  "blue_mask=(int)-16777216, alpha_mask=(int)255, "                           \
-  "pixel-aspect-ratio=(fraction)[0/1, MAX]"
-#endif
 
 static GstStaticPadTemplate ttmlrender_src_template =
     GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,
