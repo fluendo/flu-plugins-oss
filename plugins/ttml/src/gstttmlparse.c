@@ -25,11 +25,7 @@
 GST_DEBUG_CATEGORY_EXTERN (ttmlparse_debug);
 #define GST_CAT_DEFAULT ttmlparse_debug
 
-#if GST_CHECK_VERSION(1, 0, 0)
 #define GST_TTMLPARSE_SRC_CAPS "text/x-raw,format=pango-markup"
-#else
-#define GST_TTMLPARSE_SRC_CAPS "text/x-pango-markup"
-#endif
 
 static GstStaticPadTemplate ttmlparse_src_template =
     GST_STATIC_PAD_TEMPLATE ("src", GST_PAD_SRC, GST_PAD_ALWAYS,

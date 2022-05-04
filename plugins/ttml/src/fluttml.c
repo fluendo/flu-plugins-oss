@@ -7,7 +7,7 @@
 #endif
 
 #include <gst/gst.h>
-#include "gst-compat.h"
+#include <gst/gst.h>
 #include "gst-demo.h"
 #include "gst-fluendo.h"
 

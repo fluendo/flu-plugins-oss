@@ -6,7 +6,7 @@
 #ifndef __GST_TTML_STATE_H__
 #define __GST_TTML_STATE_H__
 
-#include <gst-compat.h>
+#include <gst/gst.h>
 #include "gstttmlforward.h"
 #include "gstttmlenums.h"
 #include "gstttmlstyle.h"

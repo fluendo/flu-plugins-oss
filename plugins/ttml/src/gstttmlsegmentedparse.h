@@ -8,7 +8,7 @@
 
 #include <gst/gst.h>
 #include <libxml/parser.h>
-#include "gst-compat.h"
+#include <gst/gst.h>
 #include "gst-demo.h"
 #include "gstttmlbase.h"
 #include "gstttmlstate.h"

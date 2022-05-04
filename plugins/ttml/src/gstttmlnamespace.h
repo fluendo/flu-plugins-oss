@@ -6,7 +6,7 @@
 #ifndef GSTTTMLNAMESPACE_H
 #define GSTTTMLNAMESPACE_H
 
-#include <gst-compat.h>
+#include <gst/gst.h>
 
 typedef struct _GstTTMLNamespace
 {
