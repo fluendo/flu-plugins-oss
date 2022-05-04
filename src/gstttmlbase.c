@@ -45,8 +45,6 @@ enum
 static GstStaticPadTemplate ttmlbase_sink_template = GST_STATIC_PAD_TEMPLATE (
     "sink", GST_PAD_SINK, GST_PAD_ALWAYS, GST_STATIC_CAPS (TTML_MIME));
 
-#if GST_CHECK_VERSION(1, 0, 0)
-
 /* Compatibility functions for segment handling */
 GstEvent *
 gst_event_new_new_segment (gboolean update, gdouble rate, GstFormat format,
@@ -87,8 +85,6 @@ gst_segment_set_newsegment (GstSegment *segment, gboolean update, gdouble rate,
   segment->position = time;
 }
 
-#endif
-
 static gboolean gst_ttmlbase_downstream_negotiation (GstTTMLBase *base);
 static void gst_ttmlbase_sax_characters (
     void *ctx, const xmlChar *ch, int len);
@@ -100,11 +96,7 @@ gst_ttmlbase_gen_buffer (
 {
   GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
   gboolean in_seg = FALSE;
-#if GST_CHECK_VERSION(1, 0, 0)
   guint64 clip_start = 0, clip_stop = 0;
-#else
-  gint64 clip_start = 0, clip_stop = 0;
-#endif
 
   GST_DEBUG_OBJECT (base,
       "gen_buffer %" GST_TIME_FORMAT " - %" GST_TIME_FORMAT,
@@ -184,10 +176,6 @@ gst_ttmlbase_gen_buffer (
       gst_pad_push_event (base->srcpad, event);
       base->newsegment_needed = FALSE;
     }
-#if !GST_CHECK_VERSION(1, 0, 0)
-    /* Set caps on buffer */
-    gst_buffer_set_caps (buffer, GST_PAD_CAPS (base->srcpad));
-#endif
 
     GST_BUFFER_TIMESTAMP (buffer) = clip_start;
     GST_BUFFER_DURATION (buffer) = clip_stop - clip_start;
@@ -938,11 +926,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
   GstPadTemplate *src_pad_template;
   GstTTMLBaseClass *klass = GST_TTMLBASE_GET_CLASS (base);
 
-#if GST_CHECK_VERSION(1, 0, 0)
   src_caps = gst_pad_get_current_caps (base->srcpad);
-#else
-  src_caps = gst_pad_get_negotiated_caps (base->srcpad);
-#endif
   if (G_LIKELY (src_caps != NULL)) {
     gst_caps_unref (src_caps);
     return TRUE;
@@ -957,19 +941,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
   if (klass->complete_caps) {
     klass->complete_caps (base, template_caps);
   }
-#if GST_CHECK_VERSION(1, 0, 0)
   src_caps = gst_pad_peer_query_caps (base->srcpad, template_caps);
-#else
-  {
-    GstCaps *peer_caps = gst_pad_peer_get_caps (base->srcpad);
-    if (!peer_caps) {
-      GST_WARNING_OBJECT (base, "Peer has no caps!");
-      return FALSE;
-    }
-    src_caps = gst_caps_intersect (peer_caps, template_caps);
-    gst_caps_unref (peer_caps);
-  }
-#endif
 
   gst_caps_unref (template_caps);
 
@@ -997,11 +969,7 @@ gst_ttmlbase_downstream_negotiation (GstTTMLBase *base)
    * the interlaced field. Sadly, if we dont fixate like this, the pad
    * can not have non-fixed caps
    */
-#if GST_CHECK_VERSION(1, 0, 0)
   src_caps = gst_caps_fixate (src_caps);
-#else
-  gst_pad_fixate_caps (base->srcpad, src_caps);
-#endif
 
   GST_DEBUG_OBJECT (base, "setting caps %" GST_PTR_FORMAT, src_caps);
   gst_pad_set_caps (base->srcpad, src_caps);
@@ -1241,22 +1209,13 @@ gst_ttmlbase_uri_get (GstPad *pad)
       GstIterator *iter = gst_element_iterate_sink_pads (GST_ELEMENT (parent));
 
       /* iterate over the sink pads */
-#if !GST_CHECK_VERSION(1, 0, 0)
-      while (gst_iterator_next (iter, (gpointer *) &sink_pad) !=
-             GST_ITERATOR_DONE) {
-#else
       GValue sink_pad_value = G_VALUE_INIT;
       while (gst_iterator_next (iter, &sink_pad_value) != GST_ITERATOR_DONE) {
         sink_pad = (GstPad *) g_value_get_object (&sink_pad_value);
-#endif
 
         peer = gst_pad_get_peer (sink_pad);
         uri = gst_ttmlbase_uri_get (peer);
-#if !GST_CHECK_VERSION(1, 0, 0)
-        gst_object_unref (sink_pad);
-#else
         g_value_reset (&sink_pad_value);
-#endif
         gst_object_unref (peer);
         if (uri)
           break;
@@ -1310,18 +1269,13 @@ gst_ttmlbase_handle_sink_event (GstPad *pad, GstEvent *event)
   GST_LOG_OBJECT (base, "handling event %s", GST_EVENT_TYPE_NAME (event));
 
   switch (GST_EVENT_TYPE (event)) {
-#if GST_CHECK_VERSION(1, 0, 0)
     case GST_EVENT_CAPS: {
       GstCaps *caps = NULL;
 
       gst_event_parse_caps (event, &caps);
       GST_DEBUG_OBJECT (base, "Dropping caps event %" GST_PTR_FORMAT, caps);
     } break;
-    case GST_EVENT_SEGMENT:
-#else
-    case GST_EVENT_NEWSEGMENT:
-#endif
-    {
+    case GST_EVENT_SEGMENT: {
       GstFormat format;
       gdouble rate;
       gint64 start, stop, time;
@@ -1524,8 +1478,6 @@ gst_ttmlbase_handle_src_query (GstPad *pad, GstQuery *query)
   return ret;
 }
 
-#if GST_CHECK_VERSION(1, 0, 0)
-
 static GstFlowReturn
 gst_ttmlbase_sink_chain (GstPad *pad, GstObject *parent, GstBuffer *buffer)
 {
@@ -1549,34 +1501,6 @@ gst_ttmlbase_src_event (GstPad *pad, GstObject *parent, GstEvent *event)
 {
   return gst_ttmlbase_handle_src_event (pad, event);
 }
-
-#else
-
-static GstFlowReturn
-gst_ttmlbase_sink_chain (GstPad *pad, GstBuffer *buffer)
-{
-  return gst_ttmlbase_handle_buffer (pad, buffer);
-}
-
-static gboolean
-gst_ttmlbase_sink_event (GstPad *pad, GstEvent *event)
-{
-  return gst_ttmlbase_handle_sink_event (pad, event);
-}
-
-static gboolean
-gst_ttmlbase_src_query (GstPad *pad, GstQuery *query)
-{
-  return gst_ttmlbase_handle_src_query (pad, query);
-}
-
-static gboolean
-gst_ttmlbase_src_event (GstPad *pad, GstEvent *event)
-{
-  return gst_ttmlbase_handle_src_event (pad, event);
-}
-
-#endif
 
 static GstStateChangeReturn
 gst_ttmlbase_change_state (GstElement *element, GstStateChange transition)
