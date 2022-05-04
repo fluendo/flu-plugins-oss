@@ -12,6 +12,7 @@
 #include "gstttmlattribute.h"
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
+#include <string.h>
 #include <stdio.h>
 #include <time.h>
 

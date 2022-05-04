@@ -10,6 +10,7 @@
 #include "gstttmlattribute.h"
 #include "gstttmlstate.h"
 #include "gstttmlutils.h"
+#include <string.h>
 #include "gstttmlstyle.h"
 
 GST_DEBUG_CATEGORY_EXTERN (ttmlbase_debug);
