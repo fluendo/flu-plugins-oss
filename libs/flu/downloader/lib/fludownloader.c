@@ -36,8 +36,11 @@
 /*****************************************************************************
  * Private functions and structs
  *****************************************************************************/
-
+#if GLIB_CHECK_VERSION(2, 32, 0)
+static GMutex _init_lock;
+#else
 static GStaticMutex _init_lock = G_STATIC_MUTEX_INIT;
+#endif
 static gint _init_count = 0;
 
 /* Takes care of a session, which might include multiple tasks */
@@ -535,28 +538,44 @@ _thread_function (FluDownloader *context)
 void
 fludownloader_init ()
 {
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  g_mutex_lock (&_init_lock);
+#else
   g_static_mutex_lock (&_init_lock);
+#endif
   _init_count++;
 
   if (_init_count == 1) {
+#if !GLIB_CHECK_VERSION(2, 32, 0)
     g_thread_init (NULL);
+#endif
     curl_global_init (CURL_GLOBAL_ALL);
   }
-
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  g_mutex_unlock (&_init_lock);
+#else
   g_static_mutex_unlock (&_init_lock);
+#endif
 }
 
 void
 fludownloader_shutdown ()
 {
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  g_mutex_lock (&_init_lock);
+#else
   g_static_mutex_lock (&_init_lock);
+#endif
   _init_count--;
 
   if (_init_count == 0) {
     curl_global_cleanup ();
   }
-
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  g_mutex_unlock (&_init_lock);
+#else
   g_static_mutex_unlock (&_init_lock);
+#endif
 }
 
 FluDownloader *
@@ -584,9 +603,13 @@ fludownloader_new (
   curl_multi_setopt (context->handle, CURLMOPT_PIPELINING, 1);
 
   fluc_rec_mutex_init (&context->lock);
-
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  context->thread =
+      g_thread_new ("fludownloader", (GThreadFunc) _thread_function, context);
+#else
   context->thread =
       g_thread_create ((GThreadFunc) _thread_function, context, TRUE, NULL);
+#endif
   if (!context->thread)
     goto error;
 
