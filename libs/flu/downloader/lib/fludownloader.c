@@ -22,7 +22,7 @@
 
 #include "fludownloader.h"
 
-#include <glib-compat.h>
+#include <gst/gst.h>
 #include <glib/gstdio.h> /* g_stat */
 #include <curl/curl.h>
 #include <string.h>
