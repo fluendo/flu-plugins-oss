@@ -4,7 +4,7 @@ plugindir = $(libdir)/gstreamer-@GST_MAJORMINOR@
 plugin_LTLIBRARIES = libgstfluttml.la
 
 libgstfluttml_la_SOURCES = \
-fluttml.c \
+gstfluttml.c \
 gstttmlbase.c \
 gstttmltype.c \
 gstttmlattribute.c \

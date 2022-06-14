@@ -3,7 +3,7 @@
 
 DIE=0
 package=gst-fluendo-ttml
-srcfile=src/fluttml.c
+srcfile=src/gstfluttml.c
 
 # Make sure we have common
 if test ! -f common/gst-autogen.sh;then
