@@ -14,7 +14,7 @@ ttml_sources = ['src/gstfluttml.c',
 
 xml_dep = dependency('libxml-2.0', version : '>=2.4.9')
 
-ttml_dependencies = [gst_dep, xml_dep]
+ttml_dependencies = [gst_dep, xml_dep, math_dep]
 
 if not get_option('ttml_build_ttmlparse').disabled()
   plugin_configuration_data.set('BUILD_TTMLPARSE', 1)
