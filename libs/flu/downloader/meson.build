@@ -27,16 +27,4 @@ down_dep = declare_dependency( dependencies: down_dependencies,
   include_directories: down_include_directories,
 )
 
-# Generate pkgconfig
-pkgconfig = import('pkgconfig')
-pkg_name = 'fludownloader'
-pkgconfig_subdirs = ['gstreamer-1.0']
-
-pkgconfig.generate(downloader_library,
-  libraries : [down_dependencies],
-  subdirs : pkgconfig_subdirs,
-  name : pkg_name,
-  description : 'Fluendo Downloader Library',
-)
-
 subdir('examples')
