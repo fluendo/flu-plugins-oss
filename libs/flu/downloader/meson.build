@@ -18,6 +18,7 @@ downloader_library = static_library('downloader',
   include_directories : down_include_directories,
   c_args: down_c_args,
   dependencies : down_dependencies,
+  build_by_default: false,
 )
 
 # Declare fluc new dependecy
