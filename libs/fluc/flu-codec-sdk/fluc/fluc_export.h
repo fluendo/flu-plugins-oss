@@ -6,10 +6,7 @@
 
 #ifndef _FLUC_EXPORT_H_
 #define _FLUC_EXPORT_H_
-
-#ifdef FLUC_EXPORT
-#undef FLUC_EXPORT
-#endif
+#ifndef FLUC_EXPORT
 
 #ifdef _WIN32
 #define FLUC_EXPORT __declspec(dllexport)
@@ -25,4 +22,5 @@
 #endif
 #endif
 
+#endif /* FLUC_EXPORT */
 #endif /* _FLUC_EXPORT_H_ */

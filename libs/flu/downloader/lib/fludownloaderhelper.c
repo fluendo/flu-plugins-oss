@@ -192,9 +192,15 @@ fludownloader_helper_downloader_new (GHashTable *parameters)
       (FluDownloaderDoneCallback) fludownloader_helper_done_cb);
 
   fludownloader_helper_downloader_set_parameters (downloader, parameters);
-
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  downloader->done_mutex = g_malloc (sizeof (GMutex));
+  downloader->done_cond = g_malloc (sizeof (GCond));
+  g_mutex_init (downloader->done_mutex);
+  g_cond_init (downloader->done_cond);
+#else
   downloader->done_mutex = g_mutex_new ();
   downloader->done_cond = g_cond_new ();
+#endif
 
   return downloader;
 }
@@ -210,8 +216,15 @@ fludownloader_helper_downloader_free (FluDownloaderHelper *downloader)
     fludownloader_destroy (downloader->fludownloader);
   }
 
+#if GLIB_CHECK_VERSION(2, 32, 0)
+  g_mutex_clear (downloader->done_mutex);
+  g_cond_clear (downloader->done_cond);
+  g_free (downloader->done_mutex);
+  g_free (downloader->done_cond);
+#else
   g_mutex_free (downloader->done_mutex);
   g_cond_free (downloader->done_cond);
+#endif
 
   if (downloader->header)
     g_strfreev (downloader->header);
