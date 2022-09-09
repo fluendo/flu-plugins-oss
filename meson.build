@@ -43,4 +43,5 @@ ttml_library = library('gstfluttml',
   dependencies: ttml_dependencies,
   install : true,
   install_dir : plugins_install_dir,
+  name_suffix: library_suffix,
 )
