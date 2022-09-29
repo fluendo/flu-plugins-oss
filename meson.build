@@ -32,7 +32,7 @@ endif
 
 configure_file( output : 'config.h', configuration : plugin_configuration_data)
 
-ttml_include_directories = [include_directories('src')]
+ttml_include_directories = [include_directories('.', 'src')]
 ttml_include_directories += common_include_dir
 
 # Set the build targets
