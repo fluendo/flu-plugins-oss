@@ -67,5 +67,5 @@ plugin_init (GstPlugin *plugin)
 /* this is the structure that gstreamer looks for to register plugins
  */
 FLUENDO_PLUGIN_DEFINE (GST_VERSION_MAJOR, GST_VERSION_MINOR, "fluttml",
-    fluttml, "Fluendo TTML Plugin", plugin_init, VERSION, GST_LICENSE_UNKNOWN,
-    PACKAGE_NAME, "http://www.fluendo.com");
+    fluttml, "Fluendo TTML Plugin", plugin_init, VERSION,
+    FLUENDO_DEFAULT_LICENSE, PACKAGE_NAME, "http://www.fluendo.com");
