@@ -3,8 +3,10 @@
 curl_dep = dependency('libcurl', version : '>=7.43')
 
 # Setting source files
-down_sources = ['lib/fludownloader.c',
-                'lib/fludownloaderhelper.c']
+down_sources = [
+  'lib/fludownloader.c',
+  'lib/fludownloaderhelper.c'
+]
 
 down_c_args = []
 
