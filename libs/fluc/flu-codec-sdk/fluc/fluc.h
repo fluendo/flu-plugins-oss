@@ -23,8 +23,4 @@
 #include <fluc/bwmeter/fluc_bwmeter.h>
 #endif
 
-#if FLUC_USE_COMPAT
-#include <fluc/compat/fluc_compat.h>
-#endif
-
 #endif /* _FLUC_H_ */
