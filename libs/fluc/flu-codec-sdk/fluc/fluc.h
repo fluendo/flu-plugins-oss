@@ -23,4 +23,7 @@
 #include <fluc/bwmeter/fluc_bwmeter.h>
 #endif
 
+#include <fluc/compat/glib_compat.h>
+#include <fluc/compat/gst_compat.h>
+
 #endif /* _FLUC_H_ */
