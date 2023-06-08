@@ -13,6 +13,7 @@
 #include <fluc/ipc/flucipc.h>
 #include <fluc/license/fluclicense-plugin.h>
 #include <fluc/license/fluclicense-common.h>
+#include <fluc/gtype/fluc_gtype.h>
 
 #if FLUC_USE_DRM
 #include <fluc/drm/flucdrm.h>
