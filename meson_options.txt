@@ -1,0 +1,2 @@
+option('whisper', type : 'feature', value : 'auto')
+option('whispercpp-path', type : 'string', value : '', description : 'WhisperC++ path')
