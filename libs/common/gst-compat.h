@@ -311,11 +311,17 @@ gst_buffer_new_wrapped_full (GstMemoryFlags flags, gpointer data,
 #endif
 #endif
 
+#if !GST_CHECK_VERSION(1, 20, 0)
+/* Function replacment for Gstreamer below 1.20.0
+ */
+#define gst_element_request_pad_simple gst_element_get_request_pad
+#endif
+
 #if !GST_CHECK_VERSION(1, 21, 90) &&                                          \
     ((defined(_WIN32) || defined(__CYGWIN__)) &&                              \
         !defined(GST_STATIC_COMPILATION))
 #undef GST_PLUGIN_EXPORT
-#define GST_PLUGIN_EXPORT __declspec (dllexport)
+#define GST_PLUGIN_EXPORT __declspec(dllexport)
 #endif
 
 /*
