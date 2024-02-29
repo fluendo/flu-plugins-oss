@@ -16,6 +16,7 @@
 
 #include <gst/gst.h>
 #include <gst/base/gstadapter.h>
+#include <gst/video/video.h>
 
 #ifndef GST_CHECK_VERSION
 #define GST_CHECK_VERSION(major, minor, micro)                                \
@@ -299,6 +300,60 @@ gst_buffer_new_wrapped_full (GstMemoryFlags flags, gpointer data,
           ? (guint) (((GstClockTime) (ABS (t))) % GST_SECOND)                 \
           : 999999999
 
+#endif
+
+#if !GST_CHECK_VERSION(1, 6, 0)
+/* Function replacment/implementation/addition  for Gstreamer below 1.6.0
+ */
+
+/**
+ * gst_video_info_copy:
+ * @info: a #GstVideoInfo
+ *
+ * Copy a GstVideoInfo structure.
+ *
+ * Returns: a new #GstVideoInfo. free with gst_video_info_free.
+ *
+ * Since: 1.6
+ */
+
+static inline GstVideoInfo *
+gst_video_info_copy (const GstVideoInfo *info)
+{
+  return g_slice_dup (GstVideoInfo, info);
+}
+
+/**
+ * gst_base_transform_update_src_caps:
+ * @trans: a #GstBaseTransform
+ * @updated_caps: An updated version of the srcpad caps to be pushed
+ * downstream
+ *
+ * Updates the srcpad caps and send the caps downstream. This function
+ * can be used by subclasses when they have already negotiated their caps
+ * but found a change in them (or computed new information). This way,
+ * they can notify downstream about that change without losing any
+ * buffer.
+ *
+ * Returns: %TRUE if the caps could be send downstream %FALSE otherwise
+ *
+ * Since: 1.6
+ */
+static inline gboolean
+gst_base_transform_update_src_caps (
+    GstBaseTransform *trans, GstCaps *updated_caps)
+{
+  g_return_val_if_fail (GST_IS_BASE_TRANSFORM (trans), FALSE);
+
+  if (gst_pad_push_event (GST_BASE_TRANSFORM_SRC_PAD (trans),
+          gst_event_new_caps (updated_caps))) {
+    gst_pad_mark_reconfigure (trans->srcpad);
+
+    return TRUE;
+  }
+
+  return FALSE;
+}
 #endif
 
 #if !GST_CHECK_VERSION(1, 14, 0)
