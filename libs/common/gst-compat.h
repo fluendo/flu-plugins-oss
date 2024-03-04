@@ -376,7 +376,8 @@ gst_base_transform_update_src_caps (
     ((defined(_WIN32) || defined(__CYGWIN__)) &&                              \
         !defined(GST_STATIC_COMPILATION))
 #undef GST_PLUGIN_EXPORT
-#define GST_PLUGIN_EXPORT __declspec(dllexport)
+
+#define GST_PLUGIN_EXPORT __declspec (dllexport)
 #endif
 
 /*
