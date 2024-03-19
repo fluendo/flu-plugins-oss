@@ -7,8 +7,6 @@
 #ifndef _FLUC_H_
 #define _FLUC_H_
 
-#include <fluc/fluc_config.h>
-
 #include <fluc/ipc/flucipc.h>
 #include <fluc/license/fluclicense-plugin.h>
 #include <fluc/license/fluclicense-common.h>
