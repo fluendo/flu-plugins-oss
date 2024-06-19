@@ -1,0 +1,18 @@
+Source: gst-fluendo-ttml
+Priority: extra
+Maintainer: root
+Build-Depends: debhelper (>= 5), autotools-dev
+Standards-Version: 3.7.2
+Section: libs
+
+Package: gst-fluendo-ttml-dev
+Section: libdevel
+Architecture: any
+Depends: gst-fluendo-ttmlBROKEN (= ${Source-Version})
+Description: Fluendo GStreamer plug-in for TTML specification
+
+Package: gst-fluendo-ttml1
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Fluendo GStreamer plug-in for TTML specification
