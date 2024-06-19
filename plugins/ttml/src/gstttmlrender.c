@@ -1092,11 +1092,11 @@ gst_ttmlrender_show_layout (cairo_t *cairo, PangoLayout *layout,
                 cairo_fill (cairo);
               }
             } else
-                /* Invisibility */
-                if (attr->klass ==
-                    &gst_ttmlrender_pango_attr_invisibility_klass) {
-              skip_run = TRUE;
-            }
+              /* Invisibility */
+              if (attr->klass ==
+                  &gst_ttmlrender_pango_attr_invisibility_klass) {
+                skip_run = TRUE;
+              }
             /* Anamorphic text rendering */
             if (attr->klass->type == PANGO_ATTR_SHAPE) {
               PangoAttrShape *shape = (PangoAttrShape *) attr;

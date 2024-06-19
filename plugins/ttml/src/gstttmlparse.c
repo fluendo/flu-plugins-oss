@@ -100,4 +100,5 @@ gst_ttmlparse_class_init (GstTTMLParseClass *klass)
 
 static void
 gst_ttmlparse_init (GstTTMLParse *parse)
-{}
+{
+}

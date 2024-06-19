@@ -292,4 +292,5 @@ gst_ttmlsegmentedparse_class_init (GstTTMLSegmentedParseClass *klass)
 
 static void
 gst_ttmlsegmentedparse_init (GstTTMLSegmentedParse *parse)
-{}
+{
+}
