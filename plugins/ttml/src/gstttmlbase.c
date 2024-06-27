@@ -188,8 +188,7 @@ gst_ttmlbase_gen_buffer (
         GST_TIME_ARGS (GST_BUFFER_DURATION (buffer)));
     GST_TTML_UTILS_MEMDUMP_BUFFER_OBJECT (base, "Content:", buffer);
 
-    base->current_gst_status = gstflu_demo_push_buffer (
-        &base->stats, base->sinkpad, base->srcpad, buffer);
+    base->current_gst_status = gst_pad_push (base->srcpad, buffer);
     base->last_out_time = clip_stop;
   } else {
     GST_DEBUG_OBJECT (base,
@@ -1533,7 +1532,6 @@ gst_ttmlbase_change_state (GstElement *element, GstStateChange transition)
     case GST_STATE_CHANGE_PAUSED_TO_READY:
       GST_DEBUG_OBJECT (base, "going from PAUSED to READY");
       gst_ttmlbase_cleanup (base);
-      gstflu_demo_reset_statistics (&base->stats);
       break;
     case GST_STATE_CHANGE_READY_TO_NULL:
       break;
@@ -1675,7 +1673,6 @@ gst_ttmlbase_init (GstTTMLBase *base, GstTTMLBaseClass *klass)
   gst_ttml_state_reset (&base->state);
 
   gst_ttmlbase_cleanup (base);
-  gstflu_demo_reset_statistics (&base->stats);
 
   base->state.frame_width = base->state.frame_height = 0;
 }

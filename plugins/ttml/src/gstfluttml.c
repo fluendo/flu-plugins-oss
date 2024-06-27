@@ -8,7 +8,6 @@
 
 #include <gst/gst.h>
 #include <gst/gst.h>
-#include "gst-demo.h"
 #include "gst-fluendo.h"
 
 #ifdef BUILD_TTMLPARSE

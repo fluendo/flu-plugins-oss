@@ -9,7 +9,6 @@
 #include <gst/gst.h>
 #include <libxml/parser.h>
 #include <gst/gst.h>
-#include "gst-demo.h"
 #include "gstttmlstate.h"
 
 G_BEGIN_DECLS
@@ -66,9 +65,6 @@ typedef struct _GstTTMLBase
 
   /* buffer to accumulate xml node content */
   GstTTMLBuffer buffer;
-
-  /* To build demo plugins */
-  GstFluDemoStatistics stats;
 } GstTTMLBase;
 
 /* The GStreamer ttmlbase element's class */

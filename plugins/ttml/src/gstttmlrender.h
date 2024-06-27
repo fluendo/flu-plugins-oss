@@ -10,7 +10,6 @@
 #include <libxml/parser.h>
 #include <pango/pangocairo.h>
 #include <gst/gst.h>
-#include "gst-demo.h"
 #include "gstttmlbase.h"
 #include "gstttmlstate.h"
 #include "fludownloaderhelper.h"
