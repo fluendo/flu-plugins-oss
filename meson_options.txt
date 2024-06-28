@@ -1,0 +1,7 @@
+option('ttml', type : 'feature', value : 'auto', description : 'Build GStreamer Fluendo TTML Element')
+
+# gst-fluendo-ttml options
+option('ttml_build_ttmlparse', type : 'feature', value : 'enabled', description : 'gst-fluendo-ttml: build the ttmlparse element')
+option('ttml_build_ttmlrender', type : 'feature', value : 'enabled', description : 'gst-fluendo-ttml: build the ttmlrender element')
+
+option('examples', type : 'feature', value : 'auto', description : 'Build examples')
