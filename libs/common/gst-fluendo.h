@@ -1,3 +1,8 @@
+/*
+ * Copyright 2012 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
+
 #ifndef _GST_FLUENDO_H_
 #define _GST_FLUENDO_H_
 

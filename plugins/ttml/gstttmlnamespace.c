@@ -1,6 +1,6 @@
 /*
- * FLUENDO S.A.
- * Copyright (C) <2019>  <support@fluendo.com>
+ * Copyright 2019 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
 
 #include "gstttmlnamespace.h"

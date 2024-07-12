@@ -1,3 +1,8 @@
+/*
+ * Copyright 2012 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
+ */
+
 #include <glib.h>
 #include <glib/gprintf.h>
 #include <unistd.h>

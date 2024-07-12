@@ -1,6 +1,6 @@
 /*
- * FLUENDO S.A.
- * Copyright (C) <2012>  <support@fluendo.com>
+ * Copyright 2012 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
 
 #ifndef __GST_TTML_BLUR_H__

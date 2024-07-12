@@ -1,6 +1,6 @@
 /*
- * FLUENDO S.A.
- * Copyright (C) <2013>  <support@fluendo.com>
+ * Copyright 2013 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
 
 #ifndef _FLUDOWNLOADER_H

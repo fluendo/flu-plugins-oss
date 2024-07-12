@@ -1,6 +1,6 @@
 /*
- * FLUENDO S.A.
- * Copyright (C) <2013>  <support@fluendo.com>
+ * Copyright 2013 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  *
  * Changed to always report task completion. Before, aborted tasks
  * were not notified. Further refinement will be easy to report

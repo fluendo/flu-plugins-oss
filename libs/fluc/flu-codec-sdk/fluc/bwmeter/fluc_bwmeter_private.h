@@ -1,8 +1,9 @@
 /*
- * Fluendo Codec SDK
- * Copyright (C) 2021, Fluendo S.A.
- * support@fluendo.com
+ * Copyright 2021 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
+
+
 
 #ifndef _FLUC_BWMETER_PRIVATE_H_
 #define _FLUC_BWMETER_PRIVATE_H_

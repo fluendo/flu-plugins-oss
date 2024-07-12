@@ -1,7 +1,9 @@
 /*
- * FLUENDO S.A.
- * Copyright (C) <2016>  <support@fluendo.com>
+ * Copyright 2016 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
+
+
 
 #ifndef GLIB_COMPAT_H
 #define GLIB_COMPAT_H

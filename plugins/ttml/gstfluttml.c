@@ -1,5 +1,6 @@
 /*
- * Copyright (C) <2012> Fluendo <support@fluendo.com>
+ * Copyright 2012 FLUENDO S.A.
+ * SPDX-License-Identifier: LGPL-2.1-only
  */
 
 #ifdef HAVE_CONFIG_H
