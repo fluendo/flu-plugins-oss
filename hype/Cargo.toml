@@ -1,0 +1,27 @@
+[package]
+name = "hype"
+version = "0.1.0"
+edition = "2021"
+authors = ["Carlos Falgueras García <cfalgueras@fluendo.com>"]
+repository = "git@github.com:fluendo/hype.git"
+license = "LGPL"
+description = "Hype GStreamer plugin"
+
+[dependencies]
+gst = { package = "gstreamer", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+gst-base = { package = "gstreamer-base", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+gst-video = { package = "gstreamer-video", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
+parking_lot = "0.12"
+once_cell = "1.0"
+
+[lib]
+name = "gsthype"
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[build-dependencies]
+gst-plugin-version-helper = {  git = "https://gitlab.freedesktop.org/gstreamer/gst-plugins-rs" }
+
+[dev-dependencies]
+pretty_assertions = "1"
+gst-check = { package = "gstreamer-check", git = "https://gitlab.freedesktop.org/gstreamer/gstreamer-rs" }
