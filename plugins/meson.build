@@ -48,7 +48,6 @@ foreach plugin, plugin_info : plugins
   plugin_configuration_data.set_quoted('PACKAGE_NAME', package_name)
   plugin_configuration_data.set_quoted('PACKAGE_STRING', package_name+' '+plugin_version)
   plugin_configuration_data.set_quoted('PACKAGE_TARNAME', plugin_name)
-  plugin_configuration_data.set('POST_1_0', 1)
   plugin_configuration_data.set_quoted('PLUGIN_NAME', plugin_name)
   plugin_configuration_data.set('PLUGIN_NAME_NO_QUOTES', plugin_name)
   subdir(plugin)
