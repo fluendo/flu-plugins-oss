@@ -11,7 +11,7 @@ pub fn register(plugin: &gst::Plugin) -> Result<(), glib::BoolError> {
     gst::Element::register(
         Some(plugin),
         "outputselector",
-        gst::Rank::None,
+        gst::Rank::NONE,
         HypeOutputSelector::static_type(),
     )
 }
