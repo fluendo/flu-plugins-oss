@@ -1,5 +1,5 @@
-use pretty_assertions::assert_eq;
 use gst::prelude::*;
+use pretty_assertions::assert_eq;
 
 const NUM_BUFFERS: u64 = 20;
 
@@ -133,6 +133,8 @@ fn test_identity3() {
 #[test]
 fn test_incompatible_encoders() {
     init();
-    let pipeline = gst::parse_launch("videotestsrc ! hype encoder-0=x264enc encoder-1=x265enc ! fakesink").unwrap();
+    let pipeline =
+        gst::parse_launch("videotestsrc ! hype encoder-0=x264enc encoder-1=x265enc ! fakesink")
+            .unwrap();
     assert!(pipeline.set_state(gst::State::Playing).is_err());
 }

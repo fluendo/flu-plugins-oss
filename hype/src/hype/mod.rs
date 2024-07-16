@@ -8,10 +8,5 @@ glib::wrapper! {
 }
 
 pub fn register(plugin: &gst::Plugin) -> Result<(), glib::BoolError> {
-    gst::Element::register(
-        Some(plugin),
-        "hype",
-        gst::Rank::NONE,
-        Hype::static_type(),
-    )
+    gst::Element::register(Some(plugin), "hype", gst::Rank::NONE, Hype::static_type())
 }

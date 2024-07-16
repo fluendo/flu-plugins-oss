@@ -31,7 +31,8 @@ impl HypeOutputSelector {
 
         let queues = self.queues.lock();
         let active_index = (ev.gop_index as usize) % queues.len();
-        self.output_selector.set_property("active-pad", &queues[active_index].2);
+        self.output_selector
+            .set_property("active-pad", &queues[active_index].2);
         gst::info!(CAT, "active index = {}", active_index);
         gst::info!(CAT, "active pad = {}", queues[active_index].2.name());
 
@@ -88,21 +89,27 @@ impl ObjectImpl for HypeOutputSelector {
         // self is owning the sinkpad
         let self_weak = self.downgrade();
 
-        os_sink_pad.add_probe(gst::PadProbeType::EVENT_DOWNSTREAM, move |_pad, probe_info| {
-            // Just interested in SceneNewHypeEvent
-            let Some(gst::PadProbeData::Event(ref ev)) = probe_info.data else {
-                return gst::PadProbeReturn::Ok;
-            };
-            let gst::EventView::CustomDownstream(ev) = ev.view() else {
-                return gst::PadProbeReturn::Ok;
-            };
-            let Some(scene_new_event) = SceneNewHypeEvent::parse(ev) else {
-                return gst::PadProbeReturn::Ok;
-            };
+        os_sink_pad.add_probe(
+            gst::PadProbeType::EVENT_DOWNSTREAM,
+            move |_pad, probe_info| {
+                // Just interested in SceneNewHypeEvent
+                let Some(gst::PadProbeData::Event(ref ev)) = probe_info.data else {
+                    return gst::PadProbeReturn::Ok;
+                };
+                let gst::EventView::CustomDownstream(ev) = ev.view() else {
+                    return gst::PadProbeReturn::Ok;
+                };
+                let Some(scene_new_event) = SceneNewHypeEvent::parse(ev) else {
+                    return gst::PadProbeReturn::Ok;
+                };
 
-            self_weak.upgrade().unwrap().new_scene_event(scene_new_event);
-            gst::PadProbeReturn::Ok
-        });
+                self_weak
+                    .upgrade()
+                    .unwrap()
+                    .new_scene_event(scene_new_event);
+                gst::PadProbeReturn::Ok
+            },
+        );
     }
 }
 

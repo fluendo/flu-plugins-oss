@@ -68,7 +68,7 @@ impl ObjectSubclass for Hype {
     const NAME: &'static str = "GstHype";
     type Type = super::Hype;
     type ParentType = gst::Bin;
-    type Interfaces = (gst::ChildProxy, );
+    type Interfaces = (gst::ChildProxy,);
 
     fn with_class(klass: &Self::Class) -> Self {
         let templ = klass.pad_template("sink").unwrap();
@@ -140,7 +140,9 @@ impl ObjectImpl for Hype {
                         let factory = enc_obj
                             .factory()
                             .expect("The element has not type. Not adding it.");
-                        if !factory.has_type(gst::ElementFactoryType::VIDEO_ENCODER) && factory.name() != "identity" {
+                        if !factory.has_type(gst::ElementFactoryType::VIDEO_ENCODER)
+                            && factory.name() != "identity"
+                        {
                             gst::error!(CAT, "The element is not a video encoder");
                             panic!("The element is not a video encoder");
                         }
@@ -250,11 +252,16 @@ impl BinImpl for Hype {}
 impl ChildProxyImpl for Hype {
     fn child_by_index(&self, index: u32) -> Option<glib::Object> {
         match index {
-            0 => { Some(self.scenedetector.clone().upcast()) }
-            1 => { Some(self.outputselector.clone().upcast()) }
-            2 => { Some(self.scenecollector.clone().upcast()) }
-            3 => { Some(self.capsfilter.clone().upcast()) }
-            i => { Some(self.obj().by_name(&format!("{ENC_PREFIX}{i}"))?.clone().upcast()) }
+            0 => Some(self.scenedetector.clone().upcast()),
+            1 => Some(self.outputselector.clone().upcast()),
+            2 => Some(self.scenecollector.clone().upcast()),
+            3 => Some(self.capsfilter.clone().upcast()),
+            i => Some(
+                self.obj()
+                    .by_name(&format!("{ENC_PREFIX}{i}"))?
+                    .clone()
+                    .upcast(),
+            ),
         }
     }
 
