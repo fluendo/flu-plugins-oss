@@ -1,6 +1,7 @@
 use gst::glib;
 use gst::prelude::*;
 use gst::subclass::prelude::*;
+use gst_video::prelude::*;
 use gst_video::subclass::prelude::*;
 
 use crate::SceneNewHypeEvent;
