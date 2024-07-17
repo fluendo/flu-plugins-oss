@@ -13,6 +13,10 @@ gst_dep = dependency('gstreamer-1.0', version : gst_req)
 gstbase_dep = dependency('gstreamer-base-1.0', version : gst_req)
 gstvideo_dep = dependency('gstreamer-video-1.0', version : gst_req)
 
+if not get_option('tests').disabled()
+  gstcheck_dep = dependency('gstreamer-check-1.0', version : gst_req)
+endif
+
 glib_dep = dependency('glib-2.0', version : '>=2.32.0')
 dl_dep = cc.find_library('dl', required : false)
 math_dep = cc.find_library('m', required : false)
