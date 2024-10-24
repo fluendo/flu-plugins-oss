@@ -1,0 +1,8 @@
+[wrap-git]
+directory = whispercpp
+url = https://github.com/ggerganov/whisper.cpp.git
+revision = v1.7.1
+method = cmake
+
+[provide]
+whispercpp = whispercpp
