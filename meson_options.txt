@@ -5,5 +5,7 @@ option('injectbin', type : 'feature', value : 'auto', description : 'Build GStre
 option('ttml_build_ttmlparse', type : 'feature', value : 'enabled', description : 'gst-fluendo-ttml: build the ttmlparse element')
 option('ttml_build_ttmlrender', type : 'feature', value : 'enabled', description : 'gst-fluendo-ttml: build the ttmlrender element')
 
+option('whisper', type : 'feature', value : 'auto')
+
 option('examples', type : 'feature', value : 'auto', description : 'Build examples')
 option('tests', type : 'feature', value : 'auto', description : 'Build tests')

@@ -8,6 +8,7 @@ plugins = {
 # Plugin Name             Supported OS                            Description
   'ttml':                 { 'os': ['linux', 'windows', 'darwin'],    'desc': 'GStreamer Fluendo TTML Element' },
   'injectbin':            { 'os': ['linux', 'windows', 'darwin'],    'desc': 'GStreamer Fluendo dynamic pipeline rebuild element' },
+  'whisper':              { 'os': ['linux',                    ],    'desc': 'GStreamer Fluendo whisper transcriber' },
 }
 
 # Meson builds OSX libraries with '.dylib' extension. However, the name_suffix
