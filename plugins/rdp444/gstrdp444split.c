@@ -121,6 +121,7 @@ rdp444split_sink_event (GstPad * pad, GstObject * parent, GstEvent * event)
 static GstFlowReturn
 rdp444split_chain (GstPad * pad, GstObject * parent, GstBuffer * buf)
 {
+
   GstRDP444Split *split = GST_RDP444_SPLIT (parent);
   GstMapInfo map_in;
   GstVideoInfo vinfo_in, vinfo_out;
