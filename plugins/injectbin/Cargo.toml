@@ -1,0 +1,25 @@
+[package]
+name = "injectbin"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+authors = ["Alexander Slobodeniuk <aslobodeniuk@fluendo.com>"]
+repository = "https://github.com/fluendo/flu-plugins-oss"
+license = "LGPL"
+description = "Fluendo dynamic pipeline rebuild plugin"
+
+[dependencies]
+gst.workspace = true
+once_cell.workspace = true
+parking_lot.workspace = true
+
+[lib]
+name = "gstinjectbin"
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[build-dependencies]
+gst-plugin-version-helper.workspace = true
+
+[dev-dependencies]
+gst-check.workspace = true
