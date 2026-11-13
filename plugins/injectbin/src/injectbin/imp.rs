@@ -1,3 +1,52 @@
+/**
+ * SECTION:element-injectbin
+ * @see_also: switchbin, identity
+ *
+ * The task of dynamically rebuilding a pipeline, when you need to switch
+ * between elements on the fly while the pipeline is playing, is not obvious,
+ * and furthermore it brings a high probability of making different kinds of
+ * mistakes, especially related to thread safety.
+ *
+ * The process is well described in the
+ * [GStreamer documentation](https://gstreamer.freedesktop.org/documentation/application-development/advanced/pipeline-manipulation.html#dynamically-changing-the-pipeline).
+ *
+ * However, even though this documentation allows writing a robust
+ * implementation, it is still a good piece of code to write, while the steps
+ * are always the same.
+ *
+ * So the goal of injectbin is to represent an implementation of these steps in
+ * a minimalistic way: the user can set the `element` property from any thread,
+ * including the streaming thread, and when the pipeline is at any state,
+ * including PAUSED state.
+ *
+ * The actual switch happens asynchronously from the streaming thread, so the
+ * `notify::element` notification doesn't arrive immediately.
+ *
+ * By default injectbin contains an `identity` element, and if the user sets a
+ * NULL pointer as the value of the `element` property, it will internally keep
+ * the identity element, so the injectbin will be passthrough. The property
+ * value will remain NULL in this case.
+ *
+ * ## Example launch line
+ *
+ * |[
+ *   videotestsrc ! injectbin element="videoflip method=vertical-flip" ! autovideosink
+ * ]|
+ *
+ * Then at any moment in the code the user can write:
+ *
+ * |[
+ * let element = gst::parse::launch("queue ! videobox top=50")?;
+ * injectbin.set_property("element", &element);
+ * // set_property() does not take ownership of the element
+ * ]|
+ *
+ * NOTE: if you want to switch elements based on the input caps, also consider
+ * the `switchbin` element; it might be a more convenient option depending on
+ * the task.
+ *
+ * Since: 0.1.0
+ */
 use gst::glib;
 use gst::prelude::*;
 use gst::subclass::prelude::*;
@@ -168,11 +217,24 @@ impl ObjectImpl for InjectBin {
 
     fn properties() -> &'static [glib::ParamSpec] {
         static PROPERTIES: Lazy<Vec<glib::ParamSpec>> = Lazy::new(|| {
-            vec![glib::ParamSpecObject::builder::<gst::Element>("element")
-                .nick("Element")
-                .blurb("Injected element")
-                .flags(glib::ParamFlags::READWRITE | glib::ParamFlags::EXPLICIT_NOTIFY)
-                .build()]
+            vec![
+                /**
+                 * GstInjectBin:element:
+                 *
+                 * The element to inject between the ghost pads. Setting it to
+                 * NULL keeps the internal `identity` element, making injectbin
+                 * a passthrough; the property then remains NULL. The switch
+                 * happens asynchronously from the streaming thread, so
+                 * `notify::element` is emitted later than the property write.
+                 *
+                 * Since: 0.1.0
+                 */
+                glib::ParamSpecObject::builder::<gst::Element>("element")
+                    .nick("Element")
+                    .blurb("Injected element")
+                    .flags(glib::ParamFlags::READWRITE | glib::ParamFlags::EXPLICIT_NOTIFY)
+                    .build(),
+            ]
         });
 
         PROPERTIES.as_ref()

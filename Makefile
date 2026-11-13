@@ -6,7 +6,7 @@ PROFILE ?= release
 DESTDIR ?=
 
 # Rust plugin crates, one library name each.
-RUST_PLUGINS := gsthype
+RUST_PLUGINS := gsthype gstinjectbin
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)

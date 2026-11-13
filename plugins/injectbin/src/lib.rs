@@ -1,3 +1,16 @@
+#![allow(unused_doc_comments)]
+
+/**
+ * plugin-injectbin:
+ * @title: injectbin
+ * @short_description: Helper bin for dynamic pipeline rebuild handling
+ *
+ * Plugin exposing the `injectbin` element, which switches elements inside a
+ * running pipeline in a thread-safe way. See the element documentation for
+ * details.
+ *
+ * Since: 0.1.0
+ */
 use gst::glib;
 
 mod injectbin;
