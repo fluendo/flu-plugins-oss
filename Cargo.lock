@@ -416,6 +416,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "injectbin"
+version = "0.1.0"
+dependencies = [
+ "gst-plugin-version-helper",
+ "gstreamer",
+ "gstreamer-check",
+ "once_cell",
+ "parking_lot",
+]
+
+[[package]]
 name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

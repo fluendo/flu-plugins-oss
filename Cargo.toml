@@ -2,7 +2,7 @@
 # Resolver 3 keeps transitive dependencies compatible with the rust-version
 # below, so a plain `cargo update` cannot silently raise the MSRV.
 resolver = "3"
-members = ["plugins/hype"]
+members = ["plugins/hype", "plugins/injectbin"]
 
 [workspace.package]
 edition = "2021"
