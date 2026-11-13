@@ -1,0 +1,21 @@
+[workspace]
+# Resolver 3 keeps transitive dependencies compatible with the rust-version
+# below, so a plain `cargo update` cannot silently raise the MSRV.
+resolver = "3"
+members = ["plugins/hype"]
+
+[workspace.package]
+edition = "2021"
+# Resolver 3 (below) requires Cargo 1.84; gstreamer-rs 0.24 in turn requires
+# Rust 1.83.
+rust-version = "1.84"
+
+[workspace.dependencies]
+gst = { package = "gstreamer", version = "0.24.5" }
+gst-base = { package = "gstreamer-base", version = "0.24.5" }
+gst-check = { package = "gstreamer-check", version = "0.24.5" }
+gst-video = { package = "gstreamer-video", version = "0.24.5" }
+gst-plugin-version-helper = "0.8.4"
+once_cell = "1"
+parking_lot = "0.12"
+pretty_assertions = "1"

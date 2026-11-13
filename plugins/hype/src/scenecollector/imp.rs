@@ -141,7 +141,7 @@ impl SceneCollector {
         pad: &gst::Pad,
         buffer: gst::Buffer,
     ) -> Result<gst::FlowSuccess, gst::FlowError> {
-        gst::log!(CAT, obj: pad, "Handling buffer {:?}", buffer);
+        gst::log!(CAT, obj = pad, "Handling buffer {:?}", buffer);
         self.scenes.push_buffer(pad.name().to_string(), buffer);
         for buffer_list in self.scenes.pop_buffers() {
             // TODO: handle error here
@@ -152,7 +152,7 @@ impl SceneCollector {
     }
 
     fn sink_event(&self, pad: &gst::Pad, event: gst::Event) -> bool {
-        gst::log!(CAT, obj: pad, "Handling event {:?}", event);
+        gst::log!(CAT, obj = pad, "Handling event {:?}", event);
         let pad_name = pad.name().to_string();
         if let Some(event) = SceneNewHypeEvent::parse(&event) {
             self.scenes.new_scene(pad_name, event.gop_index);
@@ -182,7 +182,7 @@ impl SceneCollector {
     }
 
     fn sink_query(&self, pad: &gst::Pad, query: &mut gst::QueryRef) -> bool {
-        gst::log!(CAT, obj: pad, "Handling query {:?}", query);
+        gst::log!(CAT, obj = pad, "Handling query {:?}", query);
         self.srcpad.peer_query(query)
     }
 }
