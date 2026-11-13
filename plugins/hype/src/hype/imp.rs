@@ -7,7 +7,7 @@ use once_cell::sync::Lazy;
 
 const DEFAULT_GOP_SIZE: u32 = 10;
 const NUM_ENC: usize = 5; // TODO: Make it dynamic
-const ENC_PREFIX: &'static str = "encoder-";
+const ENC_PREFIX: &str = "encoder-";
 
 static CAT: Lazy<gst::DebugCategory> = Lazy::new(|| {
     gst::DebugCategory::new(
@@ -130,26 +130,24 @@ impl ObjectImpl for Hype {
                 self.scenedetector.set_property("gop-size", value);
             }
             enc if enc.starts_with(ENC_PREFIX) => {
-                if let Some(_) = self.obj().by_name(enc) {
+                if self.obj().by_name(enc).is_some() {
                     gst::warning!(
                         CAT,
                         "The element {enc} already exists in the bin. Not adding it."
                     );
-                } else {
-                    if let Ok(Some(enc_obj)) = value.get::<Option<gst::Element>>() {
-                        let factory = enc_obj
-                            .factory()
-                            .expect("The element has not type. Not adding it.");
-                        if !factory.has_type(gst::ElementFactoryType::VIDEO_ENCODER)
-                            && factory.name() != "identity"
-                        {
-                            gst::error!(CAT, "The element is not a video encoder");
-                            panic!("The element is not a video encoder");
-                        }
-
-                        enc_obj.set_property("name", enc);
-                        self.obj().add(&enc_obj).unwrap();
+                } else if let Ok(Some(enc_obj)) = value.get::<Option<gst::Element>>() {
+                    let factory = enc_obj
+                        .factory()
+                        .expect("The element has not type. Not adding it.");
+                    if !factory.has_type(gst::ElementFactoryType::VIDEO_ENCODER)
+                        && factory.name() != "identity"
+                    {
+                        gst::error!(CAT, "The element is not a video encoder");
+                        panic!("The element is not a video encoder");
                     }
+
+                    enc_obj.set_property("name", enc);
+                    self.obj().add(&enc_obj).unwrap();
                 }
             }
             _ => unimplemented!(),
@@ -235,7 +233,7 @@ impl ElementImpl for Hype {
         &self,
         transition: gst::StateChange,
     ) -> Result<gst::StateChangeSuccess, gst::StateChangeError> {
-        gst::trace!(CAT, imp: self, "Changing state {:?}", transition);
+        gst::trace!(CAT, imp = self, "Changing state {:?}", transition);
 
         if let gst::StateChange::NullToReady = transition {
             if !self.create_pipeline() {
