@@ -47,9 +47,11 @@ jobs:
         run: |
           cargo build --workspace --release --locked
           make install PREFIX="$RUNNER_TEMP/prefix" PLUGIN_DIR="$RUNNER_TEMP/plugins"
-          GST_PLUGIN_PATH_1_0="$RUNNER_TEMP/plugins" \
-          GST_REGISTRY="$RUNNER_TEMP/registry.bin" \
-            gst-inspect-1.0 hype
+          for plugin in hype injectbin; do
+            GST_PLUGIN_PATH_1_0="$RUNNER_TEMP/plugins" \
+            GST_REGISTRY="$RUNNER_TEMP/registry.bin" \
+              gst-inspect-1.0 "$plugin"
+          done
 
   c:
     name: C (meson)
