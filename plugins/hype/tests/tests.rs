@@ -133,8 +133,17 @@ fn test_identity3() {
 #[test]
 fn test_incompatible_encoders() {
     init();
+
+    // This test needs real video encoders; skip it on systems without them.
+    if gst::ElementFactory::find("x264enc").is_none()
+        || gst::ElementFactory::find("x265enc").is_none()
+    {
+        eprintln!("Skipping test_incompatible_encoders: x264enc/x265enc not available");
+        return;
+    }
+
     let pipeline =
-        gst::parse_launch("videotestsrc ! hype encoder-0=x264enc encoder-1=x265enc ! fakesink")
+        gst::parse::launch("videotestsrc ! hype encoder-0=x264enc encoder-1=x265enc ! fakesink")
             .unwrap();
     assert!(pipeline.set_state(gst::State::Playing).is_err());
 }

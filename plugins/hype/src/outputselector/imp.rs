@@ -177,7 +177,7 @@ impl ElementImpl for HypeOutputSelector {
         self.obj().add(&queue).unwrap();
 
         let srcpad = gst::GhostPad::builder_from_template_with_target(
-            &templ,
+            templ,
             &queue.static_pad("src").unwrap(),
         )
         .unwrap()

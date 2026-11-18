@@ -4,7 +4,8 @@ use gst::prelude::*;
 mod imp;
 
 glib::wrapper! {
-    pub struct SceneDetector(ObjectSubclass<imp::SceneDetector>) @extends gst_base::BaseTransform, gst::Element, gst::Object;
+    pub struct SceneDetector(ObjectSubclass<imp::SceneDetector>)
+        @extends gst_video::VideoFilter, gst_base::BaseTransform, gst::Element, gst::Object;
 }
 
 pub fn register(plugin: &gst::Plugin) -> Result<(), glib::BoolError> {
